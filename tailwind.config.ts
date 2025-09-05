@@ -63,6 +63,17 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				}
 			},
+			backgroundImage: {
+				'gradient-dawn': 'var(--gradient-dawn)',
+				'gradient-sunrise': 'var(--gradient-sunrise)',
+				'gradient-morning': 'var(--gradient-morning)'
+			},
+			boxShadow: {
+				'glass': 'var(--glass-shadow)',
+			},
+			backdropBlur: {
+				'glass': '10px',
+			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
