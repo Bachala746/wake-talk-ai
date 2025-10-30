@@ -77,11 +77,11 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
       utterance.onstart = () => setIsPlaying(true);
       utterance.onend = () => {
         setIsPlaying(false);
-        // Speak another message after a short pause if still in call
-        if (elapsedTime < (talkDuration * 60) - 30) {
+        // Keep speaking throughout the entire duration
+        if (elapsedTime < (talkDuration * 60) - 5) {
           setTimeout(() => {
             if (isConnected) speakMessage();
-          }, 3000);
+          }, 2000);
         }
       };
       
