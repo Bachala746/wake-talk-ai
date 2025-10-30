@@ -16,6 +16,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   const [elapsedTime, setElapsedTime] = useState(0);
   const [currentMessage, setCurrentMessage] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
+  const [snoozedCount, setSnoozedCount] = useState(0);
 
   const motivationalMessages = [
     "Good morning, champion! Today is a brand new day full of endless possibilities. You have the power to make it amazing!",
@@ -26,6 +27,16 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
     "Rise up, warrior! You have overcome challenges before, and you will conquer today too. Your strength is inspiring!",
     "Good morning, sunshine! You are capable of incredible things. Trust yourself and let your light shine bright today.",
     "Hello, amazing soul! Each morning is a fresh start, a new chapter. Write a beautiful story with your day today!"
+  ];
+
+  const antiSnoozeMessages = [
+    "Wait! Don't hit that snooze button! Those extra minutes won't make you feel better, but getting up NOW will set the tone for an incredible day!",
+    "Hold on, champion! Snoozing is just borrowing time from your dreams. Get up now and you'll thank yourself later!",
+    "Hey, I know the bed is cozy, but greatness never came from the snooze button! Your goals are waiting for you - let's go!",
+    "Stop right there! Every time you snooze, you're telling yourself that sleep is more important than your dreams. Prove yourself wrong - get up NOW!",
+    "Listen to me - the difference between successful people and everyone else? They don't snooze! You have it in you to be great, starting RIGHT NOW!",
+    "No no no! That snooze button is a trap! The best version of you is waiting on the other side of getting up. Let's do this together!",
+    "Think about it - would your future self thank you for those 5 extra minutes, or for starting the day strong? Get up, warrior!"
   ];
 
   useEffect(() => {
@@ -97,6 +108,35 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
     onEndCall();
   };
 
+  const handleSnooze = () => {
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+    }
+    
+    setSnoozedCount(prev => prev + 1);
+    const snoozeMessage = antiSnoozeMessages[Math.floor(Math.random() * antiSnoozeMessages.length)];
+    setCurrentMessage(snoozeMessage);
+    
+    toast.warning(`Snooze attempt #${snoozedCount + 1} - Listen to this!`);
+    
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(snoozeMessage);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.2;
+      utterance.volume = 1.0;
+      
+      utterance.onstart = () => setIsPlaying(true);
+      utterance.onend = () => {
+        setIsPlaying(false);
+        setTimeout(() => {
+          if (isConnected) speakMessage();
+        }, 2000);
+      };
+      
+      speechSynthesis.speak(utterance);
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -162,15 +202,25 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
           )}
           
           {isConnected && (
-            <Button
-              onClick={handleManualEndCall}
-              variant="destructive"
-              size="lg"
-              className="px-8"
-            >
-              <PhoneOff className="h-4 w-4 mr-2" />
-              End Call
-            </Button>
+            <>
+              <Button
+                onClick={handleSnooze}
+                variant="outline"
+                size="lg"
+                className="px-6"
+              >
+                Snooze
+              </Button>
+              <Button
+                onClick={handleManualEndCall}
+                variant="destructive"
+                size="lg"
+                className="px-8"
+              >
+                <PhoneOff className="h-4 w-4 mr-2" />
+                End Call
+              </Button>
+            </>
           )}
         </div>
 
