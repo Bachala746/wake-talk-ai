@@ -62,7 +62,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
         oscillator.frequency.value = 800; // Hz
         oscillator.type = 'sine';
         
-        gainNode.gain.setValueAtTime(0.3, audioContextRef.current.currentTime);
+        gainNode.gain.setValueAtTime(0.5, audioContextRef.current.currentTime); // Increased volume
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContextRef.current.currentTime + 0.3);
         
         oscillator.start(audioContextRef.current.currentTime);
@@ -142,7 +142,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
       const utterance = new SpeechSynthesisUtterance(randomMessage);
       utterance.rate = 0.9;
       utterance.pitch = 1.1;
-      utterance.volume = 0.8;
+      utterance.volume = 1.0; // Maximum volume
       
       utterance.onstart = () => setIsPlaying(true);
       utterance.onend = () => {
