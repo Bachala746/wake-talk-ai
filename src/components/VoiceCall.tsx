@@ -22,6 +22,8 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   const elapsedTimeRef = useRef(0);
   const audioContextRef = useRef<AudioContext | null>(null);
   const ringtoneIntervalRef = useRef<number | null>(null);
+  const speechTimeoutRef = useRef<number | null>(null);
+  const lastSpeechTimeRef = useRef(0);
 
   const motivationalMessages = [
     "Good morning, champion! Today is a brand new day full of endless possibilities. You have the power to make it amazing!",
@@ -112,12 +114,22 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
           
           // After 30 seconds, stop ringtone and start motivation
           if (newTime === 30 && isRingtonePhase) {
+            console.log("Stopping ringtone, starting motivation");
             setIsRingtonePhase(false);
             stopRingtone();
             setCurrentMessage("Ringtone ended. Starting your motivation session...");
             setTimeout(() => {
               speakMessage();
             }, 1000);
+          }
+          
+          // Watchdog: If no speech in last 10 seconds and should be speaking, retry
+          if (!isRingtonePhase && newTime > 35 && shouldContinueSpeaking.current) {
+            const timeSinceLastSpeech = Date.now() - lastSpeechTimeRef.current;
+            if (timeSinceLastSpeech > 10000 && !speechSynthesis.speaking) {
+              console.log("Watchdog: Restarting speech");
+              speakMessage();
+            }
           }
           
           return newTime;
@@ -132,35 +144,86 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   }, [isConnected, elapsedTime, talkDuration, isRingtonePhase]);
 
   const speakMessage = () => {
-    if (!shouldContinueSpeaking.current || isRingtonePhase) return;
+    if (!shouldContinueSpeaking.current || isRingtonePhase) {
+      console.log("Speech blocked:", { shouldContinue: shouldContinueSpeaking.current, isRingtone: isRingtonePhase });
+      return;
+    }
+    
+    // Clear any pending speech timeout
+    if (speechTimeoutRef.current) {
+      clearTimeout(speechTimeoutRef.current);
+    }
     
     const randomMessage = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
     setCurrentMessage(randomMessage);
+    console.log("Starting speech:", randomMessage.substring(0, 30) + "...");
     
-    // Use browser's speech synthesis as a fallback
+    // Use browser's speech synthesis
     if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(randomMessage);
-      utterance.rate = 0.9;
-      utterance.pitch = 1.1;
-      utterance.volume = 1.0; // Maximum volume
+      // Cancel any ongoing speech
+      speechSynthesis.cancel();
       
-      utterance.onstart = () => setIsPlaying(true);
-      utterance.onend = () => {
-        setIsPlaying(false);
-        // Continue speaking if still within duration
-        if (shouldContinueSpeaking.current && elapsedTimeRef.current < (talkDuration * 60) - 3) {
-          setTimeout(() => {
-            speakMessage();
-          }, 1500);
+      // Wait a moment for cancel to complete
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(randomMessage);
+        utterance.rate = 0.9;
+        utterance.pitch = 1.1;
+        utterance.volume = 1.0;
+        
+        utterance.onstart = () => {
+          console.log("Speech started");
+          setIsPlaying(true);
+          lastSpeechTimeRef.current = Date.now();
+        };
+        
+        utterance.onend = () => {
+          console.log("Speech ended normally");
+          setIsPlaying(false);
+          // Continue speaking if still within duration
+          if (shouldContinueSpeaking.current && elapsedTimeRef.current < (talkDuration * 60) - 3) {
+            speechTimeoutRef.current = window.setTimeout(() => {
+              speakMessage();
+            }, 1500);
+          }
+        };
+        
+        utterance.onerror = (event) => {
+          console.error("Speech error:", event);
+          setIsPlaying(false);
+          // Retry after error
+          if (shouldContinueSpeaking.current && elapsedTimeRef.current < (talkDuration * 60) - 3) {
+            speechTimeoutRef.current = window.setTimeout(() => {
+              speakMessage();
+            }, 2000);
+          }
+        };
+        
+        try {
+          speechSynthesis.speak(utterance);
+          console.log("Speech utterance queued");
+        } catch (error) {
+          console.error("Failed to speak:", error);
+          setIsPlaying(false);
+          // Retry on exception
+          if (shouldContinueSpeaking.current && elapsedTimeRef.current < (talkDuration * 60) - 3) {
+            speechTimeoutRef.current = window.setTimeout(() => {
+              speakMessage();
+            }, 2000);
+          }
         }
-      };
-      
-      speechSynthesis.speak(utterance);
+      }, 100);
+    } else {
+      console.error("Speech synthesis not supported");
+      setCurrentMessage(randomMessage + " (Speech not supported in this browser)");
     }
   };
 
   const handleAutoEndCall = () => {
+    console.log("Auto ending call");
     shouldContinueSpeaking.current = false;
+    if (speechTimeoutRef.current) {
+      clearTimeout(speechTimeoutRef.current);
+    }
     stopRingtone();
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
@@ -174,7 +237,11 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   };
 
   const handleManualEndCall = () => {
+    console.log("Manual ending call");
     shouldContinueSpeaking.current = false;
+    if (speechTimeoutRef.current) {
+      clearTimeout(speechTimeoutRef.current);
+    }
     stopRingtone();
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
@@ -186,10 +253,15 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   };
 
   const handleSnooze = () => {
+    console.log("Snooze pressed");
     // Stop ringtone if still playing
     if (isRingtonePhase) {
       stopRingtone();
       setIsRingtonePhase(false);
+    }
+    
+    if (speechTimeoutRef.current) {
+      clearTimeout(speechTimeoutRef.current);
     }
     
     if ('speechSynthesis' in window) {
@@ -203,20 +275,32 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
     toast.warning(`Snooze attempt #${snoozedCount + 1} - Listen to this!`);
     
     if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(snoozeMessage);
-      utterance.rate = 1.0;
-      utterance.pitch = 1.2;
-      utterance.volume = 1.0;
-      
-      utterance.onstart = () => setIsPlaying(true);
-      utterance.onend = () => {
-        setIsPlaying(false);
-        setTimeout(() => {
-          if (shouldContinueSpeaking.current) speakMessage();
-        }, 1500);
-      };
-      
-      speechSynthesis.speak(utterance);
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(snoozeMessage);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.2;
+        utterance.volume = 1.0;
+        
+        utterance.onstart = () => {
+          setIsPlaying(true);
+          lastSpeechTimeRef.current = Date.now();
+        };
+        utterance.onend = () => {
+          setIsPlaying(false);
+          speechTimeoutRef.current = window.setTimeout(() => {
+            if (shouldContinueSpeaking.current) speakMessage();
+          }, 1500);
+        };
+        utterance.onerror = (event) => {
+          console.error("Snooze speech error:", event);
+          setIsPlaying(false);
+          speechTimeoutRef.current = window.setTimeout(() => {
+            if (shouldContinueSpeaking.current) speakMessage();
+          }, 2000);
+        };
+        
+        speechSynthesis.speak(utterance);
+      }, 100);
     }
   };
 
