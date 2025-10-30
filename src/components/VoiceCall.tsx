@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -17,6 +17,8 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   const [currentMessage, setCurrentMessage] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [snoozedCount, setSnoozedCount] = useState(0);
+  const shouldContinueSpeaking = useRef(true);
+  const elapsedTimeRef = useRef(0);
 
   const motivationalMessages = [
     "Good morning, champion! Today is a brand new day full of endless possibilities. You have the power to make it amazing!",
@@ -54,16 +56,23 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   useEffect(() => {
     if (isConnected && elapsedTime < talkDuration * 60) {
       const timer = setInterval(() => {
-        setElapsedTime(prev => prev + 1);
+        setElapsedTime(prev => {
+          const newTime = prev + 1;
+          elapsedTimeRef.current = newTime;
+          return newTime;
+        });
       }, 1000);
 
       return () => clearInterval(timer);
     } else if (elapsedTime >= talkDuration * 60) {
+      shouldContinueSpeaking.current = false;
       handleAutoEndCall();
     }
   }, [isConnected, elapsedTime, talkDuration]);
 
   const speakMessage = () => {
+    if (!shouldContinueSpeaking.current) return;
+    
     const randomMessage = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
     setCurrentMessage(randomMessage);
     
@@ -77,11 +86,11 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
       utterance.onstart = () => setIsPlaying(true);
       utterance.onend = () => {
         setIsPlaying(false);
-        // Keep speaking throughout the entire duration
-        if (elapsedTime < (talkDuration * 60) - 5) {
+        // Continue speaking if still within duration
+        if (shouldContinueSpeaking.current && elapsedTimeRef.current < (talkDuration * 60) - 3) {
           setTimeout(() => {
-            if (isConnected) speakMessage();
-          }, 2000);
+            speakMessage();
+          }, 1500);
         }
       };
       
@@ -90,6 +99,10 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   };
 
   const handleAutoEndCall = () => {
+    shouldContinueSpeaking.current = false;
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+    }
     setIsConnected(false);
     setIsPlaying(false);
     toast.success("Have an amazing day ahead! 🌟");
@@ -99,6 +112,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   };
 
   const handleManualEndCall = () => {
+    shouldContinueSpeaking.current = false;
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
     }
@@ -129,8 +143,8 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
       utterance.onend = () => {
         setIsPlaying(false);
         setTimeout(() => {
-          if (isConnected) speakMessage();
-        }, 2000);
+          if (shouldContinueSpeaking.current) speakMessage();
+        }, 1500);
       };
       
       speechSynthesis.speak(utterance);
