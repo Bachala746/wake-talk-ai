@@ -17,8 +17,11 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   const [currentMessage, setCurrentMessage] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [snoozedCount, setSnoozedCount] = useState(0);
+  const [isRingtonePhase, setIsRingtonePhase] = useState(true);
   const shouldContinueSpeaking = useRef(true);
   const elapsedTimeRef = useRef(0);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const ringtoneIntervalRef = useRef<number | null>(null);
 
   const motivationalMessages = [
     "Good morning, champion! Today is a brand new day full of endless possibilities. You have the power to make it amazing!",
@@ -41,16 +44,63 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
     "Think about it - would your future self thank you for those 5 extra minutes, or for starting the day strong? Get up, warrior!"
   ];
 
+  const playRingtone = () => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      audioContextRef.current = audioContext;
+      
+      const playRingtonePulse = () => {
+        if (!audioContextRef.current || !isRingtonePhase) return;
+        
+        // Create oscillator for ringtone
+        const oscillator = audioContextRef.current.createOscillator();
+        const gainNode = audioContextRef.current.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContextRef.current.destination);
+        
+        oscillator.frequency.value = 800; // Hz
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContextRef.current.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContextRef.current.currentTime + 0.3);
+        
+        oscillator.start(audioContextRef.current.currentTime);
+        oscillator.stop(audioContextRef.current.currentTime + 0.3);
+      };
+      
+      // Play ringtone pulse every 1 second
+      playRingtonePulse();
+      ringtoneIntervalRef.current = window.setInterval(playRingtonePulse, 1000);
+    } catch (error) {
+      console.error("Error playing ringtone:", error);
+    }
+  };
+
+  const stopRingtone = () => {
+    if (ringtoneIntervalRef.current) {
+      clearInterval(ringtoneIntervalRef.current);
+      ringtoneIntervalRef.current = null;
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+  };
+
   useEffect(() => {
     // Simulate connection
     const connectTimer = setTimeout(() => {
       setIsConnected(true);
       setIsPlaying(true);
       toast.success("AI Motivator connected! 🌅");
-      speakMessage();
+      playRingtone();
     }, 2000);
 
-    return () => clearTimeout(connectTimer);
+    return () => {
+      clearTimeout(connectTimer);
+      stopRingtone();
+    };
   }, []);
 
   useEffect(() => {
@@ -59,6 +109,17 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
         setElapsedTime(prev => {
           const newTime = prev + 1;
           elapsedTimeRef.current = newTime;
+          
+          // After 30 seconds, stop ringtone and start motivation
+          if (newTime === 30 && isRingtonePhase) {
+            setIsRingtonePhase(false);
+            stopRingtone();
+            setCurrentMessage("Ringtone ended. Starting your motivation session...");
+            setTimeout(() => {
+              speakMessage();
+            }, 1000);
+          }
+          
           return newTime;
         });
       }, 1000);
@@ -68,10 +129,10 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
       shouldContinueSpeaking.current = false;
       handleAutoEndCall();
     }
-  }, [isConnected, elapsedTime, talkDuration]);
+  }, [isConnected, elapsedTime, talkDuration, isRingtonePhase]);
 
   const speakMessage = () => {
-    if (!shouldContinueSpeaking.current) return;
+    if (!shouldContinueSpeaking.current || isRingtonePhase) return;
     
     const randomMessage = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
     setCurrentMessage(randomMessage);
@@ -100,6 +161,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
 
   const handleAutoEndCall = () => {
     shouldContinueSpeaking.current = false;
+    stopRingtone();
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
     }
@@ -113,6 +175,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
 
   const handleManualEndCall = () => {
     shouldContinueSpeaking.current = false;
+    stopRingtone();
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
     }
@@ -123,6 +186,12 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   };
 
   const handleSnooze = () => {
+    // Stop ringtone if still playing
+    if (isRingtonePhase) {
+      stopRingtone();
+      setIsRingtonePhase(false);
+    }
+    
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
     }
@@ -199,9 +268,12 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
               <Progress value={progress} className="h-2" />
             </div>
 
-            <div className="bg-gradient-morning rounded-lg p-4 mb-6 min-h-[120px] flex items-center">
-              <p className="text-sm text-foreground italic leading-relaxed">
-                {currentMessage || "Preparing your morning motivation..."}
+            <div className="bg-gradient-morning rounded-lg p-4 mb-6 min-h-[120px] flex items-center justify-center">
+              <p className="text-sm text-foreground italic leading-relaxed text-center">
+                {isRingtonePhase 
+                  ? `🔔 Ringing... (${30 - elapsedTime}s remaining)`
+                  : currentMessage || "Preparing your morning motivation..."
+                }
               </p>
             </div>
           </>
