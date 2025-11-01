@@ -144,8 +144,9 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   }, [isConnected, elapsedTime, talkDuration, isRingtonePhase]);
 
   const speakMessage = () => {
-    if (!shouldContinueSpeaking.current || isRingtonePhase) {
-      console.log("Speech blocked:", { shouldContinue: shouldContinueSpeaking.current, isRingtone: isRingtonePhase });
+    // Check elapsed time directly instead of state to avoid race conditions
+    if (!shouldContinueSpeaking.current || elapsedTimeRef.current < 30) {
+      console.log("Speech blocked:", { shouldContinue: shouldContinueSpeaking.current, elapsedTime: elapsedTimeRef.current });
       return;
     }
     
