@@ -26,14 +26,18 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   const lastSpeechTimeRef = useRef(0);
 
   const motivationalMessages = [
-    "Good morning, champion! Today is a brand new day full of endless possibilities. You have the power to make it amazing!",
-    "Rise and shine! You've been given another precious day to chase your dreams and make a difference in the world.",
-    "Hello there, superstar! Remember, every sunrise brings new opportunities. You've got this, and I believe in you!",
-    "Good morning, wonderful human! Today is your canvas - paint it with beautiful moments and positive energy.",
-    "Wake up, dreamer! The world is waiting for your unique gifts and talents. Let's make today extraordinary together!",
-    "Rise up, warrior! You have overcome challenges before, and you will conquer today too. Your strength is inspiring!",
-    "Good morning, sunshine! You are capable of incredible things. Trust yourself and let your light shine bright today.",
-    "Hello, amazing soul! Each morning is a fresh start, a new chapter. Write a beautiful story with your day today!"
+    "Good morning, champion! Today is a brand new day full of endless possibilities. You have the power within you to make it absolutely amazing! Remember, every great achievement started with someone who decided to wake up and take action. That someone is you today!",
+    "Rise and shine, beautiful soul! You've been given another precious day to chase your dreams and make a real difference in the world. Think about all the people whose lives you'll touch today, all the smiles you'll create, all the positive energy you'll spread!",
+    "Hello there, superstar! Remember, every sunrise brings new opportunities and fresh beginnings. You've got this, and I truly believe in you! The universe has aligned perfectly for you to shine today. Your potential is limitless!",
+    "Good morning, wonderful human! Today is your canvas, a blank page waiting for your unique touch. Paint it with beautiful moments, positive energy, and meaningful connections. You are the artist of your own life!",
+    "Wake up, dreamer! The world is eagerly waiting for your unique gifts and incredible talents. Let's make today not just good, but truly extraordinary together! Your dreams are valid, and today is the perfect day to take one step closer to them!",
+    "Rise up, warrior! You have overcome so many challenges before, and you will absolutely conquer today too. Your strength, resilience, and determination are truly inspiring! Today is another opportunity to prove to yourself just how powerful you really are!",
+    "Good morning, sunshine! You are capable of incredible, amazing things that will blow your own mind! Trust yourself completely and let your brilliant light shine bright today. The world needs your unique energy and perspective!",
+    "Hello, amazing soul! Each morning is a fresh start, a brand new chapter in your incredible story. Write a beautiful, inspiring story with your day today! Make it a chapter you'll be proud to look back on!",
+    "Welcome to this glorious new day, champion! You woke up today with a purpose, with a mission. Even if you don't know exactly what it is yet, trust that you're exactly where you need to be. Every breath is a gift, every moment is an opportunity!",
+    "Good morning, incredible human being! Today, you have 24 brand new hours, 1,440 minutes, 86,400 seconds of pure potential ahead of you. How will you use this precious gift? Make it count, make it meaningful, make it yours!",
+    "Rise and conquer, unstoppable force! You have within you right now everything you need to make today successful. Your thoughts are powerful, your actions matter, and your presence makes a difference. Go out there and show the world what you're made of!",
+    "Hello brilliant mind! Did you know that simply by waking up today, you've already won? You've been given another chance to learn, to grow, to love, to create. Don't waste this magnificent opportunity. Seize it with both hands and make magic happen!"
   ];
 
   const antiSnoozeMessages = [
@@ -97,6 +101,10 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
       setIsPlaying(true);
       toast.success("AI Motivator connected! 🌅");
       playRingtone();
+      // Start motivation immediately along with ringtone
+      setTimeout(() => {
+        speakMessage();
+      }, 1000);
     }, 2000);
 
     return () => {
@@ -112,15 +120,11 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
           const newTime = prev + 1;
           elapsedTimeRef.current = newTime;
           
-          // After 30 seconds, stop ringtone and start motivation
+          // After 30 seconds, stop ringtone but continue motivation
           if (newTime === 30 && isRingtonePhase) {
-            console.log("Stopping ringtone, starting motivation");
+            console.log("Stopping ringtone, continuing motivation");
             setIsRingtonePhase(false);
             stopRingtone();
-            setCurrentMessage("Ringtone ended. Starting your motivation session...");
-            setTimeout(() => {
-              speakMessage();
-            }, 1000);
           }
           
           // Watchdog: If no speech in last 10 seconds and should be speaking, retry
@@ -355,10 +359,8 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
 
             <div className="bg-gradient-morning rounded-lg p-4 mb-6 min-h-[120px] flex items-center justify-center">
               <p className="text-sm text-foreground italic leading-relaxed text-center">
-                {isRingtonePhase 
-                  ? `🔔 Ringing... (${30 - elapsedTime}s remaining)`
-                  : currentMessage || "Preparing your morning motivation..."
-                }
+                {isRingtonePhase && `🔔 Ringtone: ${30 - elapsedTime}s remaining\n\n`}
+                {currentMessage || "Connecting to your AI motivator..."}
               </p>
             </div>
           </>
