@@ -149,7 +149,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
             <div className="bg-gradient-morning rounded-lg p-4 text-center">
               <div className="text-sm text-muted-foreground">Alarm set for</div>
               <div className="text-xl font-bold text-foreground">{alarmTime}</div>
-              <div className="text-sm text-accent">Time remaining: {timeUntilAlarm}</div>
+              <div className="text-sm font-semibold text-primary">Time remaining: {timeUntilAlarm}</div>
             </div>
           )}
 
