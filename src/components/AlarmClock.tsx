@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Clock, Phone, Settings, Sun, Moon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -17,6 +18,9 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [talkDuration, setTalkDuration] = useState([5]);
   const [isAlarmSet, setIsAlarmSet] = useState(false);
   const [timeUntilAlarm, setTimeUntilAlarm] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [alarmLabel, setAlarmLabel] = useState("Wake up");
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -59,7 +63,15 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
 
   const handleSetAlarm = () => {
     setIsAlarmSet(true);
-    toast.success(`Alarm set for ${alarmTime} with ${talkDuration[0]} minute motivation session!`);
+    setIsDialogOpen(false);
+    const daysText = selectedDays.length > 0 ? ` on ${selectedDays.join(', ')}` : '';
+    toast.success(`Alarm "${alarmLabel}" set for ${alarmTime}${daysText} with ${talkDuration[0]} minute motivation session!`);
+  };
+
+  const toggleDay = (day: string) => {
+    setSelectedDays(prev => 
+      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+    );
   };
 
   const handleCancelAlarm = () => {
@@ -156,7 +168,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           <div className="flex gap-3">
             {!isAlarmSet ? (
               <Button 
-                onClick={handleSetAlarm}
+                onClick={() => setIsDialogOpen(true)}
                 className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-3"
                 size="lg"
               >
@@ -186,6 +198,85 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           </div>
         </div>
       </Card>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-primary" />
+              New AI Alarm
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            <div>
+              <Label htmlFor="dialog-alarm-time" className="text-sm font-medium mb-2 block">
+                Time
+              </Label>
+              <Input
+                id="dialog-alarm-time"
+                type="time"
+                value={alarmTime}
+                onChange={(e) => setAlarmTime(e.target.value)}
+                className="text-lg p-3"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="alarm-label" className="text-sm font-medium mb-2 block">
+                Label
+              </Label>
+              <Input
+                id="alarm-label"
+                type="text"
+                value={alarmLabel}
+                onChange={(e) => setAlarmLabel(e.target.value)}
+                placeholder="Wake up"
+                className="p-3"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium mb-3 block">
+                Repeat Days
+              </Label>
+              <div className="flex gap-2 flex-wrap">
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                  <Button
+                    key={day}
+                    type="button"
+                    variant={selectedDays.includes(day) ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleDay(day)}
+                    className="px-4"
+                  >
+                    {day}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              className="flex-1 sm:flex-none"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSetAlarm}
+              className="flex-1 sm:flex-none"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Save Alarm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
