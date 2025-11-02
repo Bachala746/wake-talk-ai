@@ -268,6 +268,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
       clearTimeout(speechTimeoutRef.current);
     }
     
+    // Cancel any ongoing speech
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
     }
@@ -278,33 +279,54 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
     
     toast.warning(`Snooze attempt #${snoozedCount + 1} - Listen to this!`);
     
+    // Wait longer for speech synthesis to fully reset before starting new speech
     if ('speechSynthesis' in window) {
+      setIsPlaying(false);
+      
       setTimeout(() => {
-        const utterance = new SpeechSynthesisUtterance(snoozeMessage);
-        utterance.rate = 1.0;
-        utterance.pitch = 1.2;
-        utterance.volume = 1.0;
+        // Double-check cancellation completed
+        speechSynthesis.cancel();
         
-        utterance.onstart = () => {
-          setIsPlaying(true);
-          lastSpeechTimeRef.current = Date.now();
-        };
-        utterance.onend = () => {
-          setIsPlaying(false);
-          speechTimeoutRef.current = window.setTimeout(() => {
-            if (shouldContinueSpeaking.current) speakMessage();
-          }, 1500);
-        };
-        utterance.onerror = (event) => {
-          console.error("Snooze speech error:", event);
-          setIsPlaying(false);
-          speechTimeoutRef.current = window.setTimeout(() => {
-            if (shouldContinueSpeaking.current) speakMessage();
-          }, 2000);
-        };
-        
-        speechSynthesis.speak(utterance);
-      }, 100);
+        setTimeout(() => {
+          const utterance = new SpeechSynthesisUtterance(snoozeMessage);
+          utterance.rate = 1.0;
+          utterance.pitch = 1.2;
+          utterance.volume = 1.0;
+          
+          utterance.onstart = () => {
+            console.log("Snooze message speech started");
+            setIsPlaying(true);
+            lastSpeechTimeRef.current = Date.now();
+          };
+          
+          utterance.onend = () => {
+            console.log("Snooze message speech ended");
+            setIsPlaying(false);
+            speechTimeoutRef.current = window.setTimeout(() => {
+              if (shouldContinueSpeaking.current) speakMessage();
+            }, 1500);
+          };
+          
+          utterance.onerror = (event) => {
+            console.error("Snooze speech error:", event);
+            setIsPlaying(false);
+            speechTimeoutRef.current = window.setTimeout(() => {
+              if (shouldContinueSpeaking.current) speakMessage();
+            }, 2000);
+          };
+          
+          try {
+            speechSynthesis.speak(utterance);
+            console.log("Snooze speech utterance queued");
+          } catch (error) {
+            console.error("Failed to speak snooze message:", error);
+            setIsPlaying(false);
+            speechTimeoutRef.current = window.setTimeout(() => {
+              if (shouldContinueSpeaking.current) speakMessage();
+            }, 2000);
+          }
+        }, 300);
+      }, 200);
     }
   };
 
