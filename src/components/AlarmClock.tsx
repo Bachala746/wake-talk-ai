@@ -219,9 +219,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           {/* Alarms List */}
           <div className="space-y-3">
             {alarms.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Clock className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>No alarms set</p>
+              <div className="text-center py-8">
+                <Clock className="h-12 w-12 mx-auto mb-3 text-primary/60" />
+                <p className="text-lg font-medium text-foreground mb-1">Ready to start your day right?</p>
+                <p className="text-sm text-muted-foreground">Add your first AI-powered motivational alarm!</p>
               </div>
             ) : (
               alarms.map((alarm) => (
