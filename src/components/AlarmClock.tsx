@@ -5,8 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Clock, Phone, Settings, Sun, Moon } from "lucide-react";
+import { Clock, Phone, Settings, Sun, Moon, Trash2, Edit } from "lucide-react";
 import { toast } from "sonner";
+
+interface Alarm {
+  id: string;
+  time: string;
+  label: string;
+  duration: number;
+  days: string[];
+  isActive: boolean;
+}
 
 interface AlarmClockProps {
   onStartCall: (alarmTime: string, talkDuration: number) => void;
@@ -14,13 +23,30 @@ interface AlarmClockProps {
 
 export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [alarmTime, setAlarmTime] = useState("07:00");
-  const [talkDuration, setTalkDuration] = useState([5]);
-  const [isAlarmSet, setIsAlarmSet] = useState(false);
-  const [timeUntilAlarm, setTimeUntilAlarm] = useState("");
+  const [alarms, setAlarms] = useState<Alarm[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingAlarmId, setEditingAlarmId] = useState<string | null>(null);
+  
+  // Form states
+  const [alarmTime, setAlarmTime] = useState("07:00");
   const [alarmLabel, setAlarmLabel] = useState("Wake up");
+  const [talkDuration, setTalkDuration] = useState([5]);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
+
+  // Load alarms from localStorage
+  useEffect(() => {
+    const savedAlarms = localStorage.getItem('alarms');
+    if (savedAlarms) {
+      setAlarms(JSON.parse(savedAlarms));
+    }
+  }, []);
+
+  // Save alarms to localStorage
+  useEffect(() => {
+    if (alarms.length > 0) {
+      localStorage.setItem('alarms', JSON.stringify(alarms));
+    }
+  }, [alarms]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -30,42 +56,62 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     return () => clearInterval(timer);
   }, []);
 
+  // Check all active alarms
   useEffect(() => {
-    if (isAlarmSet) {
-      const now = new Date();
-      const [hours, minutes] = alarmTime.split(':').map(Number);
+    const now = new Date();
+    
+    alarms.forEach((alarm) => {
+      if (!alarm.isActive) return;
+      
+      const [hours, minutes] = alarm.time.split(':').map(Number);
       const alarmDate = new Date();
       alarmDate.setHours(hours, minutes, 0, 0);
       
-      // If alarm time is earlier than now, set it for tomorrow
       if (alarmDate <= now) {
         alarmDate.setDate(alarmDate.getDate() + 1);
       }
       
       const timeDiff = alarmDate.getTime() - now.getTime();
-      const hoursLeft = Math.floor(timeDiff / (1000 * 60 * 60));
-      const minutesLeft = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
       
-      setTimeUntilAlarm(`${hoursLeft}h ${minutesLeft}m`);
-      
-      // Check if it's time for the alarm
+      // Trigger alarm if within 1 second window
       if (timeDiff <= 1000 && timeDiff > -1000) {
-        handleAlarmTrigger();
+        handleAlarmTrigger(alarm);
       }
-    }
-  }, [currentTime, alarmTime, isAlarmSet]);
+    });
+  }, [currentTime, alarms]);
 
-  const handleAlarmTrigger = () => {
-    setIsAlarmSet(false);
-    toast.success("Good morning! Your AI motivator is calling you!");
-    onStartCall(alarmTime, talkDuration[0]);
+  const handleAlarmTrigger = (alarm: Alarm) => {
+    setAlarms(prev => prev.map(a => 
+      a.id === alarm.id ? { ...a, isActive: false } : a
+    ));
+    toast.success(`Good morning! "${alarm.label}" - Your AI motivator is calling you!`);
+    onStartCall(alarm.time, alarm.duration);
   };
 
-  const handleSetAlarm = () => {
-    setIsAlarmSet(true);
-    setIsDialogOpen(false);
-    const daysText = selectedDays.length > 0 ? ` on ${selectedDays.join(', ')}` : '';
-    toast.success(`Alarm "${alarmLabel}" set for ${alarmTime}${daysText} with ${talkDuration[0]} minute motivation session!`);
+  const handleSaveAlarm = () => {
+    if (editingAlarmId) {
+      // Update existing alarm
+      setAlarms(prev => prev.map(a => 
+        a.id === editingAlarmId 
+          ? { ...a, time: alarmTime, label: alarmLabel, duration: talkDuration[0], days: selectedDays }
+          : a
+      ));
+      toast.success(`Alarm "${alarmLabel}" updated!`);
+    } else {
+      // Create new alarm
+      const newAlarm: Alarm = {
+        id: Date.now().toString(),
+        time: alarmTime,
+        label: alarmLabel,
+        duration: talkDuration[0],
+        days: selectedDays,
+        isActive: true
+      };
+      setAlarms(prev => [...prev, newAlarm]);
+      const daysText = selectedDays.length > 0 ? ` on ${selectedDays.join(', ')}` : '';
+      toast.success(`Alarm "${alarmLabel}" set for ${alarmTime}${daysText}!`);
+    }
+    closeDialog();
   };
 
   const toggleDay = (day: string) => {
@@ -74,9 +120,55 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     );
   };
 
-  const handleCancelAlarm = () => {
-    setIsAlarmSet(false);
-    toast.info("Alarm cancelled");
+  const toggleAlarm = (id: string) => {
+    setAlarms(prev => prev.map(a => 
+      a.id === id ? { ...a, isActive: !a.isActive } : a
+    ));
+  };
+
+  const deleteAlarm = (id: string) => {
+    setAlarms(prev => prev.filter(a => a.id !== id));
+    toast.info("Alarm deleted");
+  };
+
+  const openEditDialog = (alarm: Alarm) => {
+    setEditingAlarmId(alarm.id);
+    setAlarmTime(alarm.time);
+    setAlarmLabel(alarm.label);
+    setTalkDuration([alarm.duration]);
+    setSelectedDays(alarm.days);
+    setIsDialogOpen(true);
+  };
+
+  const openNewDialog = () => {
+    setEditingAlarmId(null);
+    setAlarmTime("07:00");
+    setAlarmLabel("Wake up");
+    setTalkDuration([5]);
+    setSelectedDays([]);
+    setIsDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setIsDialogOpen(false);
+    setEditingAlarmId(null);
+  };
+
+  const getTimeUntilAlarm = (alarm: Alarm) => {
+    const now = new Date();
+    const [hours, minutes] = alarm.time.split(':').map(Number);
+    const alarmDate = new Date();
+    alarmDate.setHours(hours, minutes, 0, 0);
+    
+    if (alarmDate <= now) {
+      alarmDate.setDate(alarmDate.getDate() + 1);
+    }
+    
+    const timeDiff = alarmDate.getTime() - now.getTime();
+    const hoursLeft = Math.floor(timeDiff / (1000 * 60 * 60));
+    const minutesLeft = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${hoursLeft}h ${minutesLeft}m`;
   };
 
   const formatTime = (date: Date) => {
@@ -123,71 +215,80 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           </div>
         </div>
 
-        <div className="space-y-6">
-          <div>
-            <Label htmlFor="alarm-time" className="text-sm font-medium text-foreground mb-2 block">
-              Set Wake-up Time
-            </Label>
-            <Input
-              id="alarm-time"
-              type="time"
-              value={alarmTime}
-              onChange={(e) => setAlarmTime(e.target.value)}
-              className="text-lg p-3 bg-white/50 border-accent/30"
-              disabled={isAlarmSet}
-            />
-          </div>
-
-          <div>
-            <Label className="text-sm font-medium text-foreground mb-3 block">
-              AI Talk Duration: {talkDuration[0]} minutes
-            </Label>
-            <Slider
-              value={talkDuration}
-              onValueChange={setTalkDuration}
-              max={10}
-              min={1}
-              step={1}
-              className="py-4"
-              disabled={isAlarmSet}
-            />
-            <div className="flex justify-between text-xs text-muted-foreground mt-1">
-              <span>1 min</span>
-              <span>10 min</span>
-            </div>
-          </div>
-
-          {isAlarmSet && (
-            <div className="bg-gradient-morning rounded-lg p-4 text-center">
-              <div className="text-sm text-muted-foreground">Alarm set for</div>
-              <div className="text-xl font-bold text-foreground">{alarmTime}</div>
-              <div className="text-base font-bold text-primary">Time remaining: {timeUntilAlarm}</div>
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            {!isAlarmSet ? (
-              <Button 
-                onClick={() => setIsDialogOpen(true)}
-                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-3"
-                size="lg"
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Set Alarm
-              </Button>
+        <div className="space-y-4">
+          {/* Alarms List */}
+          <div className="space-y-3">
+            {alarms.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Clock className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>No alarms set</p>
+              </div>
             ) : (
-              <Button 
-                onClick={handleCancelAlarm}
-                variant="destructive"
-                className="flex-1 py-3"
-                size="lg"
-              >
-                Cancel Alarm
-              </Button>
+              alarms.map((alarm) => (
+                <Card key={alarm.id} className="p-4 bg-white/50 border-accent/20">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <div className="text-3xl font-bold text-foreground">
+                          {alarm.time}
+                        </div>
+                        <div>
+                          <div className="font-medium text-foreground">{alarm.label}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {alarm.duration} min talk
+                            {alarm.days.length > 0 && ` • ${alarm.days.join(', ')}`}
+                          </div>
+                          {alarm.isActive && (
+                            <div className="text-xs text-primary font-medium mt-1">
+                              {getTimeUntilAlarm(alarm)} remaining
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openEditDialog(alarm)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteAlarm(alarm.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                      <Button
+                        variant={alarm.isActive ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => toggleAlarm(alarm.id)}
+                      >
+                        {alarm.isActive ? "ON" : "OFF"}
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))
             )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            <Button 
+              onClick={openNewDialog}
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-3"
+              size="lg"
+            >
+              <Clock className="h-4 w-4 mr-2" />
+              Add Alarm
+            </Button>
             
             <Button 
-              onClick={() => onStartCall(alarmTime, talkDuration[0])}
+              onClick={() => onStartCall("now", 5)}
               variant="secondary"
               className="flex-1 py-3"
               size="lg"
@@ -199,12 +300,12 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
         </div>
       </Card>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={closeDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-primary" />
-              New AI Alarm
+              {editingAlarmId ? "Edit Alarm" : "New AI Alarm"}
             </DialogTitle>
           </DialogHeader>
           
@@ -238,6 +339,24 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
 
             <div>
               <Label className="text-sm font-medium mb-3 block">
+                AI Talk Duration: {talkDuration[0]} minutes
+              </Label>
+              <Slider
+                value={talkDuration}
+                onValueChange={setTalkDuration}
+                max={10}
+                min={1}
+                step={1}
+                className="py-4"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                <span>1 min</span>
+                <span>10 min</span>
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium mb-3 block">
                 Repeat Days
               </Label>
               <div className="flex gap-2 flex-wrap">
@@ -261,18 +380,18 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setIsDialogOpen(false)}
+              onClick={closeDialog}
               className="flex-1 sm:flex-none"
             >
               Cancel
             </Button>
             <Button
               type="button"
-              onClick={handleSetAlarm}
+              onClick={handleSaveAlarm}
               className="flex-1 sm:flex-none"
             >
               <Settings className="h-4 w-4 mr-2" />
-              Save Alarm
+              {editingAlarmId ? "Update Alarm" : "Save Alarm"}
             </Button>
           </DialogFooter>
         </DialogContent>
