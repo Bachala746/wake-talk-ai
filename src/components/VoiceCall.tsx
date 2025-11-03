@@ -102,15 +102,15 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
     const loadVoices = () => {
       const voices = speechSynthesis.getVoices();
       if (voices.length > 0) {
-        // Prefer English female voices for pleasant morning experience
+        // Prefer English male voices for motivational experience
         const preferredVoice = voices.find(voice => 
-          voice.lang.startsWith('en') && voice.name.toLowerCase().includes('female')
+          voice.lang.startsWith('en') && voice.name.toLowerCase().includes('male')
         ) || voices.find(voice => 
           voice.lang.startsWith('en') && (
-            voice.name.toLowerCase().includes('samantha') ||
-            voice.name.toLowerCase().includes('victoria') ||
-            voice.name.toLowerCase().includes('karen') ||
-            voice.name.toLowerCase().includes('zira')
+            voice.name.toLowerCase().includes('daniel') ||
+            voice.name.toLowerCase().includes('fred') ||
+            voice.name.toLowerCase().includes('david') ||
+            voice.name.toLowerCase().includes('mark')
           )
         ) || voices.find(voice => voice.lang.startsWith('en')) || voices[0];
         
