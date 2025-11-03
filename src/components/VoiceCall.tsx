@@ -26,6 +26,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   const lastSpeechTimeRef = useRef(0);
   const isSpeechActiveRef = useRef(false);
   const intentionallyCanceledRef = useRef(false);
+  const selectedVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
 
   const motivationalMessages = [
     "Good morning, champion! Today is a brand new day full of endless possibilities. You have the power within you to make it absolutely amazing! Remember, every great achievement started with someone who decided to wake up and take action. That someone is you today!",
@@ -95,6 +96,37 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
       audioContextRef.current = null;
     }
   };
+
+  // Load and select a specific voice on mount
+  useEffect(() => {
+    const loadVoices = () => {
+      const voices = speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        // Prefer English female voices for pleasant morning experience
+        const preferredVoice = voices.find(voice => 
+          voice.lang.startsWith('en') && voice.name.toLowerCase().includes('female')
+        ) || voices.find(voice => 
+          voice.lang.startsWith('en') && (
+            voice.name.toLowerCase().includes('samantha') ||
+            voice.name.toLowerCase().includes('victoria') ||
+            voice.name.toLowerCase().includes('karen') ||
+            voice.name.toLowerCase().includes('zira')
+          )
+        ) || voices.find(voice => voice.lang.startsWith('en')) || voices[0];
+        
+        selectedVoiceRef.current = preferredVoice;
+        console.log("Selected voice:", preferredVoice?.name);
+      }
+    };
+
+    // Load voices immediately
+    loadVoices();
+    
+    // Some browsers need this event to load voices
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, []);
 
   useEffect(() => {
     // Simulate connection
@@ -189,6 +221,9 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
         utterance.rate = 0.9;
         utterance.pitch = 1.1;
         utterance.volume = 1.0;
+        if (selectedVoiceRef.current) {
+          utterance.voice = selectedVoiceRef.current;
+        }
         
         utterance.onstart = () => {
           console.log("Speech started");
@@ -323,6 +358,9 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
         utterance.rate = 1.0;
         utterance.pitch = 1.2;
         utterance.volume = 1.0;
+        if (selectedVoiceRef.current) {
+          utterance.voice = selectedVoiceRef.current;
+        }
         
         utterance.onstart = () => {
           console.log("Snooze message speech started");
