@@ -101,27 +101,49 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   useEffect(() => {
     const loadVoices = () => {
       const voices = speechSynthesis.getVoices();
-      console.log("Available voices:", voices.map(v => `${v.name} (${v.lang})`));
+      console.log("Available voices:", voices.map(v => `${v.name} (${v.lang}) - ${v.voiceURI}`));
       
       if (voices.length > 0) {
-        // Female voice names to avoid (common across platforms)
-        const femaleNames = ['samantha', 'victoria', 'karen', 'zira', 'susan', 'heather', 'moira', 'fiona', 'tessa', 'veena', 'female', 'woman', 'girl', 'siri', 'cortana', 'alexa', 'alice', 'emma', 'ava', 'mia', 'kate', 'ellen', 'princess'];
+        // Female voice names/patterns to AVOID
+        const femalePatterns = [
+          'samantha', 'victoria', 'karen', 'zira', 'susan', 'heather', 'moira', 
+          'fiona', 'tessa', 'veena', 'female', 'woman', 'girl', 'siri', 'cortana', 
+          'alexa', 'alice', 'emma', 'ava', 'mia', 'kate', 'ellen', 'princess',
+          'nicky', 'allison', 'joanna', 'kendra', 'ivy', 'salli', 'kimberly',
+          // Android female voice identifiers
+          'sfg', 'tpf', 'yfm'
+        ];
         
-        // Male voice names to prefer (common across iOS, Android, Windows, Mac)
-        const maleNames = ['daniel', 'david', 'fred', 'mark', 'alex', 'tom', 'aaron', 'james', 'john', 'guy', 'william', 'oliver', 'george', 'brian', 'eric', 'chris', 'liam', 'roger', 'male', 'man'];
+        // Male voice names/patterns to PREFER
+        const malePatterns = [
+          'daniel', 'david', 'fred', 'mark', 'alex', 'tom', 'aaron', 'james', 
+          'john', 'guy', 'william', 'oliver', 'george', 'brian', 'eric', 'chris', 
+          'liam', 'roger', 'male', 'man', 'matthew', 'justin', 'joey',
+          // Android male voice identifiers  
+          'tpd', 'tfg', 'yfg',
+          // Specific Android/Google voices that are male
+          'uk english male', 'us english male', 'australian english male'
+        ];
         
         const englishVoices = voices.filter(v => v.lang.startsWith('en'));
         
-        // First try: Find a voice with a male name
-        let preferredVoice = englishVoices.find(voice => 
-          maleNames.some(name => voice.name.toLowerCase().includes(name))
-        );
+        // Check both name and voiceURI for patterns
+        const isMale = (voice: SpeechSynthesisVoice) => {
+          const nameAndUri = (voice.name + ' ' + voice.voiceURI).toLowerCase();
+          return malePatterns.some(p => nameAndUri.includes(p));
+        };
         
-        // Second try: Find any English voice that's NOT female
+        const isFemale = (voice: SpeechSynthesisVoice) => {
+          const nameAndUri = (voice.name + ' ' + voice.voiceURI).toLowerCase();
+          return femalePatterns.some(p => nameAndUri.includes(p));
+        };
+        
+        // First: Find explicitly male voice
+        let preferredVoice = englishVoices.find(isMale);
+        
+        // Second: Find any English voice that's NOT female
         if (!preferredVoice) {
-          preferredVoice = englishVoices.find(voice => 
-            !femaleNames.some(name => voice.name.toLowerCase().includes(name))
-          );
+          preferredVoice = englishVoices.find(v => !isFemale(v));
         }
         
         // Fallback: any English voice, then any voice
@@ -130,7 +152,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
         }
         
         selectedVoiceRef.current = preferredVoice;
-        console.log("Selected voice:", preferredVoice?.name);
+        console.log("Selected voice:", preferredVoice?.name, preferredVoice?.voiceURI);
       }
     };
 
