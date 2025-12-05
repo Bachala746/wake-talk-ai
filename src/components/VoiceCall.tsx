@@ -101,18 +101,33 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   useEffect(() => {
     const loadVoices = () => {
       const voices = speechSynthesis.getVoices();
+      console.log("Available voices:", voices.map(v => `${v.name} (${v.lang})`));
+      
       if (voices.length > 0) {
-        // Prefer English male voices for motivational experience
-        const preferredVoice = voices.find(voice => 
-          voice.lang.startsWith('en') && voice.name.toLowerCase().includes('male')
-        ) || voices.find(voice => 
-          voice.lang.startsWith('en') && (
-            voice.name.toLowerCase().includes('daniel') ||
-            voice.name.toLowerCase().includes('fred') ||
-            voice.name.toLowerCase().includes('david') ||
-            voice.name.toLowerCase().includes('mark')
-          )
-        ) || voices.find(voice => voice.lang.startsWith('en')) || voices[0];
+        // Female voice names to avoid (common across platforms)
+        const femaleNames = ['samantha', 'victoria', 'karen', 'zira', 'susan', 'heather', 'moira', 'fiona', 'tessa', 'veena', 'female', 'woman', 'girl', 'siri', 'cortana', 'alexa', 'alice', 'emma', 'ava', 'mia', 'kate', 'ellen', 'princess'];
+        
+        // Male voice names to prefer (common across iOS, Android, Windows, Mac)
+        const maleNames = ['daniel', 'david', 'fred', 'mark', 'alex', 'tom', 'aaron', 'james', 'john', 'guy', 'william', 'oliver', 'george', 'brian', 'eric', 'chris', 'liam', 'roger', 'male', 'man'];
+        
+        const englishVoices = voices.filter(v => v.lang.startsWith('en'));
+        
+        // First try: Find a voice with a male name
+        let preferredVoice = englishVoices.find(voice => 
+          maleNames.some(name => voice.name.toLowerCase().includes(name))
+        );
+        
+        // Second try: Find any English voice that's NOT female
+        if (!preferredVoice) {
+          preferredVoice = englishVoices.find(voice => 
+            !femaleNames.some(name => voice.name.toLowerCase().includes(name))
+          );
+        }
+        
+        // Fallback: any English voice, then any voice
+        if (!preferredVoice) {
+          preferredVoice = englishVoices[0] || voices[0];
+        }
         
         selectedVoiceRef.current = preferredVoice;
         console.log("Selected voice:", preferredVoice?.name);
