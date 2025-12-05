@@ -66,7 +66,10 @@ export default {
 			backgroundImage: {
 				'gradient-dawn': 'var(--gradient-dawn)',
 				'gradient-sunrise': 'var(--gradient-sunrise)',
-				'gradient-morning': 'var(--gradient-morning)'
+				'gradient-morning': 'var(--gradient-morning)',
+				'gradient-warm': 'var(--gradient-warm)',
+				'gradient-glow': 'var(--gradient-glow)',
+				'shimmer': 'linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.1) 50%, transparent 100%)'
 			},
 			boxShadow: {
 				'glass': 'var(--glass-shadow)',
