@@ -213,43 +213,64 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const GreetingIcon = greeting.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-dawn flex items-center justify-center p-4">
-      <Card className="w-full max-w-lg p-8 bg-white/80 backdrop-blur-glass border-0 shadow-glass">
+    <div className="min-h-screen bg-gradient-dawn flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse-soft" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-glow opacity-50" />
+      </div>
+
+      <Card className="w-full max-w-lg p-8 bg-white/85 backdrop-blur-xl border border-white/50 shadow-glass relative z-10 animate-fade-in">
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <GreetingIcon className="h-6 w-6 text-accent" />
-            <h1 className="text-2xl font-bold text-foreground">{greeting.text}</h1>
+          {/* Greeting with icon */}
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="bg-gradient-warm p-3 rounded-2xl shadow-lg animate-float">
+              <GreetingIcon className="h-6 w-6 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+              {greeting.text}
+            </h1>
           </div>
           
-          <div className="bg-gradient-sunrise rounded-2xl p-6 mb-6">
-            <Clock className="h-8 w-8 text-primary mx-auto mb-2" />
-            <div className="text-4xl font-bold text-foreground mb-1">
-              {formatTime(currentTime)}
-            </div>
-            <div className="text-muted-foreground">
-              {currentTime.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
+          {/* Time display */}
+          <div className="bg-gradient-sunrise rounded-3xl p-8 mb-6 relative overflow-hidden shadow-lg">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent" />
+            <div className="relative">
+              <div className="inline-flex items-center justify-center bg-white/50 rounded-full p-3 mb-4 shadow-inner">
+                <Clock className="h-8 w-8 text-primary animate-pulse-soft" />
+              </div>
+              <div className="text-5xl font-bold text-foreground mb-2 tracking-tight">
+                {formatTime(currentTime)}
+              </div>
+              <div className="text-muted-foreground font-medium">
+                {currentTime.toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </div>
             </div>
           </div>
 
           {/* Motivational Quote */}
-          <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 rounded-xl p-4 mb-2 relative overflow-hidden">
-            <div className="absolute top-2 right-2">
-              <Sparkles className="h-4 w-4 text-primary/40" />
+          <div className="bg-gradient-to-r from-primary/5 via-accent/10 to-primary/5 rounded-2xl p-5 relative overflow-hidden border border-primary/10 shadow-sm transition-all duration-500">
+            <div className="absolute top-3 right-3">
+              <Sparkles className="h-5 w-5 text-accent animate-pulse-soft" />
             </div>
-            <div className="flex items-start gap-3">
-              <div className="bg-primary/20 rounded-full p-2 shrink-0">
-                <Flame className="h-4 w-4 text-primary" />
+            <div className="absolute bottom-3 left-3">
+              <Zap className="h-4 w-4 text-primary/30" />
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="bg-gradient-warm rounded-xl p-2.5 shrink-0 shadow-md">
+                <Flame className="h-5 w-5 text-white" />
               </div>
-              <div className="min-h-[60px] flex flex-col justify-center">
-                <p className="text-sm font-medium text-foreground italic leading-relaxed">
+              <div className="min-h-[70px] flex flex-col justify-center text-left">
+                <p className="text-base font-medium text-foreground italic leading-relaxed">
                   "{motivationalQuotes[currentQuoteIndex].quote}"
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-sm text-primary font-semibold mt-2">
                   — {motivationalQuotes[currentQuoteIndex].author}
                 </p>
               </div>
@@ -257,32 +278,39 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Alarms List */}
           <div className="space-y-3">
             {alarms.length === 0 ? (
-              <div className="text-center py-8">
-                <Clock className="h-12 w-12 mx-auto mb-3 text-primary/60" />
-                <p className="text-lg font-medium text-foreground mb-1">Ready to start your day right?</p>
-                <p className="text-sm text-muted-foreground">Add your first AI-powered motivational alarm!</p>
+              <div className="text-center py-10 px-4">
+                <div className="bg-gradient-warm w-20 h-20 rounded-3xl mx-auto mb-4 flex items-center justify-center shadow-lg animate-float">
+                  <Clock className="h-10 w-10 text-white" />
+                </div>
+                <p className="text-xl font-bold text-foreground mb-2">Ready to start your day right?</p>
+                <p className="text-muted-foreground">Add your first AI-powered motivational alarm!</p>
               </div>
             ) : (
-              alarms.map((alarm) => (
-                <Card key={alarm.id} className="p-4 bg-white/50 border-accent/20">
+              alarms.map((alarm, index) => (
+                <Card 
+                  key={alarm.id} 
+                  className="p-5 bg-white/60 backdrop-blur-sm border border-white/50 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <div className="text-3xl font-bold text-foreground">
+                      <div className="flex items-center gap-4">
+                        <div className={`text-4xl font-bold ${alarm.isActive ? 'text-primary' : 'text-muted-foreground'}`}>
                           {alarm.time}
                         </div>
                         <div>
-                          <div className="font-medium text-foreground">{alarm.label}</div>
+                          <div className="font-semibold text-foreground text-lg">{alarm.label}</div>
                           <div className="text-sm text-muted-foreground">
                             {alarm.duration} min talk
                             {alarm.days.length > 0 && ` • ${alarm.days.join(', ')}`}
                           </div>
                           {alarm.isActive && (
-                            <div className="text-xs text-primary font-medium mt-1">
+                            <div className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary font-semibold mt-2 px-2 py-1 rounded-full">
+                              <Zap className="h-3 w-3" />
                               {getTimeUntilAlarm(alarm)} remaining
                             </div>
                           )}
@@ -294,6 +322,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                       <Button
                         variant="ghost"
                         size="icon"
+                        className="hover:bg-primary/10"
                         onClick={() => openEditDialog(alarm)}
                       >
                         <Edit className="h-4 w-4" />
@@ -301,6 +330,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                       <Button
                         variant="ghost"
                         size="icon"
+                        className="hover:bg-destructive/10"
                         onClick={() => deleteAlarm(alarm.id)}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
@@ -308,6 +338,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                       <Button
                         variant={alarm.isActive ? "default" : "outline"}
                         size="sm"
+                        className={alarm.isActive ? "bg-gradient-warm border-0 shadow-md" : ""}
                         onClick={() => toggleAlarm(alarm.id)}
                       >
                         {alarm.isActive ? "ON" : "OFF"}
@@ -320,23 +351,23 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
+          <div className="flex gap-3 pt-2">
             <Button 
               onClick={openNewDialog}
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-3"
+              className="flex-1 bg-gradient-warm hover:opacity-90 text-white py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
               size="lg"
             >
-              <Clock className="h-4 w-4 mr-2" />
+              <Clock className="h-5 w-5 mr-2" />
               Add Alarm
             </Button>
             
             <Button 
               onClick={() => onStartCall("now", 5)}
-              variant="secondary"
-              className="flex-1 py-3"
+              variant="outline"
+              className="flex-1 py-6 rounded-xl border-2 border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-300"
               size="lg"
             >
-              <Phone className="h-4 w-4 mr-2" />
+              <Phone className="h-5 w-5 mr-2 text-primary" />
               Test Call
             </Button>
           </div>
