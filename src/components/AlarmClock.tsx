@@ -5,8 +5,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Clock, Phone, Settings, Sun, Moon, Trash2, Edit } from "lucide-react";
+import { Clock, Phone, Settings, Sun, Moon, Trash2, Edit, Sparkles, Flame, Zap } from "lucide-react";
 import { toast } from "sonner";
+
+const motivationalQuotes = [
+  { quote: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+  { quote: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+  { quote: "Your limitation—it's only your imagination.", author: "Unknown" },
+  { quote: "Push yourself, because no one else is going to do it for you.", author: "Unknown" },
+  { quote: "Great things never come from comfort zones.", author: "Unknown" },
+  { quote: "Dream it. Wish it. Do it.", author: "Unknown" },
+  { quote: "Success doesn't just find you. You have to go out and get it.", author: "Unknown" },
+  { quote: "The harder you work for something, the greater you'll feel when you achieve it.", author: "Unknown" },
+  { quote: "Don't stop when you're tired. Stop when you're done.", author: "Unknown" },
+  { quote: "Wake up with determination. Go to bed with satisfaction.", author: "Unknown" },
+];
 
 interface Alarm {
   id: string;
@@ -26,12 +39,21 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [alarms, setAlarms] = useState<Alarm[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAlarmId, setEditingAlarmId] = useState<string | null>(null);
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   
   // Form states
   const [alarmTime, setAlarmTime] = useState("07:00");
   const [alarmLabel, setAlarmLabel] = useState("Wake up");
   const [talkDuration, setTalkDuration] = useState([5]);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
+
+  // Rotate motivational quotes
+  useEffect(() => {
+    const quoteTimer = setInterval(() => {
+      setCurrentQuoteIndex(prev => (prev + 1) % motivationalQuotes.length);
+    }, 8000);
+    return () => clearInterval(quoteTimer);
+  }, []);
 
   // Load alarms from localStorage
   useEffect(() => {
@@ -211,6 +233,26 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                 month: 'long', 
                 day: 'numeric' 
               })}
+            </div>
+          </div>
+
+          {/* Motivational Quote */}
+          <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 rounded-xl p-4 mb-2 relative overflow-hidden">
+            <div className="absolute top-2 right-2">
+              <Sparkles className="h-4 w-4 text-primary/40" />
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="bg-primary/20 rounded-full p-2 shrink-0">
+                <Flame className="h-4 w-4 text-primary" />
+              </div>
+              <div className="min-h-[60px] flex flex-col justify-center">
+                <p className="text-sm font-medium text-foreground italic leading-relaxed">
+                  "{motivationalQuotes[currentQuoteIndex].quote}"
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  — {motivationalQuotes[currentQuoteIndex].author}
+                </p>
+              </div>
             </div>
           </div>
         </div>
