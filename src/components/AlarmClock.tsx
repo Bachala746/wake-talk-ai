@@ -216,57 +216,57 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex flex-col items-center justify-center px-4 py-16 overflow-hidden">
-        {/* Dark gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-800 to-orange-500/80" />
+        {/* Light warm gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-amber-100 via-orange-200 to-orange-400" />
         
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-1/4 w-64 h-64 bg-orange-400/20 rounded-full blur-3xl animate-pulse-soft" />
-          <div className="absolute bottom-40 right-1/4 w-80 h-80 bg-amber-300/15 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-20 left-1/4 w-64 h-64 bg-white/30 rounded-full blur-3xl animate-pulse-soft" />
+          <div className="absolute bottom-40 right-1/4 w-80 h-80 bg-yellow-200/40 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: '1s' }} />
         </div>
 
         {/* Hero Content */}
         <div className="relative z-10 text-center max-w-3xl mx-auto">
           {/* Icon */}
           <div className="mb-8 animate-float">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
-              <Sun className="h-10 w-10 text-white" />
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/40 backdrop-blur-sm border border-white/50 shadow-lg">
+              <Sun className="h-10 w-10 text-orange-600" />
             </div>
           </div>
 
           {/* Main Headline */}
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
+          <h1 className="text-5xl md:text-7xl font-bold text-slate-800 mb-6 tracking-tight">
             Good Morning,
             <br />
-            <span className="bg-gradient-to-r from-orange-200 via-amber-200 to-orange-300 bg-clip-text text-transparent">
+            <span className="text-orange-600">
               Rise & Shine
             </span>
           </h1>
 
           {/* Subtitle */}
-          <p className="text-lg md:text-xl text-white/80 mb-10 max-w-xl mx-auto leading-relaxed">
-            Your AI-powered morning companion that wakes you up gently and starts your day with meaningful conversations to boost your energy and mood.
+          <p className="text-lg md:text-xl text-slate-700 mb-10 max-w-xl mx-auto leading-relaxed">
+            Your AI-powered morning companion that wakes you up gently and starts your day with meaningful conversations.
           </p>
 
           {/* CTA Button */}
           <Button
             onClick={openNewDialog}
             size="lg"
-            className="bg-gradient-warm hover:opacity-90 text-white px-8 py-6 rounded-xl text-lg shadow-2xl hover:shadow-orange-500/30 transition-all duration-300 hover:-translate-y-1"
+            className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-6 rounded-xl text-lg shadow-xl hover:shadow-orange-400/40 transition-all duration-300 hover:-translate-y-1"
           >
             <Clock className="h-5 w-5 mr-2" />
             Set Your Wake-up Time
           </Button>
 
           {/* Feature highlights */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-12 text-white/70 text-sm">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-12 text-slate-600 text-sm">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              <span>Daily wake-up calls at your chosen time</span>
+              <span>Daily wake-up calls</span>
             </div>
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
-              <span>10-minute AI conversations to energize your morning</span>
+              <span>AI conversations to energize you</span>
             </div>
           </div>
         </div>
