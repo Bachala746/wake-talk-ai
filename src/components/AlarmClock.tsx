@@ -280,7 +280,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       </section>
 
       {/* Main Content Section */}
-      <section className="relative py-16 px-4 bg-gradient-to-b from-orange-100 to-background">
+      <section className="relative py-16 px-4 bg-gradient-to-b from-orange-300 via-amber-200 to-amber-100 min-h-screen">
         <div className="max-w-lg mx-auto">
           {/* Section Header */}
           <div className="text-center mb-10">
