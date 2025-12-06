@@ -217,7 +217,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex flex-col items-center justify-center px-4 py-16 overflow-hidden">
         {/* Light warm gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-100 via-orange-200 to-orange-400" />
+        <div className="absolute inset-0 bg-gradient-to-b from-amber-100 via-orange-200 to-orange-300" />
         
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -280,7 +280,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       </section>
 
       {/* Main Content Section */}
-      <section className="relative py-16 px-4 bg-gradient-to-b from-orange-300 via-amber-200 to-amber-100 min-h-screen">
+      <section className="relative py-16 px-4 bg-gradient-to-b from-orange-300 via-orange-200 to-amber-100 min-h-screen">
         <div className="max-w-lg mx-auto">
           {/* Section Header */}
           <div className="text-center mb-10">
