@@ -213,60 +213,106 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const GreetingIcon = greeting.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-dawn flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse-soft" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-glow opacity-50" />
-      </div>
+    <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <section className="relative min-h-[80vh] flex flex-col items-center justify-center px-4 py-16 overflow-hidden">
+        {/* Dark gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-800 to-orange-500/80" />
+        
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-1/4 w-64 h-64 bg-orange-400/20 rounded-full blur-3xl animate-pulse-soft" />
+          <div className="absolute bottom-40 right-1/4 w-80 h-80 bg-amber-300/15 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: '1s' }} />
+        </div>
 
-      <Card className="w-full max-w-lg p-8 bg-white/85 backdrop-blur-xl border border-white/50 shadow-glass relative z-10 animate-fade-in">
-        <div className="text-center mb-8">
-          {/* Greeting with icon */}
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="bg-gradient-warm p-3 rounded-2xl shadow-lg animate-float">
-              <GreetingIcon className="h-6 w-6 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-              {greeting.text}
-            </h1>
-          </div>
-          
-          {/* Time display */}
-          <div className="bg-gradient-sunrise rounded-3xl p-8 mb-6 relative overflow-hidden shadow-lg">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent" />
-            <div className="relative">
-              <div className="inline-flex items-center justify-center bg-white/50 rounded-full p-3 mb-4 shadow-inner">
-                <Clock className="h-8 w-8 text-primary animate-pulse-soft" />
-              </div>
-              <div className="text-5xl font-bold text-foreground mb-2 tracking-tight">
-                {formatTime(currentTime)}
-              </div>
-              <div className="text-muted-foreground font-medium">
-                {currentTime.toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
-              </div>
+        {/* Hero Content */}
+        <div className="relative z-10 text-center max-w-3xl mx-auto">
+          {/* Icon */}
+          <div className="mb-8 animate-float">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+              <Sun className="h-10 w-10 text-white" />
             </div>
           </div>
+
+          {/* Main Headline */}
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
+            Good Morning,
+            <br />
+            <span className="bg-gradient-to-r from-orange-200 via-amber-200 to-orange-300 bg-clip-text text-transparent">
+              Rise & Shine
+            </span>
+          </h1>
+
+          {/* Subtitle */}
+          <p className="text-lg md:text-xl text-white/80 mb-10 max-w-xl mx-auto leading-relaxed">
+            Your AI-powered morning companion that wakes you up gently and starts your day with meaningful conversations to boost your energy and mood.
+          </p>
+
+          {/* CTA Button */}
+          <Button
+            onClick={openNewDialog}
+            size="lg"
+            className="bg-gradient-warm hover:opacity-90 text-white px-8 py-6 rounded-xl text-lg shadow-2xl hover:shadow-orange-500/30 transition-all duration-300 hover:-translate-y-1"
+          >
+            <Clock className="h-5 w-5 mr-2" />
+            Set Your Wake-up Time
+          </Button>
+
+          {/* Feature highlights */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-12 text-white/70 text-sm">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              <span>Daily wake-up calls at your chosen time</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              <span>10-minute AI conversations to energize your morning</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+          <div className="w-6 h-10 rounded-full border-2 border-white/30 flex items-start justify-center p-2">
+            <div className="w-1 h-2 bg-white/50 rounded-full" />
+          </div>
+        </div>
+      </section>
+
+      {/* Main Content Section */}
+      <section className="relative py-16 px-4 bg-gradient-to-b from-orange-100 to-background">
+        <div className="max-w-lg mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-warm mb-4 shadow-lg">
+              <Settings className="h-7 w-7 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-foreground">Setup Your Morning Routine</h2>
+          </div>
+
+          {/* Current Time Display */}
+          <Card className="p-6 mb-8 bg-white/90 backdrop-blur-sm border border-white/50 shadow-lg">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="bg-gradient-warm p-2.5 rounded-xl shadow-md">
+                  <GreetingIcon className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-xl font-semibold text-foreground">{greeting.text}</span>
+              </div>
+              <div className="text-4xl font-bold text-foreground mb-1">{formatTime(currentTime)}</div>
+              <div className="text-muted-foreground text-sm">
+                {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              </div>
+            </div>
+          </Card>
 
           {/* Motivational Quote */}
-          <div className="bg-gradient-to-r from-primary/5 via-accent/10 to-primary/5 rounded-2xl p-5 relative overflow-hidden border border-primary/10 shadow-sm transition-all duration-500">
-            <div className="absolute top-3 right-3">
-              <Sparkles className="h-5 w-5 text-accent animate-pulse-soft" />
-            </div>
-            <div className="absolute bottom-3 left-3">
-              <Zap className="h-4 w-4 text-primary/30" />
-            </div>
+          <Card className="p-5 mb-8 bg-gradient-to-r from-primary/5 via-accent/10 to-primary/5 border border-primary/10">
             <div className="flex items-start gap-4">
               <div className="bg-gradient-warm rounded-xl p-2.5 shrink-0 shadow-md">
                 <Flame className="h-5 w-5 text-white" />
               </div>
-              <div className="min-h-[70px] flex flex-col justify-center text-left">
+              <div className="min-h-[60px] flex flex-col justify-center">
                 <p className="text-base font-medium text-foreground italic leading-relaxed">
                   "{motivationalQuotes[currentQuoteIndex].quote}"
                 </p>
@@ -275,10 +321,9 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                 </p>
               </div>
             </div>
-          </div>
-        </div>
+          </Card>
 
-        <div className="space-y-5">
+          <div className="space-y-5">
           {/* Alarms List */}
           <div className="space-y-3">
             {alarms.length === 0 ? (
@@ -370,9 +415,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
               <Phone className="h-5 w-5 mr-2 text-primary" />
               Test Call
             </Button>
+            </div>
           </div>
         </div>
-      </Card>
+      </section>
 
       <Dialog open={isDialogOpen} onOpenChange={closeDialog}>
         <DialogContent className="sm:max-w-md">
