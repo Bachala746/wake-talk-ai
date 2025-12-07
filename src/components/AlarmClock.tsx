@@ -288,8 +288,28 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
         </div>
       </section>
 
+      {/* Wave Separator */}
+      <div className="relative -mt-1">
+        <svg 
+          viewBox="0 0 1440 120" 
+          className="w-full h-16 md:h-24"
+          preserveAspectRatio="none"
+        >
+          <path 
+            d="M0,60 C360,120 720,0 1080,60 C1260,90 1380,75 1440,60 L1440,120 L0,120 Z" 
+            fill="url(#waveGradient)"
+          />
+          <defs>
+            <linearGradient id="waveGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#fb923c" />
+              <stop offset="100%" stopColor="#f97316" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
       {/* Main Content Section */}
-      <section className="relative py-16 px-4 bg-gradient-to-b from-orange-400 via-amber-200 to-amber-100 min-h-screen">
+      <section className="relative py-16 px-4 bg-gradient-to-b from-orange-500 via-amber-300 to-amber-100 min-h-screen">
         <div className="max-w-lg mx-auto">
           {/* Section Header */}
           <div className="text-center mb-10">
