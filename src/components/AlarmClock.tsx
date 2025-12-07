@@ -219,6 +219,15 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
         {/* Light warm gradient background */}
         <div className="absolute inset-0 bg-gradient-to-b from-amber-100 via-orange-200 to-orange-400" />
         
+        {/* Subtle dot pattern overlay */}
+        <div 
+          className="absolute inset-0 opacity-[0.15]"
+          style={{
+            backgroundImage: 'radial-gradient(circle, #78350f 1px, transparent 1px)',
+            backgroundSize: '24px 24px'
+          }}
+        />
+        
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-1/4 w-64 h-64 bg-white/30 rounded-full blur-3xl animate-pulse-soft" />
