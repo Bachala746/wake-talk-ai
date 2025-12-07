@@ -213,9 +213,12 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const GreetingIcon = greeting.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-200 to-orange-300">
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex flex-col items-center justify-center px-4 py-16 overflow-hidden">
+        {/* Light warm gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-amber-100 via-orange-200 to-orange-300" />
+        
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-1/4 w-64 h-64 bg-white/30 rounded-full blur-3xl animate-pulse-soft" />
@@ -277,7 +280,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       </section>
 
       {/* Main Content Section */}
-      <section className="relative py-16 px-4">
+      <section className="relative py-16 px-4 bg-gradient-to-b from-orange-300 via-orange-200 to-amber-100 min-h-screen">
         <div className="max-w-lg mx-auto">
           {/* Section Header */}
           <div className="text-center mb-10">
