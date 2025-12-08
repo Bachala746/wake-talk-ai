@@ -238,7 +238,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
         <div className="relative z-10 text-center max-w-3xl mx-auto">
           {/* Icon */}
           <div className="mb-8 animate-float">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/40 backdrop-blur-sm border border-white/50 shadow-lg">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/40 backdrop-blur-sm border border-white/50 shadow-lg animate-glow-pulse">
               <Sun className="h-10 w-10 text-orange-600" />
             </div>
           </div>

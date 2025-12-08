@@ -106,12 +106,21 @@ export default {
 					'50%': {
 						transform: 'translateY(-10px)'
 					}
+				},
+				'glow-pulse': {
+					'0%, 100%': {
+						boxShadow: '0 0 20px 5px rgba(251, 146, 60, 0.4)'
+					},
+					'50%': {
+						boxShadow: '0 0 35px 10px rgba(251, 146, 60, 0.6)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'float': 'float 3s ease-in-out infinite'
+				'float': 'float 3s ease-in-out infinite',
+				'glow-pulse': 'glow-pulse 2s ease-in-out infinite'
 			}
 		}
 	},
