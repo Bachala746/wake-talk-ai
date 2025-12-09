@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Phone, PhoneOff, Volume2, Heart, Sun } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface VoiceCallProps {
   alarmTime: string;
@@ -26,31 +27,31 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   const lastSpeechTimeRef = useRef(0);
   const isSpeechActiveRef = useRef(false);
   const intentionallyCanceledRef = useRef(false);
-  const selectedVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const motivationalMessages = [
-    "Good morning, champion! Today is a brand new day full of endless possibilities. You have the power within you to make it absolutely amazing! Remember, every great achievement started with someone who decided to wake up and take action. That someone is you today!",
-    "Rise and shine, beautiful soul! You've been given another precious day to chase your dreams and make a real difference in the world. Think about all the people whose lives you'll touch today, all the smiles you'll create, all the positive energy you'll spread!",
-    "Hello there, superstar! Remember, every sunrise brings new opportunities and fresh beginnings. You've got this, and I truly believe in you! The universe has aligned perfectly for you to shine today. Your potential is limitless!",
-    "Good morning, wonderful human! Today is your canvas, a blank page waiting for your unique touch. Paint it with beautiful moments, positive energy, and meaningful connections. You are the artist of your own life!",
-    "Wake up, dreamer! The world is eagerly waiting for your unique gifts and incredible talents. Let's make today not just good, but truly extraordinary together! Your dreams are valid, and today is the perfect day to take one step closer to them!",
-    "Rise up, warrior! You have overcome so many challenges before, and you will absolutely conquer today too. Your strength, resilience, and determination are truly inspiring! Today is another opportunity to prove to yourself just how powerful you really are!",
-    "Good morning, sunshine! You are capable of incredible, amazing things that will blow your own mind! Trust yourself completely and let your brilliant light shine bright today. The world needs your unique energy and perspective!",
-    "Hello, amazing soul! Each morning is a fresh start, a brand new chapter in your incredible story. Write a beautiful, inspiring story with your day today! Make it a chapter you'll be proud to look back on!",
-    "Welcome to this glorious new day, champion! You woke up today with a purpose, with a mission. Even if you don't know exactly what it is yet, trust that you're exactly where you need to be. Every breath is a gift, every moment is an opportunity!",
-    "Good morning, incredible human being! Today, you have 24 brand new hours, 1,440 minutes, 86,400 seconds of pure potential ahead of you. How will you use this precious gift? Make it count, make it meaningful, make it yours!",
-    "Rise and conquer, unstoppable force! You have within you right now everything you need to make today successful. Your thoughts are powerful, your actions matter, and your presence makes a difference. Go out there and show the world what you're made of!",
-    "Hello brilliant mind! Did you know that simply by waking up today, you've already won? You've been given another chance to learn, to grow, to love, to create. Don't waste this magnificent opportunity. Seize it with both hands and make magic happen!"
+    "Good morning, champion! Today is a brand new day full of endless possibilities. You have the power within you to make it absolutely amazing!",
+    "Rise and shine, beautiful soul! You've been given another precious day to chase your dreams and make a real difference in the world.",
+    "Hello there, superstar! Remember, every sunrise brings new opportunities and fresh beginnings. You've got this, and I truly believe in you!",
+    "Good morning, wonderful human! Today is your canvas, a blank page waiting for your unique touch. Paint it with beautiful moments!",
+    "Wake up, dreamer! The world is eagerly waiting for your unique gifts and incredible talents. Let's make today truly extraordinary!",
+    "Rise up, warrior! You have overcome so many challenges before, and you will absolutely conquer today too. Your strength is inspiring!",
+    "Good morning, sunshine! You are capable of incredible, amazing things. Trust yourself completely and let your brilliant light shine!",
+    "Hello, amazing soul! Each morning is a fresh start, a brand new chapter in your incredible story. Write something beautiful today!",
+    "Welcome to this glorious new day, champion! You woke up today with a purpose. Every breath is a gift, every moment is an opportunity!",
+    "Good morning, incredible human being! Today, you have 24 brand new hours of pure potential ahead of you. Make it count!",
+    "Rise and conquer, unstoppable force! Your thoughts are powerful, your actions matter, and your presence makes a difference!",
+    "Hello brilliant mind! Simply by waking up today, you've already won. Seize this magnificent opportunity with both hands!"
   ];
 
   const antiSnoozeMessages = [
     "Wait! Don't hit that snooze button! Those extra minutes won't make you feel better, but getting up NOW will set the tone for an incredible day!",
     "Hold on, champion! Snoozing is just borrowing time from your dreams. Get up now and you'll thank yourself later!",
-    "Hey, I know the bed is cozy, but greatness never came from the snooze button! Your goals are waiting for you - let's go!",
-    "Stop right there! Every time you snooze, you're telling yourself that sleep is more important than your dreams. Prove yourself wrong - get up NOW!",
-    "Listen to me - the difference between successful people and everyone else? They don't snooze! You have it in you to be great, starting RIGHT NOW!",
-    "No no no! That snooze button is a trap! The best version of you is waiting on the other side of getting up. Let's do this together!",
-    "Think about it - would your future self thank you for those 5 extra minutes, or for starting the day strong? Get up, warrior!"
+    "Hey, I know the bed is cozy, but greatness never came from the snooze button! Your goals are waiting for you!",
+    "Stop right there! Every time you snooze, you're telling yourself that sleep is more important than your dreams!",
+    "The difference between successful people and everyone else? They don't snooze! You have it in you to be great!",
+    "No no no! That snooze button is a trap! The best version of you is waiting on the other side of getting up!",
+    "Think about it - would your future self thank you for those 5 extra minutes, or for starting the day strong?"
   ];
 
   const playRingtone = () => {
@@ -61,24 +62,22 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
       const playRingtonePulse = () => {
         if (!audioContextRef.current || !isRingtonePhase) return;
         
-        // Create oscillator for ringtone
         const oscillator = audioContextRef.current.createOscillator();
         const gainNode = audioContextRef.current.createGain();
         
         oscillator.connect(gainNode);
         gainNode.connect(audioContextRef.current.destination);
         
-        oscillator.frequency.value = 800; // Hz
+        oscillator.frequency.value = 800;
         oscillator.type = 'sine';
         
-        gainNode.gain.setValueAtTime(0.5, audioContextRef.current.currentTime); // Increased volume
+        gainNode.gain.setValueAtTime(0.5, audioContextRef.current.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContextRef.current.currentTime + 0.3);
         
         oscillator.start(audioContextRef.current.currentTime);
         oscillator.stop(audioContextRef.current.currentTime + 0.3);
       };
       
-      // Play ringtone pulse every 1 second
       playRingtonePulse();
       ringtoneIntervalRef.current = window.setInterval(playRingtonePulse, 1000);
     } catch (error) {
@@ -97,82 +96,20 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
     }
   };
 
-  // Load and select a specific voice on mount
-  useEffect(() => {
-    const loadVoices = () => {
-      const voices = speechSynthesis.getVoices();
-      console.log("Available voices:", voices.map(v => `${v.name} (${v.lang}) - ${v.voiceURI}`));
-      
-      if (voices.length > 0) {
-        // Female voice names/patterns to AVOID
-        const femalePatterns = [
-          'samantha', 'victoria', 'karen', 'zira', 'susan', 'heather', 'moira', 
-          'fiona', 'tessa', 'veena', 'female', 'woman', 'girl', 'siri', 'cortana', 
-          'alexa', 'alice', 'emma', 'ava', 'mia', 'kate', 'ellen', 'princess',
-          'nicky', 'allison', 'joanna', 'kendra', 'ivy', 'salli', 'kimberly',
-          // Android female voice identifiers
-          'sfg', 'tpf', 'yfm'
-        ];
-        
-        // Male voice names/patterns to PREFER
-        const malePatterns = [
-          'daniel', 'david', 'fred', 'mark', 'alex', 'tom', 'aaron', 'james', 
-          'john', 'guy', 'william', 'oliver', 'george', 'brian', 'eric', 'chris', 
-          'liam', 'roger', 'male', 'man', 'matthew', 'justin', 'joey',
-          // Android male voice identifiers  
-          'tpd', 'tfg', 'yfg',
-          // Specific Android/Google voices that are male
-          'uk english male', 'us english male', 'australian english male'
-        ];
-        
-        const englishVoices = voices.filter(v => v.lang.startsWith('en'));
-        
-        // Check both name and voiceURI for patterns
-        const isMale = (voice: SpeechSynthesisVoice) => {
-          const nameAndUri = (voice.name + ' ' + voice.voiceURI).toLowerCase();
-          return malePatterns.some(p => nameAndUri.includes(p));
-        };
-        
-        const isFemale = (voice: SpeechSynthesisVoice) => {
-          const nameAndUri = (voice.name + ' ' + voice.voiceURI).toLowerCase();
-          return femalePatterns.some(p => nameAndUri.includes(p));
-        };
-        
-        // First: Find explicitly male voice
-        let preferredVoice = englishVoices.find(isMale);
-        
-        // Second: Find any English voice that's NOT female
-        if (!preferredVoice) {
-          preferredVoice = englishVoices.find(v => !isFemale(v));
-        }
-        
-        // Fallback: any English voice, then any voice
-        if (!preferredVoice) {
-          preferredVoice = englishVoices[0] || voices[0];
-        }
-        
-        selectedVoiceRef.current = preferredVoice;
-        console.log("Selected voice:", preferredVoice?.name, preferredVoice?.voiceURI);
-      }
-    };
-
-    // Load voices immediately
-    loadVoices();
-    
-    // Some browsers need this event to load voices
-    if (speechSynthesis.onvoiceschanged !== undefined) {
-      speechSynthesis.onvoiceschanged = loadVoices;
+  const stopCurrentAudio = () => {
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current.src = '';
+      currentAudioRef.current = null;
     }
-  }, []);
+  };
 
   useEffect(() => {
-    // Simulate connection
     const connectTimer = setTimeout(() => {
       setIsConnected(true);
       setIsPlaying(true);
       toast.success("AI Motivator connected! 🌅");
       playRingtone();
-      // Start motivation immediately along with ringtone
       setTimeout(() => {
         speakMessage();
       }, 1000);
@@ -181,6 +118,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
     return () => {
       clearTimeout(connectTimer);
       stopRingtone();
+      stopCurrentAudio();
     };
   }, []);
 
@@ -191,17 +129,16 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
           const newTime = prev + 1;
           elapsedTimeRef.current = newTime;
           
-          // After 30 seconds, stop ringtone but continue motivation
           if (newTime === 30 && isRingtonePhase) {
             console.log("Stopping ringtone, continuing motivation");
             setIsRingtonePhase(false);
             stopRingtone();
           }
           
-          // Watchdog: If no speech in last 10 seconds and should be speaking, retry
+          // Watchdog: If no speech in last 15 seconds and should be speaking, retry
           if (!isRingtonePhase && newTime > 35 && shouldContinueSpeaking.current) {
             const timeSinceLastSpeech = Date.now() - lastSpeechTimeRef.current;
-            if (timeSinceLastSpeech > 10000 && !speechSynthesis.speaking) {
+            if (timeSinceLastSpeech > 15000 && !isSpeechActiveRef.current) {
               console.log("Watchdog: Restarting speech");
               speakMessage();
             }
@@ -218,7 +155,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
     }
   }, [isConnected, elapsedTime, talkDuration, isRingtonePhase]);
 
-  const speakMessage = () => {
+  const speakMessage = async (customMessage?: string) => {
     if (!shouldContinueSpeaking.current) {
       console.log("Speech blocked - shouldContinueSpeaking is false");
       return;
@@ -229,7 +166,6 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
       return;
     }
     
-    // Clear any pending speech timeout
     if (speechTimeoutRef.current) {
       clearTimeout(speechTimeoutRef.current);
       speechTimeoutRef.current = null;
@@ -238,82 +174,87 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
     isSpeechActiveRef.current = true;
     intentionallyCanceledRef.current = false;
     
-    const randomMessage = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
-    setCurrentMessage(randomMessage);
-    console.log("Starting speech:", randomMessage.substring(0, 30) + "...");
+    const messageToSpeak = customMessage || motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+    setCurrentMessage(messageToSpeak);
+    console.log("Starting ElevenLabs speech:", messageToSpeak.substring(0, 30) + "...");
     
-    // Use browser's speech synthesis
-    if ('speechSynthesis' in window) {
-      // Cancel any ongoing speech
-      speechSynthesis.cancel();
+    try {
+      setIsPlaying(true);
+      lastSpeechTimeRef.current = Date.now();
       
-      // Wait a moment for cancel to complete
-      setTimeout(() => {
-        if (!shouldContinueSpeaking.current || intentionallyCanceledRef.current) {
-          isSpeechActiveRef.current = false;
-          return;
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: { text: messageToSpeak }
+      });
+      
+      if (error) {
+        console.error("ElevenLabs API error:", error);
+        throw error;
+      }
+      
+      if (!data?.audioContent) {
+        throw new Error("No audio content received");
+      }
+      
+      if (intentionallyCanceledRef.current || !shouldContinueSpeaking.current) {
+        isSpeechActiveRef.current = false;
+        setIsPlaying(false);
+        return;
+      }
+      
+      // Convert base64 to audio and play
+      const audioData = atob(data.audioContent);
+      const audioArray = new Uint8Array(audioData.length);
+      for (let i = 0; i < audioData.length; i++) {
+        audioArray[i] = audioData.charCodeAt(i);
+      }
+      
+      const audioBlob = new Blob([audioArray], { type: 'audio/mpeg' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      const audio = new Audio(audioUrl);
+      currentAudioRef.current = audio;
+      
+      audio.onended = () => {
+        console.log("ElevenLabs audio ended");
+        URL.revokeObjectURL(audioUrl);
+        setIsPlaying(false);
+        isSpeechActiveRef.current = false;
+        currentAudioRef.current = null;
+        
+        if (shouldContinueSpeaking.current && !intentionallyCanceledRef.current && elapsedTimeRef.current < (talkDuration * 60) - 3) {
+          speechTimeoutRef.current = window.setTimeout(() => {
+            speakMessage();
+          }, 1500);
         }
+      };
+      
+      audio.onerror = (e) => {
+        console.error("Audio playback error:", e);
+        URL.revokeObjectURL(audioUrl);
+        setIsPlaying(false);
+        isSpeechActiveRef.current = false;
+        currentAudioRef.current = null;
         
-        const utterance = new SpeechSynthesisUtterance(randomMessage);
-        utterance.rate = 0.9;
-        utterance.pitch = 1.1;
-        utterance.volume = 1.0;
-        if (selectedVoiceRef.current) {
-          utterance.voice = selectedVoiceRef.current;
+        if (!intentionallyCanceledRef.current && shouldContinueSpeaking.current) {
+          speechTimeoutRef.current = window.setTimeout(() => {
+            speakMessage();
+          }, 2000);
         }
-        
-        utterance.onstart = () => {
-          console.log("Speech started");
-          setIsPlaying(true);
-          lastSpeechTimeRef.current = Date.now();
-        };
-        
-        utterance.onend = () => {
-          console.log("Speech ended normally");
-          setIsPlaying(false);
-          isSpeechActiveRef.current = false;
-          
-          // Continue speaking if still within duration and not canceled
-          if (shouldContinueSpeaking.current && !intentionallyCanceledRef.current && elapsedTimeRef.current < (talkDuration * 60) - 3) {
-            speechTimeoutRef.current = window.setTimeout(() => {
-              speakMessage();
-            }, 1500);
-          }
-        };
-        
-        utterance.onerror = (event) => {
-          console.error("Speech error:", event);
-          setIsPlaying(false);
-          isSpeechActiveRef.current = false;
-          
-          // Only retry if not intentionally canceled
-          if (!intentionallyCanceledRef.current && shouldContinueSpeaking.current && elapsedTimeRef.current < (talkDuration * 60) - 3) {
-            speechTimeoutRef.current = window.setTimeout(() => {
-              speakMessage();
-            }, 2000);
-          }
-        };
-        
-        try {
-          speechSynthesis.speak(utterance);
-          console.log("Speech utterance queued");
-        } catch (error) {
-          console.error("Failed to speak:", error);
-          setIsPlaying(false);
-          isSpeechActiveRef.current = false;
-          
-          // Only retry if not intentionally canceled
-          if (!intentionallyCanceledRef.current && shouldContinueSpeaking.current && elapsedTimeRef.current < (talkDuration * 60) - 3) {
-            speechTimeoutRef.current = window.setTimeout(() => {
-              speakMessage();
-            }, 2000);
-          }
-        }
-      }, 100);
-    } else {
-      console.error("Speech synthesis not supported");
-      setCurrentMessage(randomMessage + " (Speech not supported in this browser)");
+      };
+      
+      await audio.play();
+      console.log("ElevenLabs audio playing");
+      
+    } catch (error) {
+      console.error("Speech error:", error);
+      setIsPlaying(false);
       isSpeechActiveRef.current = false;
+      
+      if (!intentionallyCanceledRef.current && shouldContinueSpeaking.current) {
+        speechTimeoutRef.current = window.setTimeout(() => {
+          speakMessage();
+        }, 3000);
+      }
     }
   };
 
@@ -324,9 +265,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
       clearTimeout(speechTimeoutRef.current);
     }
     stopRingtone();
-    if ('speechSynthesis' in window) {
-      speechSynthesis.cancel();
-    }
+    stopCurrentAudio();
     setIsConnected(false);
     setIsPlaying(false);
     toast.success("Have an amazing day ahead! 🌟");
@@ -342,9 +281,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
       clearTimeout(speechTimeoutRef.current);
     }
     stopRingtone();
-    if ('speechSynthesis' in window) {
-      speechSynthesis.cancel();
-    }
+    stopCurrentAudio();
     setIsConnected(false);
     setIsPlaying(false);
     toast.info("Call ended. Have a great day!");
@@ -354,26 +291,20 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   const handleSnooze = () => {
     console.log("Snooze pressed");
     
-    // Mark as intentionally canceled to prevent retries
     intentionallyCanceledRef.current = true;
     isSpeechActiveRef.current = false;
     
-    // Stop ringtone if still playing
     if (isRingtonePhase) {
       stopRingtone();
       setIsRingtonePhase(false);
     }
     
-    // Clear any pending timeouts
     if (speechTimeoutRef.current) {
       clearTimeout(speechTimeoutRef.current);
       speechTimeoutRef.current = null;
     }
     
-    // Cancel any ongoing speech
-    if ('speechSynthesis' in window) {
-      speechSynthesis.cancel();
-    }
+    stopCurrentAudio();
     
     setIsPlaying(false);
     setSnoozedCount(prev => prev + 1);
@@ -382,66 +313,11 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
     
     toast.warning(`Snooze attempt #${snoozedCount + 1} - Listen to this!`);
     
-    // Wait for speech synthesis to fully reset
-    if ('speechSynthesis' in window) {
-      setTimeout(() => {
-        if (!shouldContinueSpeaking.current) return;
-        
-        // Reset canceled flag for snooze message
-        intentionallyCanceledRef.current = false;
-        isSpeechActiveRef.current = true;
-        
-        const utterance = new SpeechSynthesisUtterance(snoozeMessage);
-        utterance.rate = 1.0;
-        utterance.pitch = 1.2;
-        utterance.volume = 1.0;
-        if (selectedVoiceRef.current) {
-          utterance.voice = selectedVoiceRef.current;
-        }
-        
-        utterance.onstart = () => {
-          console.log("Snooze message speech started");
-          setIsPlaying(true);
-          lastSpeechTimeRef.current = Date.now();
-        };
-        
-        utterance.onend = () => {
-          console.log("Snooze message speech ended");
-          setIsPlaying(false);
-          isSpeechActiveRef.current = false;
-          
-          // Continue with regular messages
-          speechTimeoutRef.current = window.setTimeout(() => {
-            if (shouldContinueSpeaking.current) speakMessage();
-          }, 1500);
-        };
-        
-        utterance.onerror = (event) => {
-          console.error("Snooze speech error:", event);
-          setIsPlaying(false);
-          isSpeechActiveRef.current = false;
-          
-          // Continue with regular messages even if snooze message fails
-          speechTimeoutRef.current = window.setTimeout(() => {
-            if (shouldContinueSpeaking.current) speakMessage();
-          }, 2000);
-        };
-        
-        try {
-          speechSynthesis.speak(utterance);
-          console.log("Snooze speech utterance queued");
-        } catch (error) {
-          console.error("Failed to speak snooze message:", error);
-          setIsPlaying(false);
-          isSpeechActiveRef.current = false;
-          
-          // Continue with regular messages
-          speechTimeoutRef.current = window.setTimeout(() => {
-            if (shouldContinueSpeaking.current) speakMessage();
-          }, 2000);
-        }
-      }, 500);
-    }
+    setTimeout(() => {
+      if (!shouldContinueSpeaking.current) return;
+      intentionallyCanceledRef.current = false;
+      speakMessage(snoozeMessage);
+    }, 500);
   };
 
   const formatTime = (seconds: number) => {
@@ -453,87 +329,100 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   const progress = (elapsedTime / (talkDuration * 60)) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-dawn flex items-center justify-center p-4">
-      <Card className="w-full max-w-md p-8 bg-white/90 backdrop-blur-glass border-0 shadow-glass text-center">
-        <div className="mb-8">
-          <div className="relative w-32 h-32 mx-auto mb-6">
-            <div className="absolute inset-0 bg-gradient-sunrise rounded-full flex items-center justify-center">
-              <Sun className={`h-16 w-16 text-primary ${isPlaying ? 'animate-pulse' : ''}`} />
-            </div>
-            {isConnected && (
-              <div className="absolute -inset-2 border-4 border-accent/30 rounded-full animate-ping"></div>
-            )}
-          </div>
-          
-          <h2 className="text-2xl font-bold text-foreground mb-2">
-            {isConnected ? "AI Motivator Active" : "Connecting..."}
-          </h2>
-          
-          <div className="flex items-center justify-center gap-2 text-muted-foreground">
-            <Heart className="h-4 w-4 text-red-500" />
-            <span>Good morning call for {alarmTime}</span>
-          </div>
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
+      {/* Animated sunrise background */}
+      <div className="absolute inset-0 bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300">
+        {/* Sun rays animation */}
+        <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <div className="w-32 h-32 rounded-full bg-yellow-200 animate-pulse shadow-2xl" 
+               style={{ boxShadow: '0 0 100px 50px rgba(255, 200, 100, 0.6)' }} />
         </div>
+      </div>
 
-        {isConnected && (
-          <>
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-muted-foreground">
-                  {formatTime(elapsedTime)} / {formatTime(talkDuration * 60)}
-                </span>
-                <div className="flex items-center gap-1">
-                  <Volume2 className={`h-4 w-4 text-accent ${isPlaying ? 'animate-pulse' : ''}`} />
-                  <span className="text-sm text-accent">
-                    {isPlaying ? 'Speaking' : 'Listening'}
-                  </span>
-                </div>
-              </div>
-              <Progress value={progress} className="h-2" />
+      <Card className="relative z-10 w-full max-w-md p-8 bg-white/90 backdrop-blur-lg shadow-2xl border-0 rounded-3xl">
+        <div className="text-center space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-center gap-3">
+            <div className="p-3 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 animate-pulse">
+              <Phone className="w-6 h-6 text-white" />
             </div>
-
-            <div className="bg-gradient-morning rounded-lg p-4 mb-6 min-h-[120px] flex items-center justify-center">
-              <p className="text-sm text-foreground italic leading-relaxed text-center">
-                {isRingtonePhase && `🔔 Ringtone: ${30 - elapsedTime}s remaining\n\n`}
-                {currentMessage || "Connecting to your AI motivator..."}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800">AI Motivator</h2>
+              <p className="text-sm text-gray-600 flex items-center gap-1">
+                {isConnected ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    Connected • ElevenLabs Voice
+                  </>
+                ) : (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+                    Connecting...
+                  </>
+                )}
               </p>
             </div>
-          </>
-        )}
+          </div>
 
-        <div className="flex gap-4 justify-center">
-          {!isConnected && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Phone className="h-4 w-4 animate-pulse" />
-              <span>Establishing connection...</span>
+          {/* Timer */}
+          <div className="space-y-2">
+            <div className="text-4xl font-mono font-bold text-gray-800">
+              {formatTime(elapsedTime)}
             </div>
-          )}
-          
-          {isConnected && (
-            <>
-              <Button
-                onClick={handleSnooze}
-                variant="outline"
-                size="lg"
-                className="px-6"
-              >
-                Snooze
-              </Button>
-              <Button
-                onClick={handleManualEndCall}
-                variant="destructive"
-                size="lg"
-                className="px-8"
-              >
-                <PhoneOff className="h-4 w-4 mr-2" />
-                End Call
-              </Button>
-            </>
-          )}
-        </div>
+            <p className="text-sm text-gray-700 font-medium">Time remaining: {formatTime((talkDuration * 60) - elapsedTime)}</p>
+            <Progress value={progress} className="h-2 bg-gray-200" />
+          </div>
 
-        <div className="mt-6 text-xs text-muted-foreground">
-          Your AI motivator is here to help you start the day with positive energy! 🌟
+          {/* Status indicators */}
+          <div className="flex justify-center gap-4">
+            {isRingtonePhase && (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 text-orange-700">
+                <Volume2 className="w-4 h-4 animate-pulse" />
+                <span className="text-sm font-medium">Ringtone</span>
+              </div>
+            )}
+            {isPlaying && (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-700">
+                <Heart className="w-4 h-4 animate-pulse" />
+                <span className="text-sm font-medium">Speaking</span>
+              </div>
+            )}
+          </div>
+
+          {/* Current message */}
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-orange-200">
+            <p className="text-gray-700 italic leading-relaxed">
+              "{currentMessage || "Preparing your morning motivation..."}"
+            </p>
+          </div>
+
+          {/* Snooze counter */}
+          {snoozedCount > 0 && (
+            <p className="text-sm text-orange-600 font-medium">
+              Snooze attempts: {snoozedCount} - Stay strong! 💪
+            </p>
+          )}
+
+          {/* Action buttons */}
+          <div className="flex gap-4 justify-center">
+            <Button
+              variant="outline"
+              onClick={handleSnooze}
+              className="flex-1 py-6 text-orange-600 border-orange-300 hover:bg-orange-50 rounded-xl"
+              disabled={!isConnected}
+            >
+              <Sun className="w-5 h-5 mr-2" />
+              Snooze
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleManualEndCall}
+              className="flex-1 py-6 bg-red-500 hover:bg-red-600 rounded-xl"
+            >
+              <PhoneOff className="w-5 h-5 mr-2" />
+              End Call
+            </Button>
+          </div>
         </div>
       </Card>
     </div>
