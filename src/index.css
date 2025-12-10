@@ -131,6 +131,30 @@ All colors MUST be HSL.
   .animate-glow {
     animation: glow 2s ease-in-out infinite alternate;
   }
+  
+  .animate-glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+  
+  .animate-sound-wave {
+    animation: sound-wave 1.5s ease-out infinite;
+  }
+  
+  .animate-sound-wave-delayed {
+    animation: sound-wave 1.5s ease-out infinite 0.5s;
+  }
+  
+  .animate-sound-wave-delayed-2 {
+    animation: sound-wave 1.5s ease-out infinite 1s;
+  }
+  
+  .animate-speaking-glow {
+    animation: speaking-glow 1s ease-in-out infinite alternate;
+  }
+  
+  .animate-voice-bar {
+    animation: voice-bar 0.8s ease-in-out infinite;
+  }
 }
 
 @keyframes float {
@@ -168,5 +192,43 @@ All colors MUST be HSL.
   }
   to {
     box-shadow: 0 0 30px hsl(25 100% 55% / 0.5), 0 0 60px hsl(25 100% 55% / 0.2);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px hsl(25 100% 60% / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 40px hsl(25 100% 60% / 0.6), 0 0 60px hsl(35 100% 65% / 0.3);
+  }
+}
+
+@keyframes sound-wave {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+@keyframes speaking-glow {
+  from {
+    box-shadow: 0 0 30px hsl(142 70% 45% / 0.4), 0 0 60px hsl(142 70% 45% / 0.2);
+  }
+  to {
+    box-shadow: 0 0 50px hsl(142 70% 45% / 0.6), 0 0 100px hsl(142 70% 45% / 0.3);
+  }
+}
+
+@keyframes voice-bar {
+  0%, 100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
   }
 }

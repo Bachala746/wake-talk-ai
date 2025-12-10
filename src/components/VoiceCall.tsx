@@ -369,17 +369,33 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
 
       <Card className="relative z-10 w-full max-w-md p-8 bg-white/90 backdrop-blur-lg shadow-2xl border-0 rounded-3xl">
         <div className="text-center space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-center gap-3">
-            <div className="p-3 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 animate-pulse">
-              <Phone className="w-6 h-6 text-white" />
+          {/* Header with speaking animation */}
+          <div className="flex flex-col items-center gap-4">
+            {/* Animated speaker icon with sound waves */}
+            <div className="relative">
+              {/* Sound wave rings when speaking */}
+              {isPlaying && (
+                <>
+                  <div className="absolute inset-0 rounded-full bg-green-400/30 animate-sound-wave" />
+                  <div className="absolute inset-0 rounded-full bg-green-400/20 animate-sound-wave-delayed" />
+                  <div className="absolute inset-0 rounded-full bg-green-400/10 animate-sound-wave-delayed-2" />
+                </>
+              )}
+              <div className={`relative p-4 rounded-full transition-all duration-300 ${
+                isPlaying 
+                  ? 'bg-gradient-to-br from-green-400 to-emerald-500 animate-speaking-glow' 
+                  : 'bg-gradient-to-br from-orange-400 to-amber-500 animate-pulse'
+              }`}>
+                <Phone className="w-8 h-8 text-white" />
+              </div>
             </div>
+            
             <div>
               <h2 className="text-2xl font-bold text-gray-800">AI Motivator</h2>
-              <p className="text-sm text-gray-600 flex items-center gap-1">
+              <p className="text-sm text-gray-600 flex items-center justify-center gap-1">
                 {isConnected ? (
                   <>
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    <span className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-green-500' : 'bg-green-400'} animate-pulse`} />
                     Connected • ElevenLabs Voice
                   </>
                 ) : (
@@ -391,6 +407,23 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
               </p>
             </div>
           </div>
+
+          {/* Voice visualizer bars when speaking */}
+          {isPlaying && (
+            <div className="flex items-center justify-center gap-1 h-8">
+              {[...Array(7)].map((_, i) => (
+                <div
+                  key={i}
+                  className="w-1.5 bg-gradient-to-t from-green-500 to-emerald-400 rounded-full animate-voice-bar"
+                  style={{
+                    height: '100%',
+                    animationDelay: `${i * 0.1}s`,
+                    animationDuration: `${0.6 + Math.random() * 0.4}s`
+                  }}
+                />
+              ))}
+            </div>
+          )}
 
           {/* Timer */}
           <div className="space-y-2">
@@ -410,16 +443,22 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
               </div>
             )}
             {isPlaying && (
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-700">
-                <Heart className="w-4 h-4 animate-pulse" />
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-700 animate-pulse">
+                <Heart className="w-4 h-4" />
                 <span className="text-sm font-medium">Speaking</span>
               </div>
             )}
           </div>
 
-          {/* Current message */}
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-orange-200">
-            <p className="text-gray-700 italic leading-relaxed">
+          {/* Current message with animation */}
+          <div className={`p-4 rounded-2xl transition-all duration-500 ${
+            isPlaying 
+              ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 shadow-lg' 
+              : 'bg-gradient-to-br from-amber-50 to-orange-50 border border-orange-200'
+          }`}>
+            <p className={`italic leading-relaxed transition-colors duration-300 ${
+              isPlaying ? 'text-green-800' : 'text-gray-700'
+            }`}>
               "{currentMessage || "Preparing your morning motivation..."}"
             </p>
           </div>
