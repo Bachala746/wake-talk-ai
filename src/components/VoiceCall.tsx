@@ -27,21 +27,25 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   const lastSpeechTimeRef = useRef(0);
   const isSpeechActiveRef = useRef(false);
   const intentionallyCanceledRef = useRef(false);
+  const usedMessageIndicesRef = useRef<Set<number>>(new Set());
+  const hasGreetedRef = useRef(false);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
+  const greetingMessage = "Rise and shine, champion! Today is a brand new day full of endless possibilities. You have the power within you to make it absolutely amazing!";
+
   const motivationalMessages = [
-    "Good morning, champion! Today is a brand new day full of endless possibilities. You have the power within you to make it absolutely amazing!",
-    "Rise and shine, beautiful soul! You've been given another precious day to chase your dreams and make a real difference in the world.",
-    "Hello there, superstar! Remember, every sunrise brings new opportunities and fresh beginnings. You've got this, and I truly believe in you!",
-    "Good morning, wonderful human! Today is your canvas, a blank page waiting for your unique touch. Paint it with beautiful moments!",
-    "Wake up, dreamer! The world is eagerly waiting for your unique gifts and incredible talents. Let's make today truly extraordinary!",
-    "Rise up, warrior! You have overcome so many challenges before, and you will absolutely conquer today too. Your strength is inspiring!",
-    "Good morning, sunshine! You are capable of incredible, amazing things. Trust yourself completely and let your brilliant light shine!",
-    "Hello, amazing soul! Each morning is a fresh start, a brand new chapter in your incredible story. Write something beautiful today!",
-    "Welcome to this glorious new day, champion! You woke up today with a purpose. Every breath is a gift, every moment is an opportunity!",
-    "Good morning, incredible human being! Today, you have 24 brand new hours of pure potential ahead of you. Make it count!",
-    "Rise and conquer, unstoppable force! Your thoughts are powerful, your actions matter, and your presence makes a difference!",
-    "Hello brilliant mind! Simply by waking up today, you've already won. Seize this magnificent opportunity with both hands!"
+    "You've been given another precious day to chase your dreams and make a real difference in the world. Make it count!",
+    "Remember, every sunrise brings new opportunities and fresh beginnings. You've got this, and I truly believe in you!",
+    "Today is your canvas, a blank page waiting for your unique touch. Paint it with beautiful moments and positive energy!",
+    "The world is eagerly waiting for your unique gifts and incredible talents. Let's make today truly extraordinary together!",
+    "You have overcome so many challenges before, and you will absolutely conquer today too. Your strength is inspiring!",
+    "You are capable of incredible, amazing things. Trust yourself completely and let your brilliant light shine bright!",
+    "Each new day is a fresh start, a brand new chapter in your incredible story. Write something beautiful today!",
+    "You woke up today with a purpose. Every breath is a gift, every moment is an opportunity waiting to be seized!",
+    "Today, you have 24 brand new hours of pure potential ahead of you. Make every single one of them count!",
+    "Your thoughts are powerful, your actions matter, and your presence makes a real difference in this world!",
+    "Simply by waking up today, you've already won. Seize this magnificent opportunity with both hands and run with it!",
+    "Believe in yourself today. You have everything you need to succeed. Now go out there and show the world what you're made of!"
   ];
 
   const antiSnoozeMessages = [
@@ -174,7 +178,31 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
     isSpeechActiveRef.current = true;
     intentionallyCanceledRef.current = false;
     
-    const messageToSpeak = customMessage || motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+    let messageToSpeak: string;
+    
+    if (customMessage) {
+      messageToSpeak = customMessage;
+    } else if (!hasGreetedRef.current) {
+      // First message: use the greeting
+      messageToSpeak = greetingMessage;
+      hasGreetedRef.current = true;
+    } else {
+      // Get unused message index
+      const availableIndices = motivationalMessages
+        .map((_, i) => i)
+        .filter(i => !usedMessageIndicesRef.current.has(i));
+      
+      // Reset if all messages used
+      if (availableIndices.length === 0) {
+        usedMessageIndicesRef.current.clear();
+        availableIndices.push(...motivationalMessages.map((_, i) => i));
+      }
+      
+      const randomIdx = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+      usedMessageIndicesRef.current.add(randomIdx);
+      messageToSpeak = motivationalMessages[randomIdx];
+    }
+    
     setCurrentMessage(messageToSpeak);
     console.log("Starting ElevenLabs speech:", messageToSpeak.substring(0, 30) + "...");
     
