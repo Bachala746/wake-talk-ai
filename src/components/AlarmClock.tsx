@@ -268,7 +268,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           </Button>
 
           {/* Feature highlights */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-12 text-slate-600 text-sm">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-8 text-slate-600 text-sm">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
               <span>Daily wake-up calls</span>
@@ -276,6 +276,25 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
               <span>AI conversations to energize you</span>
+            </div>
+          </div>
+
+          {/* Motivational Quote in Hero */}
+          <div className="mt-10 max-w-xl mx-auto">
+            <div className="p-5 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg">
+              <div className="flex items-start gap-4">
+                <div className="bg-gradient-to-br from-orange-400 to-amber-500 rounded-xl p-2.5 shrink-0 shadow-md">
+                  <Flame className="h-5 w-5 text-white" />
+                </div>
+                <div className="min-h-[60px] flex flex-col justify-center">
+                  <p className="text-base font-medium text-slate-700 italic leading-relaxed">
+                    "{motivationalQuotes[currentQuoteIndex].quote}"
+                  </p>
+                  <p className="text-sm text-orange-600 font-semibold mt-2">
+                    — {motivationalQuotes[currentQuoteIndex].author}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -311,23 +330,6 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
               <div className="text-4xl font-bold text-foreground mb-1">{formatTime(currentTime)}</div>
               <div className="text-muted-foreground text-sm">
                 {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-              </div>
-            </div>
-          </Card>
-
-          {/* Motivational Quote */}
-          <Card className="p-5 mb-8 bg-gradient-to-r from-primary/5 via-accent/10 to-primary/5 border border-primary/10">
-            <div className="flex items-start gap-4">
-              <div className="bg-gradient-warm rounded-xl p-2.5 shrink-0 shadow-md">
-                <Flame className="h-5 w-5 text-white" />
-              </div>
-              <div className="min-h-[60px] flex flex-col justify-center">
-                <p className="text-base font-medium text-foreground italic leading-relaxed">
-                  "{motivationalQuotes[currentQuoteIndex].quote}"
-                </p>
-                <p className="text-sm text-primary font-semibold mt-2">
-                  — {motivationalQuotes[currentQuoteIndex].author}
-                </p>
               </div>
             </div>
           </Card>
