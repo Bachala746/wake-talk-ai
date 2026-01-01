@@ -5,14 +5,22 @@ import { Progress } from "@/components/ui/progress";
 import { Phone, PhoneOff, Volume2, Heart, Sun } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  AlarmSettings,
+  themeMessages,
+  snoozeMessages,
+  ringtoneStyles,
+  defaultAlarmSettings,
+} from "@/lib/alarmSettings";
 
 interface VoiceCallProps {
   alarmTime: string;
   talkDuration: number;
+  settings?: AlarmSettings;
   onEndCall: () => void;
 }
 
-export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps) => {
+export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSettings, onEndCall }: VoiceCallProps) => {
   const [isConnected, setIsConnected] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [currentMessage, setCurrentMessage] = useState("");
@@ -30,38 +38,34 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   const usedMessageIndicesRef = useRef<Set<number>>(new Set());
   const hasGreetedRef = useRef(false);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const ringtoneVolumeRef = useRef(0.1);
 
-  const greetingMessage = "Good morning! Rise and shine, champion! Today is a brand new day full of endless possibilities. You have the power within you to make it absolutely amazing!";
+  // Get themed messages based on settings
+  const themeContent = themeMessages[settings.messageTheme];
+  
+  const getGreetingMessage = () => {
+    const { greetingStyle, userName, messageTheme } = settings;
+    const baseGreeting = themeContent.greeting;
+    
+    if (greetingStyle === 'personalized' && userName) {
+      // Replace generic greeting with personalized one
+      const timeOfDay = new Date().getHours() < 12 ? 'morning' : 'day';
+      return `Good ${timeOfDay}, ${userName}! ${baseGreeting.split('!').slice(1).join('!')}`;
+    } else if (greetingStyle === 'formal') {
+      return `Good morning. I hope you rested well. ${baseGreeting.split('!').slice(1).join('!')}`;
+    }
+    return baseGreeting;
+  };
 
-  const motivationalMessages = [
-    "You've been given another precious day to chase your dreams and make a real difference in the world. Make it count!",
-    "Remember, every sunrise brings new opportunities and fresh beginnings. You've got this, and I truly believe in you!",
-    "Today is your canvas, a blank page waiting for your unique touch. Paint it with beautiful moments and positive energy!",
-    "The world is eagerly waiting for your unique gifts and incredible talents. Let's make today truly extraordinary together!",
-    "You have overcome so many challenges before, and you will absolutely conquer today too. Your strength is inspiring!",
-    "You are capable of incredible, amazing things. Trust yourself completely and let your brilliant light shine bright!",
-    "Each new day is a fresh start, a brand new chapter in your incredible story. Write something beautiful today!",
-    "You woke up today with a purpose. Every breath is a gift, every moment is an opportunity waiting to be seized!",
-    "Today, you have 24 brand new hours of pure potential ahead of you. Make every single one of them count!",
-    "Your thoughts are powerful, your actions matter, and your presence makes a real difference in this world!",
-    "Simply by waking up today, you've already won. Seize this magnificent opportunity with both hands and run with it!",
-    "Believe in yourself today. You have everything you need to succeed. Now go out there and show the world what you're made of!"
-  ];
-
-  const antiSnoozeMessages = [
-    "Wait! Don't hit that snooze button! Those extra minutes won't make you feel better, but getting up NOW will set the tone for an incredible day!",
-    "Hold on, champion! Snoozing is just borrowing time from your dreams. Get up now and you'll thank yourself later!",
-    "Hey, I know the bed is cozy, but greatness never came from the snooze button! Your goals are waiting for you!",
-    "Stop right there! Every time you snooze, you're telling yourself that sleep is more important than your dreams!",
-    "The difference between successful people and everyone else? They don't snooze! You have it in you to be great!",
-    "No no no! That snooze button is a trap! The best version of you is waiting on the other side of getting up!",
-    "Think about it - would your future self thank you for those 5 extra minutes, or for starting the day strong?"
-  ];
+  const motivationalMessages = themeContent.messages;
+  const antiSnoozeMessages = snoozeMessages[settings.snoozeLevel];
 
   const playRingtone = () => {
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       audioContextRef.current = audioContext;
+      
+      const ringtoneConfig = ringtoneStyles.find(r => r.value === settings.ringtoneStyle) || ringtoneStyles[0];
       
       const playRingtonePulse = () => {
         if (!audioContextRef.current || !isRingtonePhase) return;
@@ -72,14 +76,21 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
         oscillator.connect(gainNode);
         gainNode.connect(audioContextRef.current.destination);
         
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
+        oscillator.frequency.value = ringtoneConfig.frequency;
+        oscillator.type = ringtoneConfig.type;
         
-        gainNode.gain.setValueAtTime(0.5, audioContextRef.current.currentTime);
+        // Gradual volume increase if enabled
+        const volume = settings.gradualVolume ? ringtoneVolumeRef.current : 0.5;
+        gainNode.gain.setValueAtTime(volume, audioContextRef.current.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContextRef.current.currentTime + 0.3);
         
         oscillator.start(audioContextRef.current.currentTime);
         oscillator.stop(audioContextRef.current.currentTime + 0.3);
+        
+        // Increase volume gradually
+        if (settings.gradualVolume && ringtoneVolumeRef.current < 0.8) {
+          ringtoneVolumeRef.current = Math.min(0.8, ringtoneVolumeRef.current + 0.05);
+        }
       };
       
       playRingtonePulse();
@@ -180,8 +191,8 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
     if (customMessage) {
       messageToSpeak = customMessage;
     } else if (!hasGreetedRef.current) {
-      // First message: use the greeting
-      messageToSpeak = greetingMessage;
+      // First message: use the themed greeting
+      messageToSpeak = getGreetingMessage();
       hasGreetedRef.current = true;
     } else {
       // Get unused message index
@@ -202,13 +213,17 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
     
     setCurrentMessage(messageToSpeak);
     console.log("Starting ElevenLabs speech:", messageToSpeak.substring(0, 30) + "...");
+    console.log("Voice style:", settings.voiceStyle);
     
     try {
       setIsPlaying(true);
       lastSpeechTimeRef.current = Date.now();
       
       const { data, error } = await supabase.functions.invoke('text-to-speech', {
-        body: { text: messageToSpeak }
+        body: { 
+          text: messageToSpeak,
+          voiceStyle: settings.voiceStyle
+        }
       });
       
       if (error) {
@@ -393,7 +408,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
                 {isConnected ? (
                   <>
                     <span className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-green-500' : 'bg-green-400'} animate-pulse`} />
-                    Connected • ElevenLabs Voice
+                    Connected • {settings.voiceStyle.charAt(0).toUpperCase() + settings.voiceStyle.slice(1)} Voice
                   </>
                 ) : (
                   <>

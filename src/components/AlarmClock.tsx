@@ -4,9 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Clock, Phone, Settings, Sun, Moon, Trash2, Edit, Sparkles, Flame, Zap } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Clock, Phone, Settings, Sun, Moon, Trash2, Edit, Sparkles, Flame, Zap, Volume2, Mic, Bell, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AlarmSettings,
+  VoiceStyle,
+  GreetingStyle,
+  MessageTheme,
+  RingtoneStyle,
+  SnoozeLevel,
+  voiceStyles,
+  greetingStyles,
+  messageThemes,
+  ringtoneStyles,
+  snoozeLevels,
+  defaultAlarmSettings,
+} from "@/lib/alarmSettings";
 
 const motivationalQuotes = [
   { quote: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
@@ -28,10 +44,11 @@ interface Alarm {
   duration: number;
   days: string[];
   isActive: boolean;
+  settings: AlarmSettings;
 }
 
 interface AlarmClockProps {
-  onStartCall: (alarmTime: string, talkDuration: number) => void;
+  onStartCall: (alarmTime: string, talkDuration: number, settings: AlarmSettings) => void;
 }
 
 export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
@@ -46,6 +63,15 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [alarmLabel, setAlarmLabel] = useState("Wake up");
   const [talkDuration, setTalkDuration] = useState([5]);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  
+  // Customization states
+  const [voiceStyle, setVoiceStyle] = useState<VoiceStyle>(defaultAlarmSettings.voiceStyle);
+  const [greetingStyle, setGreetingStyle] = useState<GreetingStyle>(defaultAlarmSettings.greetingStyle);
+  const [userName, setUserName] = useState(defaultAlarmSettings.userName);
+  const [messageTheme, setMessageTheme] = useState<MessageTheme>(defaultAlarmSettings.messageTheme);
+  const [ringtoneStyle, setRingtoneStyle] = useState<RingtoneStyle>(defaultAlarmSettings.ringtoneStyle);
+  const [snoozeLevel, setSnoozeLevel] = useState<SnoozeLevel>(defaultAlarmSettings.snoozeLevel);
+  const [gradualVolume, setGradualVolume] = useState(defaultAlarmSettings.gradualVolume);
 
   // Rotate motivational quotes
   useEffect(() => {
@@ -59,7 +85,13 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   useEffect(() => {
     const savedAlarms = localStorage.getItem('alarms');
     if (savedAlarms) {
-      setAlarms(JSON.parse(savedAlarms));
+      const parsed = JSON.parse(savedAlarms);
+      // Migration: add default settings to old alarms
+      const migratedAlarms = parsed.map((alarm: any) => ({
+        ...alarm,
+        settings: alarm.settings || defaultAlarmSettings
+      }));
+      setAlarms(migratedAlarms);
     }
   }, []);
 
@@ -107,15 +139,25 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       a.id === alarm.id ? { ...a, isActive: false } : a
     ));
     toast.success(`Good morning! "${alarm.label}" - Your AI motivator is calling you!`);
-    onStartCall(alarm.time, alarm.duration);
+    onStartCall(alarm.time, alarm.duration, alarm.settings);
   };
 
   const handleSaveAlarm = () => {
+    const settings: AlarmSettings = {
+      voiceStyle,
+      greetingStyle,
+      userName,
+      messageTheme,
+      ringtoneStyle,
+      snoozeLevel,
+      gradualVolume,
+    };
+
     if (editingAlarmId) {
       // Update existing alarm
       setAlarms(prev => prev.map(a => 
         a.id === editingAlarmId 
-          ? { ...a, time: alarmTime, label: alarmLabel, duration: talkDuration[0], days: selectedDays }
+          ? { ...a, time: alarmTime, label: alarmLabel, duration: talkDuration[0], days: selectedDays, settings }
           : a
       ));
       toast.success(`Alarm "${alarmLabel}" updated!`);
@@ -127,7 +169,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
         label: alarmLabel,
         duration: talkDuration[0],
         days: selectedDays,
-        isActive: true
+        isActive: true,
+        settings
       };
       setAlarms(prev => [...prev, newAlarm]);
       const daysText = selectedDays.length > 0 ? ` on ${selectedDays.join(', ')}` : '';
@@ -159,6 +202,14 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setAlarmLabel(alarm.label);
     setTalkDuration([alarm.duration]);
     setSelectedDays(alarm.days);
+    // Load settings
+    setVoiceStyle(alarm.settings.voiceStyle);
+    setGreetingStyle(alarm.settings.greetingStyle);
+    setUserName(alarm.settings.userName);
+    setMessageTheme(alarm.settings.messageTheme);
+    setRingtoneStyle(alarm.settings.ringtoneStyle);
+    setSnoozeLevel(alarm.settings.snoozeLevel);
+    setGradualVolume(alarm.settings.gradualVolume);
     setIsDialogOpen(true);
   };
 
@@ -168,6 +219,14 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setAlarmLabel("Wake up");
     setTalkDuration([5]);
     setSelectedDays([]);
+    // Reset to defaults
+    setVoiceStyle(defaultAlarmSettings.voiceStyle);
+    setGreetingStyle(defaultAlarmSettings.greetingStyle);
+    setUserName(defaultAlarmSettings.userName);
+    setMessageTheme(defaultAlarmSettings.messageTheme);
+    setRingtoneStyle(defaultAlarmSettings.ringtoneStyle);
+    setSnoozeLevel(defaultAlarmSettings.snoozeLevel);
+    setGradualVolume(defaultAlarmSettings.gradualVolume);
     setIsDialogOpen(true);
   };
 
@@ -364,6 +423,12 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                             {alarm.duration} min talk
                             {alarm.days.length > 0 && ` • ${alarm.days.join(', ')}`}
                           </div>
+                          <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                            <span className="capitalize">{alarm.settings.voiceStyle}</span>
+                            <span>•</span>
+                            <span>{messageThemes.find(t => t.value === alarm.settings.messageTheme)?.icon}</span>
+                            <span className="capitalize">{alarm.settings.messageTheme}</span>
+                          </div>
                           {alarm.isActive && (
                             <div className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary font-semibold mt-2 px-2 py-1 rounded-full">
                               <Zap className="h-3 w-3" />
@@ -418,7 +483,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
             </Button>
             
             <Button 
-              onClick={() => onStartCall("now", 5)}
+              onClick={() => onStartCall("now", 5, defaultAlarmSettings)}
               variant="outline"
               className="flex-1 py-6 rounded-xl border-2 border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-300"
               size="lg"
@@ -432,7 +497,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       </section>
 
       <Dialog open={isDialogOpen} onOpenChange={closeDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-primary" />
@@ -440,74 +505,221 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-6 py-4">
-            <div>
-              <Label htmlFor="dialog-alarm-time" className="text-sm font-medium mb-2 block">
-                Time
-              </Label>
-              <Input
-                id="dialog-alarm-time"
-                type="time"
-                value={alarmTime}
-                onChange={(e) => setAlarmTime(e.target.value)}
-                className="text-lg p-3"
-              />
-            </div>
+          <Tabs defaultValue="basic" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="basic" className="text-xs sm:text-sm">
+                <Clock className="h-4 w-4 mr-1" />
+                Basic
+              </TabsTrigger>
+              <TabsTrigger value="voice" className="text-xs sm:text-sm">
+                <Mic className="h-4 w-4 mr-1" />
+                Voice
+              </TabsTrigger>
+              <TabsTrigger value="sound" className="text-xs sm:text-sm">
+                <Bell className="h-4 w-4 mr-1" />
+                Sound
+              </TabsTrigger>
+            </TabsList>
 
-            <div>
-              <Label htmlFor="alarm-label" className="text-sm font-medium mb-2 block">
-                Label
-              </Label>
-              <Input
-                id="alarm-label"
-                type="text"
-                value={alarmLabel}
-                onChange={(e) => setAlarmLabel(e.target.value)}
-                placeholder="Wake up"
-                className="p-3"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium mb-3 block">
-                AI Talk Duration: {talkDuration[0]} minutes
-              </Label>
-              <Slider
-                value={talkDuration}
-                onValueChange={setTalkDuration}
-                max={10}
-                min={1}
-                step={1}
-                className="py-4"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>1 min</span>
-                <span>10 min</span>
+            <TabsContent value="basic" className="space-y-4">
+              <div>
+                <Label htmlFor="dialog-alarm-time" className="text-sm font-medium mb-2 block">
+                  Time
+                </Label>
+                <Input
+                  id="dialog-alarm-time"
+                  type="time"
+                  value={alarmTime}
+                  onChange={(e) => setAlarmTime(e.target.value)}
+                  className="text-lg p-3"
+                />
               </div>
-            </div>
 
-            <div>
-              <Label className="text-sm font-medium mb-3 block">
-                Repeat Days
-              </Label>
-              <div className="flex gap-2 flex-wrap">
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-                  <Button
-                    key={day}
-                    type="button"
-                    variant={selectedDays.includes(day) ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => toggleDay(day)}
-                    className="px-4"
-                  >
-                    {day}
-                  </Button>
-                ))}
+              <div>
+                <Label htmlFor="alarm-label" className="text-sm font-medium mb-2 block">
+                  Label
+                </Label>
+                <Input
+                  id="alarm-label"
+                  type="text"
+                  value={alarmLabel}
+                  onChange={(e) => setAlarmLabel(e.target.value)}
+                  placeholder="Wake up"
+                  className="p-3"
+                />
               </div>
-            </div>
-          </div>
 
-          <DialogFooter className="gap-2 sm:gap-0">
+              <div>
+                <Label className="text-sm font-medium mb-3 block">
+                  AI Talk Duration: {talkDuration[0]} minutes
+                </Label>
+                <Slider
+                  value={talkDuration}
+                  onValueChange={setTalkDuration}
+                  max={10}
+                  min={1}
+                  step={1}
+                  className="py-4"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                  <span>1 min</span>
+                  <span>10 min</span>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-3 block">
+                  Repeat Days
+                </Label>
+                <div className="flex gap-2 flex-wrap">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                    <Button
+                      key={day}
+                      type="button"
+                      variant={selectedDays.includes(day) ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => toggleDay(day)}
+                      className="px-3"
+                    >
+                      {day}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="voice" className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium mb-3 block flex items-center gap-2">
+                  <Mic className="h-4 w-4" />
+                  Voice Style
+                </Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {voiceStyles.map((style) => (
+                    <Button
+                      key={style.value}
+                      type="button"
+                      variant={voiceStyle === style.value ? "default" : "outline"}
+                      onClick={() => setVoiceStyle(style.value)}
+                      className="flex flex-col h-auto py-3 px-4"
+                    >
+                      <span className="font-semibold">{style.label}</span>
+                      <span className="text-xs opacity-70">{style.description}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-3 block">
+                  Greeting Style
+                </Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {greetingStyles.map((style) => (
+                    <Button
+                      key={style.value}
+                      type="button"
+                      variant={greetingStyle === style.value ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setGreetingStyle(style.value)}
+                    >
+                      {style.label}
+                    </Button>
+                  ))}
+                </div>
+                {greetingStyle === 'personalized' && (
+                  <Input
+                    type="text"
+                    placeholder="Your name"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    className="mt-2"
+                  />
+                )}
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-3 block flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Message Theme
+                </Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {messageThemes.map((theme) => (
+                    <Button
+                      key={theme.value}
+                      type="button"
+                      variant={messageTheme === theme.value ? "default" : "outline"}
+                      onClick={() => setMessageTheme(theme.value)}
+                      className="flex items-center gap-2 justify-start"
+                    >
+                      <span>{theme.icon}</span>
+                      <div className="text-left">
+                        <div className="font-semibold text-sm">{theme.label}</div>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="sound" className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium mb-3 block flex items-center gap-2">
+                  <Bell className="h-4 w-4" />
+                  Ringtone Style
+                </Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {ringtoneStyles.map((style) => (
+                    <Button
+                      key={style.value}
+                      type="button"
+                      variant={ringtoneStyle === style.value ? "default" : "outline"}
+                      onClick={() => setRingtoneStyle(style.value)}
+                      className="flex flex-col h-auto py-3"
+                    >
+                      <span className="font-semibold">{style.label}</span>
+                      <span className="text-xs opacity-70">{style.description}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/50">
+                <div>
+                  <Label className="text-sm font-medium">Gradual Volume</Label>
+                  <p className="text-xs text-muted-foreground">Start soft and increase over time</p>
+                </div>
+                <Switch
+                  checked={gradualVolume}
+                  onCheckedChange={setGradualVolume}
+                />
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-3 block">
+                  Snooze Intensity
+                </Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {snoozeLevels.map((level) => (
+                    <Button
+                      key={level.value}
+                      type="button"
+                      variant={snoozeLevel === level.value ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSnoozeLevel(level.value)}
+                    >
+                      {level.label}
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {snoozeLevels.find(l => l.value === snoozeLevel)?.description}
+                </p>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <DialogFooter className="gap-2 sm:gap-0 mt-4">
             <Button
               type="button"
               variant="outline"
