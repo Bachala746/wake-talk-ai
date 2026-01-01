@@ -31,7 +31,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   const hasGreetedRef = useRef(false);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  const greetingMessage = "Rise and shine, champion! Today is a brand new day full of endless possibilities. You have the power within you to make it absolutely amazing!";
+  const greetingMessage = "Good morning! Rise and shine, champion! Today is a brand new day full of endless possibilities. You have the power within you to make it absolutely amazing!";
 
   const motivationalMessages = [
     "You've been given another precious day to chase your dreams and make a real difference in the world. Make it count!",
@@ -139,11 +139,12 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
             stopRingtone();
           }
           
-          // Watchdog: If no speech in last 15 seconds and should be speaking, retry
+          // Watchdog: If no speech in last 8 seconds and should be speaking, retry
           if (!isRingtonePhase && newTime > 35 && shouldContinueSpeaking.current) {
             const timeSinceLastSpeech = Date.now() - lastSpeechTimeRef.current;
-            if (timeSinceLastSpeech > 15000 && !isSpeechActiveRef.current) {
-              console.log("Watchdog: Restarting speech");
+            if (timeSinceLastSpeech > 8000) {
+              console.log("Watchdog: Forcing reset and restarting speech");
+              isSpeechActiveRef.current = false;
               speakMessage();
             }
           }
@@ -252,7 +253,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
         if (shouldContinueSpeaking.current && !intentionallyCanceledRef.current && elapsedTimeRef.current < (talkDuration * 60) - 3) {
           speechTimeoutRef.current = window.setTimeout(() => {
             speakMessage();
-          }, 1500);
+          }, 500);
         }
       };
       
@@ -266,7 +267,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
         if (!intentionallyCanceledRef.current && shouldContinueSpeaking.current) {
           speechTimeoutRef.current = window.setTimeout(() => {
             speakMessage();
-          }, 2000);
+          }, 1000);
         }
       };
       
@@ -281,7 +282,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
       if (!intentionallyCanceledRef.current && shouldContinueSpeaking.current) {
         speechTimeoutRef.current = window.setTimeout(() => {
           speakMessage();
-        }, 3000);
+        }, 1000);
       }
     }
   };
