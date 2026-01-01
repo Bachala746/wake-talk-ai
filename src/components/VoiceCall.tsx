@@ -109,18 +109,14 @@ export const VoiceCall = ({ alarmTime, talkDuration, onEndCall }: VoiceCallProps
   };
 
   useEffect(() => {
-    const connectTimer = setTimeout(() => {
-      setIsConnected(true);
-      setIsPlaying(true);
-      toast.success("AI Motivator connected! 🌅");
-      playRingtone();
-      setTimeout(() => {
-        speakMessage();
-      }, 1000);
-    }, 2000);
+    // Start speaking immediately - no delays
+    setIsConnected(true);
+    setIsPlaying(true);
+    toast.success("AI Motivator connected! 🌅");
+    playRingtone();
+    speakMessage();
 
     return () => {
-      clearTimeout(connectTimer);
       stopRingtone();
       stopCurrentAudio();
     };
