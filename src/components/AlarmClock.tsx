@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Clock, Phone, Settings, Sun, Moon, Trash2, Edit, Sparkles, Flame, Zap, Volume2, Mic, Bell, MessageSquare } from "lucide-react";
+import { Clock, Phone, Settings, Sun, Moon, Trash2, Edit, Sparkles, Flame, Zap, Volume2, Mic, Bell, MessageSquare, Gamepad2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlarmSettings,
@@ -16,11 +16,15 @@ import {
   MessageTheme,
   RingtoneStyle,
   SnoozeLevel,
+  ChallengeType,
+  ChallengeDifficulty,
   voiceStyles,
   greetingStyles,
   messageThemes,
   ringtoneStyles,
   snoozeLevels,
+  challengeTypes,
+  challengeDifficulties,
   defaultAlarmSettings,
 } from "@/lib/alarmSettings";
 
@@ -71,6 +75,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [messageTheme, setMessageTheme] = useState<MessageTheme>(defaultAlarmSettings.messageTheme);
   const [ringtoneStyle, setRingtoneStyle] = useState<RingtoneStyle>(defaultAlarmSettings.ringtoneStyle);
   const [snoozeLevel, setSnoozeLevel] = useState<SnoozeLevel>(defaultAlarmSettings.snoozeLevel);
+  const [challengeType, setChallengeType] = useState<ChallengeType>(defaultAlarmSettings.challengeType);
+  const [challengeDifficulty, setChallengeDifficulty] = useState<ChallengeDifficulty>(defaultAlarmSettings.challengeDifficulty);
   const [gradualVolume, setGradualVolume] = useState(defaultAlarmSettings.gradualVolume);
 
   // Rotate motivational quotes
@@ -151,6 +157,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       ringtoneStyle,
       snoozeLevel,
       gradualVolume,
+      challengeType,
+      challengeDifficulty,
     };
 
     if (editingAlarmId) {
@@ -210,6 +218,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setRingtoneStyle(alarm.settings.ringtoneStyle);
     setSnoozeLevel(alarm.settings.snoozeLevel);
     setGradualVolume(alarm.settings.gradualVolume);
+    setChallengeType(alarm.settings.challengeType || defaultAlarmSettings.challengeType);
+    setChallengeDifficulty(alarm.settings.challengeDifficulty || defaultAlarmSettings.challengeDifficulty);
     setIsDialogOpen(true);
   };
 
@@ -227,6 +237,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setRingtoneStyle(defaultAlarmSettings.ringtoneStyle);
     setSnoozeLevel(defaultAlarmSettings.snoozeLevel);
     setGradualVolume(defaultAlarmSettings.gradualVolume);
+    setChallengeType(defaultAlarmSettings.challengeType);
+    setChallengeDifficulty(defaultAlarmSettings.challengeDifficulty);
     setIsDialogOpen(true);
   };
 
@@ -506,7 +518,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           </DialogHeader>
           
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-4">
+            <TabsList className="grid w-full grid-cols-4 mb-4">
               <TabsTrigger value="basic" className="text-xs sm:text-sm">
                 <Clock className="h-4 w-4 mr-1" />
                 Basic
@@ -518,6 +530,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
               <TabsTrigger value="sound" className="text-xs sm:text-sm">
                 <Bell className="h-4 w-4 mr-1" />
                 Sound
+              </TabsTrigger>
+              <TabsTrigger value="challenge" className="text-xs sm:text-sm">
+                <Gamepad2 className="h-4 w-4 mr-1" />
+                Challenge
               </TabsTrigger>
             </TabsList>
 
@@ -716,6 +732,59 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                   {snoozeLevels.find(l => l.value === snoozeLevel)?.description}
                 </p>
               </div>
+            </TabsContent>
+
+            <TabsContent value="challenge" className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium mb-3 block flex items-center gap-2">
+                  <Gamepad2 className="h-4 w-4" />
+                  Wake-up Challenge
+                </Label>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Must complete this challenge to dismiss the alarm
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {challengeTypes.map((type) => (
+                    <Button
+                      key={type.value}
+                      type="button"
+                      variant={challengeType === type.value ? "default" : "outline"}
+                      onClick={() => setChallengeType(type.value)}
+                      className="flex items-center gap-2 justify-start h-auto py-3"
+                    >
+                      <span className="text-lg">{type.icon}</span>
+                      <div className="text-left">
+                        <div className="font-semibold text-sm">{type.label}</div>
+                        <div className="text-xs opacity-70">{type.description}</div>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {challengeType !== 'none' && (
+                <div>
+                  <Label className="text-sm font-medium mb-3 block">
+                    Challenge Difficulty
+                  </Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {challengeDifficulties.map((diff) => (
+                      <Button
+                        key={diff.value}
+                        type="button"
+                        variant={challengeDifficulty === diff.value ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setChallengeDifficulty(diff.value)}
+                      >
+                        {diff.label}
+                      </Button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {challengeDifficulties.find(d => d.value === challengeDifficulty)?.description}
+                  </p>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
 
