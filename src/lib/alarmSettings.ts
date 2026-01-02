@@ -148,6 +148,26 @@ export const snoozeMessages: Record<SnoozeLevel, string[]> = {
   ]
 };
 
+// Wake-up challenge types
+export type ChallengeType = 'none' | 'math' | 'shake' | 'typing' | 'memory' | 'pattern';
+
+export const challengeTypes: { value: ChallengeType; label: string; description: string; icon: string }[] = [
+  { value: 'none', label: 'None', description: 'No challenge required', icon: '😴' },
+  { value: 'math', label: 'Math Problem', description: 'Solve arithmetic to dismiss', icon: '🧮' },
+  { value: 'shake', label: 'Shake Phone', description: 'Shake your phone vigorously', icon: '📱' },
+  { value: 'typing', label: 'Type Word', description: 'Type a word correctly', icon: '⌨️' },
+  { value: 'memory', label: 'Memory Game', description: 'Remember a number sequence', icon: '🧠' },
+  { value: 'pattern', label: 'Pattern Match', description: 'Repeat a visual pattern', icon: '🧩' },
+];
+
+export type ChallengeDifficulty = 'easy' | 'medium' | 'hard';
+
+export const challengeDifficulties: { value: ChallengeDifficulty; label: string; description: string }[] = [
+  { value: 'easy', label: 'Easy', description: 'Simple challenges' },
+  { value: 'medium', label: 'Medium', description: 'Moderate difficulty' },
+  { value: 'hard', label: 'Hard', description: 'For heavy sleepers' },
+];
+
 // Complete alarm settings interface
 export interface AlarmSettings {
   voiceStyle: VoiceStyle;
@@ -157,6 +177,8 @@ export interface AlarmSettings {
   ringtoneStyle: RingtoneStyle;
   snoozeLevel: SnoozeLevel;
   gradualVolume: boolean;
+  challengeType: ChallengeType;
+  challengeDifficulty: ChallengeDifficulty;
 }
 
 export const defaultAlarmSettings: AlarmSettings = {
@@ -167,4 +189,6 @@ export const defaultAlarmSettings: AlarmSettings = {
   ringtoneStyle: 'gentle',
   snoozeLevel: 'moderate',
   gradualVolume: true,
+  challengeType: 'none',
+  challengeDifficulty: 'easy',
 };

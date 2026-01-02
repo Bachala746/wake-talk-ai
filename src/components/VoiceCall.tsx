@@ -12,6 +12,7 @@ import {
   ringtoneStyles,
   defaultAlarmSettings,
 } from "@/lib/alarmSettings";
+import { WakeUpChallenge } from "./WakeUpChallenge";
 
 interface VoiceCallProps {
   alarmTime: string;
@@ -27,6 +28,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
   const [isPlaying, setIsPlaying] = useState(false);
   const [snoozedCount, setSnoozedCount] = useState(0);
   const [isRingtonePhase, setIsRingtonePhase] = useState(true);
+  const [showChallenge, setShowChallenge] = useState(false);
   const shouldContinueSpeaking = useRef(true);
   const elapsedTimeRef = useRef(0);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -315,6 +317,17 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
   };
 
   const handleManualEndCall = () => {
+    // If challenge is enabled and not completed, show challenge
+    if (settings.challengeType && settings.challengeType !== 'none' && !showChallenge) {
+      shouldContinueSpeaking.current = false;
+      stopRingtone();
+      stopCurrentAudio();
+      setIsPlaying(false);
+      setShowChallenge(true);
+      toast.info("Complete the challenge to dismiss the alarm!");
+      return;
+    }
+    
     console.log("Manual ending call");
     shouldContinueSpeaking.current = false;
     if (speechTimeoutRef.current) {
@@ -326,6 +339,25 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
     setIsPlaying(false);
     toast.info("Call ended. Have a great day!");
     onEndCall();
+  };
+
+  const handleChallengeComplete = () => {
+    console.log("Challenge completed!");
+    setShowChallenge(false);
+    shouldContinueSpeaking.current = false;
+    if (speechTimeoutRef.current) {
+      clearTimeout(speechTimeoutRef.current);
+    }
+    stopRingtone();
+    stopCurrentAudio();
+    setIsConnected(false);
+    setIsPlaying(false);
+    toast.success("Challenge completed! Have an amazing day! 🎉");
+    onEndCall();
+  };
+
+  const handleChallengeFail = () => {
+    toast.error("Wrong answer! Try again!");
   };
 
   const handleSnooze = () => {
@@ -367,6 +399,28 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
   };
 
   const progress = (elapsedTime / (talkDuration * 60)) * 100;
+
+  // Show challenge modal if active
+  if (showChallenge) {
+    return (
+      <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300">
+          <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div className="w-32 h-32 rounded-full bg-yellow-200 animate-pulse shadow-2xl" 
+                 style={{ boxShadow: '0 0 100px 50px rgba(255, 200, 100, 0.6)' }} />
+          </div>
+        </div>
+        <div className="relative z-10">
+          <WakeUpChallenge
+            challengeType={settings.challengeType}
+            difficulty={settings.challengeDifficulty}
+            onComplete={handleChallengeComplete}
+            onFail={handleChallengeFail}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
