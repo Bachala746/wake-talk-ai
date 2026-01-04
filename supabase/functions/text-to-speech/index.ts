@@ -5,24 +5,12 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Voice presets for different styles
-const voicePresets: Record<string, { voiceId: string; settings: { stability: number; similarity_boost: number; style: number } }> = {
-  calm: {
-    voiceId: 'pFZP5JQG7iQjIQuC4Bku', // Lily
-    settings: { stability: 0.8, similarity_boost: 0.6, style: 0.3 }
-  },
-  energetic: {
-    voiceId: 'TX3LPaxmHKxFdv7VOQHJ', // Liam
-    settings: { stability: 0.3, similarity_boost: 0.8, style: 0.7 }
-  },
-  gentle: {
-    voiceId: 'EXAVITQu4vr4xnSDxMaL', // Sarah
-    settings: { stability: 0.7, similarity_boost: 0.7, style: 0.4 }
-  },
-  powerful: {
-    voiceId: 'nPczCjzI2devNBz1zQrb', // Brian
-    settings: { stability: 0.4, similarity_boost: 0.85, style: 0.8 }
-  },
+// Voice presets mapped to OpenAI TTS voices
+const voicePresets: Record<string, string> = {
+  calm: 'shimmer',      // Soft, soothing
+  energetic: 'nova',    // Bright, upbeat
+  gentle: 'alloy',      // Warm, balanced
+  powerful: 'onyx',     // Deep, confident
 }
 
 // Convert ArrayBuffer to base64 in chunks to avoid stack overflow
@@ -47,51 +35,50 @@ serve(async (req) => {
   }
 
   try {
-    const { text, voiceStyle = 'gentle', voiceId: customVoiceId } = await req.json()
+    const { text, voiceStyle = 'gentle' } = await req.json()
 
     if (!text) {
       throw new Error('Text is required')
     }
 
-    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY')
-    if (!ELEVENLABS_API_KEY) {
-      throw new Error('ELEVENLABS_API_KEY is not configured')
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY')
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured')
     }
 
-    // Get voice preset or use custom voiceId
-    const preset = voicePresets[voiceStyle] || voicePresets.gentle
-    const voiceId = customVoiceId || preset.voiceId
-    const voiceSettings = preset.settings
+    // Get voice for the style
+    const voice = voicePresets[voiceStyle] || voicePresets.gentle
 
-    console.log(`Generating speech with voice style: ${voiceStyle}, voiceId: ${voiceId}`)
+    console.log(`Generating speech with voice style: ${voiceStyle}, voice: ${voice}`)
     console.log(`Text: ${text.substring(0, 50)}...`)
 
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
-      {
-        method: 'POST',
-        headers: {
-          'Accept': 'audio/mpeg',
-          'Content-Type': 'application/json',
-          'xi-api-key': ELEVENLABS_API_KEY,
-        },
-        body: JSON.stringify({
-          text,
-          model_id: 'eleven_multilingual_v2',
-          voice_settings: {
-            stability: voiceSettings.stability,
-            similarity_boost: voiceSettings.similarity_boost,
-            style: voiceSettings.style,
-            use_speaker_boost: true,
-          },
-        }),
-      }
-    )
+    // Use OpenAI TTS API via Lovable AI
+    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'tts-1',
+        input: text,
+        voice: voice,
+        response_format: 'mp3',
+      }),
+    })
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('ElevenLabs API error:', response.status, errorText)
-      throw new Error(`ElevenLabs API error: ${response.status}`)
+      console.error('OpenAI TTS API error:', response.status, errorText)
+      
+      if (response.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again later.')
+      }
+      if (response.status === 402) {
+        throw new Error('Usage limit reached. Please add credits.')
+      }
+      
+      throw new Error(`TTS API error: ${response.status}`)
     }
 
     const arrayBuffer = await response.arrayBuffer()
