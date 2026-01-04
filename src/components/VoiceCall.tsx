@@ -221,73 +221,15 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
       setIsPlaying(true);
       lastSpeechTimeRef.current = Date.now();
       
-      // Try ElevenLabs first, fallback to browser speech
-      let useElevenLabs = true;
-      
-      try {
-        const { data, error } = await supabase.functions.invoke('text-to-speech', {
-          body: { 
-            text: messageToSpeak,
-            voiceStyle: settings.voiceStyle
-          }
-        });
-        
-        if (error) {
-          console.error("ElevenLabs API error:", error);
-          useElevenLabs = false;
-        } else if (!data?.audioContent) {
-          console.error("No audio content received");
-          useElevenLabs = false;
-        } else if (intentionallyCanceledRef.current || !shouldContinueSpeaking.current) {
-          isSpeechActiveRef.current = false;
-          setIsPlaying(false);
-          return;
-        } else {
-          // Convert base64 to audio and play
-          const audioData = atob(data.audioContent);
-          const audioArray = new Uint8Array(audioData.length);
-          for (let i = 0; i < audioData.length; i++) {
-            audioArray[i] = audioData.charCodeAt(i);
-          }
-          
-          const audioBlob = new Blob([audioArray], { type: 'audio/mpeg' });
-          const audioUrl = URL.createObjectURL(audioBlob);
-          
-          const audio = new Audio(audioUrl);
-          currentAudioRef.current = audio;
-          
-          audio.onended = () => {
-            console.log("ElevenLabs audio ended");
-            URL.revokeObjectURL(audioUrl);
-            setIsPlaying(false);
-            isSpeechActiveRef.current = false;
-            currentAudioRef.current = null;
-            
-            if (shouldContinueSpeaking.current && !intentionallyCanceledRef.current && elapsedTimeRef.current < (talkDuration * 60) - 3) {
-              speechTimeoutRef.current = window.setTimeout(() => {
-                speakMessage();
-              }, 500);
-            }
-          };
-          
-          audio.onerror = (e) => {
-            console.error("Audio playback error:", e);
-            URL.revokeObjectURL(audioUrl);
-            useElevenLabs = false;
-          };
-          
-          await audio.play();
-          console.log("ElevenLabs audio playing");
-          return;
-        }
-      } catch (elevenLabsError) {
-        console.log("ElevenLabs failed, using browser speech:", elevenLabsError);
-        useElevenLabs = false;
+      if (intentionallyCanceledRef.current || !shouldContinueSpeaking.current) {
+        isSpeechActiveRef.current = false;
+        setIsPlaying(false);
+        return;
       }
       
-      // Fallback: Use browser's built-in speech synthesis
-      if (!useElevenLabs && 'speechSynthesis' in window) {
-        console.log("Using browser speech synthesis fallback");
+      // Use browser's built-in speech synthesis (no external API needed)
+      if ('speechSynthesis' in window) {
+        console.log("Using browser speech synthesis");
         
         const utterance = new SpeechSynthesisUtterance(messageToSpeak);
         utterance.rate = 0.9;
@@ -336,9 +278,9 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
       setIsPlaying(false);
       isSpeechActiveRef.current = false;
       if (shouldContinueSpeaking.current && !intentionallyCanceledRef.current) {
-        speechTimeoutRef.current = window.setTimeout(() => {
+        speechTimeoutRef.current = setTimeout(() => {
           speakMessage();
-        }, 3000);
+        }, 3000) as unknown as number;
       }
       
     } catch (error) {
