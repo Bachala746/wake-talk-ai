@@ -7,9 +7,7 @@ const corsHeaders = {
 
 // Voice presets mapped to OpenAI TTS voices
 const voicePresets: Record<string, string> = {
-  calm: 'shimmer',      // Soft, soothing
   energetic: 'nova',    // Bright, upbeat
-  gentle: 'alloy',      // Warm, balanced
   powerful: 'onyx',     // Deep, confident
 }
 
@@ -35,7 +33,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text, voiceStyle = 'gentle' } = await req.json()
+    const { text, voiceStyle = 'energetic' } = await req.json()
 
     if (!text) {
       throw new Error('Text is required')
@@ -47,7 +45,7 @@ serve(async (req) => {
     }
 
     // Get voice for the style
-    const voice = voicePresets[voiceStyle] || voicePresets.gentle
+    const voice = voicePresets[voiceStyle] || voicePresets.energetic
 
     console.log(`Generating speech with voice style: ${voiceStyle}, voice: ${voice}`)
     console.log(`Text: ${text.substring(0, 50)}...`)
