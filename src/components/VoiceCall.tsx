@@ -227,16 +227,67 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
         return;
       }
       
-      // Use browser's built-in speech synthesis (no external API needed)
-      if ('speechSynthesis' in window) {
-        console.log("Using browser speech synthesis");
+      // Try ElevenLabs TTS first
+      console.log("Calling ElevenLabs TTS edge function");
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: { text: messageToSpeak, voiceStyle: settings.voiceStyle }
+      });
+      
+      if (error) {
+        console.error("ElevenLabs edge function error:", error);
+        throw new Error(error.message || 'Edge function error');
+      }
+      
+      if (data?.audioContent) {
+        console.log("Received ElevenLabs audio, playing...");
         
+        // Play audio using data URI (browser natively decodes base64)
+        const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
+        const audio = new Audio(audioUrl);
+        currentAudioRef.current = audio;
+        
+        audio.onended = () => {
+          console.log("ElevenLabs audio playback ended");
+          setIsPlaying(false);
+          isSpeechActiveRef.current = false;
+          currentAudioRef.current = null;
+          
+          if (shouldContinueSpeaking.current && !intentionallyCanceledRef.current && elapsedTimeRef.current < (talkDuration * 60) - 3) {
+            speechTimeoutRef.current = window.setTimeout(() => {
+              speakMessage();
+            }, 500);
+          }
+        };
+        
+        audio.onerror = (e) => {
+          console.error("Audio playback error:", e);
+          setIsPlaying(false);
+          isSpeechActiveRef.current = false;
+          currentAudioRef.current = null;
+          
+          if (!intentionallyCanceledRef.current && shouldContinueSpeaking.current) {
+            speechTimeoutRef.current = window.setTimeout(() => {
+              speakMessage();
+            }, 1000);
+          }
+        };
+        
+        await audio.play();
+        return;
+      }
+      
+      throw new Error('No audio content in response');
+      
+    } catch (error) {
+      console.error("ElevenLabs TTS error, falling back to browser speech:", error);
+      
+      // Fallback to browser speech synthesis
+      if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(messageToSpeak);
         utterance.rate = 0.9;
         utterance.pitch = 1;
         utterance.volume = 1;
         
-        // Select voice based on style
         const voices = window.speechSynthesis.getVoices();
         if (voices.length > 0) {
           const englishVoices = voices.filter(v => v.lang.startsWith('en'));
@@ -246,7 +297,6 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
         }
         
         utterance.onend = () => {
-          console.log("Browser speech ended");
           setIsPlaying(false);
           isSpeechActiveRef.current = false;
           
@@ -257,8 +307,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
           }
         };
         
-        utterance.onerror = (e) => {
-          console.error("Browser speech error:", e);
+        utterance.onerror = () => {
           setIsPlaying(false);
           isSpeechActiveRef.current = false;
           
@@ -273,25 +322,12 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
         return;
       }
       
-      // If no speech synthesis available, just continue silently
-      console.log("No speech synthesis available");
       setIsPlaying(false);
       isSpeechActiveRef.current = false;
       if (shouldContinueSpeaking.current && !intentionallyCanceledRef.current) {
         speechTimeoutRef.current = setTimeout(() => {
           speakMessage();
         }, 3000) as unknown as number;
-      }
-      
-    } catch (error) {
-      console.error("Speech error:", error);
-      setIsPlaying(false);
-      isSpeechActiveRef.current = false;
-      
-      if (!intentionallyCanceledRef.current && shouldContinueSpeaking.current) {
-        speechTimeoutRef.current = window.setTimeout(() => {
-          speakMessage();
-        }, 1000);
       }
     }
   };
