@@ -1,27 +1,13 @@
 // Voice styles with different personalities
-export type VoiceStyle = 'calm' | 'energetic' | 'gentle' | 'powerful';
+export type VoiceStyle = 'energetic' | 'powerful';
 
 export const voiceStyles: { value: VoiceStyle; label: string; description: string; voiceId: string; settings: { stability: number; similarity_boost: number; style: number } }[] = [
-  { 
-    value: 'calm', 
-    label: 'Calm', 
-    description: 'Soothing and peaceful wake-up',
-    voiceId: 'pFZP5JQG7iQjIQuC4Bku', // Lily
-    settings: { stability: 0.8, similarity_boost: 0.6, style: 0.3 }
-  },
   { 
     value: 'energetic', 
     label: 'Energetic', 
     description: 'High energy and exciting',
     voiceId: 'TX3LPaxmHKxFdv7VOQHJ', // Liam
     settings: { stability: 0.3, similarity_boost: 0.8, style: 0.7 }
-  },
-  { 
-    value: 'gentle', 
-    label: 'Gentle', 
-    description: 'Warm and encouraging',
-    voiceId: 'EXAVITQu4vr4xnSDxMaL', // Sarah
-    settings: { stability: 0.7, similarity_boost: 0.7, style: 0.4 }
   },
   { 
     value: 'powerful', 
@@ -182,7 +168,7 @@ export interface AlarmSettings {
 }
 
 export const defaultAlarmSettings: AlarmSettings = {
-  voiceStyle: 'gentle',
+  voiceStyle: 'energetic',
   greetingStyle: 'casual',
   userName: '',
   messageTheme: 'gratitude',
