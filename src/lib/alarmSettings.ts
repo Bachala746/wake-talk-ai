@@ -1,34 +1,62 @@
 // Voice styles with different personalities
-export type VoiceStyle = 'calm' | 'energetic' | 'gentle' | 'powerful';
+export type VoiceStyle = 'calm' | 'energetic' | 'gentle' | 'powerful' | 'roger' | 'alice' | 'daniel' | 'jessica';
 
 export const voiceStyles: { value: VoiceStyle; label: string; description: string; voiceId: string; settings: { stability: number; similarity_boost: number; style: number } }[] = [
   { 
     value: 'calm', 
-    label: 'Calm', 
+    label: 'Calm (Lily)', 
     description: 'Soothing and peaceful wake-up',
-    voiceId: 'pFZP5JQG7iQjIQuC4Bku', // Lily
+    voiceId: 'pFZP5JQG7iQjIQuC4Bku',
     settings: { stability: 0.8, similarity_boost: 0.6, style: 0.3 }
   },
   { 
     value: 'energetic', 
-    label: 'Energetic', 
+    label: 'Energetic (Liam)', 
     description: 'High energy and exciting',
-    voiceId: 'TX3LPaxmHKxFdv7VOQHJ', // Liam
+    voiceId: 'TX3LPaxmHKxFdv7VOQHJ',
     settings: { stability: 0.3, similarity_boost: 0.8, style: 0.7 }
   },
   { 
     value: 'gentle', 
-    label: 'Gentle', 
+    label: 'Gentle (Sarah)', 
     description: 'Warm and encouraging',
-    voiceId: 'EXAVITQu4vr4xnSDxMaL', // Sarah
+    voiceId: 'EXAVITQu4vr4xnSDxMaL',
     settings: { stability: 0.7, similarity_boost: 0.7, style: 0.4 }
   },
   { 
     value: 'powerful', 
-    label: 'Powerful', 
+    label: 'Powerful (Brian)', 
     description: 'Bold and motivating',
-    voiceId: 'nPczCjzI2devNBz1zQrb', // Brian
+    voiceId: 'nPczCjzI2devNBz1zQrb',
     settings: { stability: 0.4, similarity_boost: 0.85, style: 0.8 }
+  },
+  { 
+    value: 'roger', 
+    label: 'Roger', 
+    description: 'Deep and authoritative',
+    voiceId: 'CwhRBWXzGAHq8TQ4Fs17',
+    settings: { stability: 0.6, similarity_boost: 0.75, style: 0.5 }
+  },
+  { 
+    value: 'alice', 
+    label: 'Alice', 
+    description: 'Warm and friendly',
+    voiceId: 'Xb7hH8MSUJpSbSDYk0k2',
+    settings: { stability: 0.65, similarity_boost: 0.7, style: 0.45 }
+  },
+  { 
+    value: 'daniel', 
+    label: 'Daniel', 
+    description: 'Smooth and confident',
+    voiceId: 'onwK4e9ZLuTAKqWW03F9',
+    settings: { stability: 0.55, similarity_boost: 0.8, style: 0.6 }
+  },
+  { 
+    value: 'jessica', 
+    label: 'Jessica', 
+    description: 'Bright and uplifting',
+    voiceId: 'cgSgspJ2msm6clMCkdW9',
+    settings: { stability: 0.5, similarity_boost: 0.75, style: 0.55 }
   },
 ];
 
