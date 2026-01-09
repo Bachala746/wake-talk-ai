@@ -68,6 +68,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
       audioContextRef.current = audioContext;
       
       const ringtoneConfig = ringtoneStyles.find(r => r.value === settings.ringtoneStyle) || ringtoneStyles[0];
+      const maxVolume = (ringtoneConfig as any).volume || 0.6;
       
       const playRingtonePulse = () => {
         if (!audioContextRef.current || !isRingtonePhase) return;
@@ -81,22 +82,24 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
         oscillator.frequency.value = ringtoneConfig.frequency;
         oscillator.type = ringtoneConfig.type;
         
-        // Gradual volume increase if enabled
-        const volume = settings.gradualVolume ? ringtoneVolumeRef.current : 0.5;
+        // Gradual volume increase if enabled, using ringtone's max volume
+        const volume = settings.gradualVolume 
+          ? Math.min(ringtoneVolumeRef.current, maxVolume) 
+          : maxVolume;
         gainNode.gain.setValueAtTime(volume, audioContextRef.current.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContextRef.current.currentTime + 0.3);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContextRef.current.currentTime + 0.4);
         
         oscillator.start(audioContextRef.current.currentTime);
-        oscillator.stop(audioContextRef.current.currentTime + 0.3);
+        oscillator.stop(audioContextRef.current.currentTime + 0.4);
         
-        // Increase volume gradually
-        if (settings.gradualVolume && ringtoneVolumeRef.current < 0.8) {
-          ringtoneVolumeRef.current = Math.min(0.8, ringtoneVolumeRef.current + 0.05);
+        // Increase volume gradually toward max
+        if (settings.gradualVolume && ringtoneVolumeRef.current < maxVolume) {
+          ringtoneVolumeRef.current = Math.min(maxVolume, ringtoneVolumeRef.current + 0.08);
         }
       };
       
       playRingtonePulse();
-      ringtoneIntervalRef.current = window.setInterval(playRingtonePulse, 1000);
+      ringtoneIntervalRef.current = window.setInterval(playRingtonePulse, 800);
     } catch (error) {
       console.error("Error playing ringtone:", error);
     }
@@ -115,9 +118,19 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
 
   const stopCurrentAudio = () => {
     if (currentAudioRef.current) {
-      currentAudioRef.current.pause();
-      currentAudioRef.current.src = '';
+      try {
+        currentAudioRef.current.pause();
+        currentAudioRef.current.src = '';
+        currentAudioRef.current.onended = null;
+        currentAudioRef.current.onerror = null;
+      } catch (e) {
+        console.log("Error stopping audio:", e);
+      }
       currentAudioRef.current = null;
+    }
+    // Also cancel browser speech synthesis
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
     }
   };
 
@@ -417,8 +430,14 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
   const handleSnooze = () => {
     console.log("Snooze pressed");
     
+    // Immediately stop all audio and speech
     intentionallyCanceledRef.current = true;
     isSpeechActiveRef.current = false;
+    
+    // Cancel any pending speech
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
     
     if (isRingtonePhase) {
       stopRingtone();
@@ -430,6 +449,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
       speechTimeoutRef.current = null;
     }
     
+    // Stop current audio completely and wait for it to clear
     stopCurrentAudio();
     
     setIsPlaying(false);
@@ -439,11 +459,13 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
     
     toast.warning(`Snooze attempt #${snoozedCount + 1} - Listen to this!`);
     
+    // Wait longer before starting new speech to ensure previous audio is fully stopped
     setTimeout(() => {
       if (!shouldContinueSpeaking.current) return;
+      isSpeechActiveRef.current = false; // Reset speech lock
       intentionallyCanceledRef.current = false;
       speakMessage(snoozeMessage);
-    }, 500);
+    }, 800);
   };
 
   const formatTime = (seconds: number) => {

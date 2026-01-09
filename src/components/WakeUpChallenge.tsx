@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { Slider } from "@/components/ui/slider";
 import { 
   Calculator, 
   Smartphone, 
@@ -12,7 +13,9 @@ import {
   Timer,
   CheckCircle,
   XCircle,
-  RotateCcw
+  RotateCcw,
+  SlidersHorizontal,
+  Text
 } from "lucide-react";
 import { ChallengeType } from "@/lib/alarmSettings";
 
@@ -92,6 +95,26 @@ const generatePattern = (difficulty: 'easy' | 'medium' | 'hard') => {
   return { gridSize, pattern };
 };
 
+// Slider puzzle generator
+const generateSliderTargets = (difficulty: 'easy' | 'medium' | 'hard') => {
+  const count = difficulty === 'easy' ? 2 : difficulty === 'medium' ? 3 : 4;
+  const targets: number[] = [];
+  for (let i = 0; i < count; i++) {
+    targets.push(Math.floor(Math.random() * 81) + 10); // 10-90
+  }
+  return targets;
+};
+
+// Captcha word generator
+const generateCaptchaWord = (difficulty: 'easy' | 'medium' | 'hard') => {
+  const easyWords = ["wake", "rise", "dawn", "sun", "day"];
+  const mediumWords = ["morning", "sunrise", "awaken", "bright"];
+  const hardWords = ["daybreak", "greeting", "champion", "sunrise"];
+  
+  const words = difficulty === 'easy' ? easyWords : difficulty === 'medium' ? mediumWords : hardWords;
+  return words[Math.floor(Math.random() * words.length)].toUpperCase();
+};
+
 export const WakeUpChallenge = ({ 
   challengeType, 
   difficulty, 
@@ -123,6 +146,14 @@ export const WakeUpChallenge = ({
   const [showingPattern, setShowingPattern] = useState(true);
   const [userPattern, setUserPattern] = useState<number[]>([]);
   const [currentPatternIndex, setCurrentPatternIndex] = useState(0);
+  
+  // Slider challenge state
+  const [sliderTargets] = useState(() => generateSliderTargets(difficulty));
+  const [sliderValues, setSliderValues] = useState<number[]>(() => sliderTargets.map(() => 50));
+  
+  // Captcha challenge state
+  const [captchaWord, setCaptchaWord] = useState(() => generateCaptchaWord(difficulty));
+  const [captchaInput, setCaptchaInput] = useState("");
   
   // Timer for quick math
   const [timeLeft, setTimeLeft] = useState(difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 15);
@@ -317,6 +348,37 @@ export const WakeUpChallenge = ({
     });
   };
   
+  // Slider challenge handlers
+  const handleSliderChange = (index: number, value: number[]) => {
+    const newValues = [...sliderValues];
+    newValues[index] = value[0];
+    setSliderValues(newValues);
+    
+    // Check if all sliders are within tolerance
+    const tolerance = difficulty === 'easy' ? 5 : difficulty === 'medium' ? 3 : 2;
+    const allCorrect = sliderTargets.every((target, i) => 
+      Math.abs(newValues[i] - target) <= tolerance
+    );
+    
+    if (allCorrect) {
+      setIsCorrect(true);
+      setTimeout(onComplete, 500);
+    }
+  };
+  
+  // Captcha challenge handler
+  const handleCaptchaSubmit = () => {
+    if (captchaInput.toUpperCase() === captchaWord) {
+      setIsCorrect(true);
+      setTimeout(onComplete, 500);
+    } else {
+      setIsCorrect(false);
+      setCaptchaInput("");
+      setCaptchaWord(generateCaptchaWord(difficulty));
+      setTimeout(() => setIsCorrect(null), 500);
+    }
+  };
+  
   const getChallengeIcon = () => {
     switch (challengeType) {
       case 'math': return <Calculator className="h-6 w-6" />;
@@ -324,6 +386,8 @@ export const WakeUpChallenge = ({
       case 'typing': return <Type className="h-6 w-6" />;
       case 'memory': return <Brain className="h-6 w-6" />;
       case 'pattern': return <Puzzle className="h-6 w-6" />;
+      case 'slider': return <SlidersHorizontal className="h-6 w-6" />;
+      case 'captcha': return <Text className="h-6 w-6" />;
       default: return <Timer className="h-6 w-6" />;
     }
   };
@@ -335,6 +399,8 @@ export const WakeUpChallenge = ({
       case 'typing': return 'Type the Word';
       case 'memory': return 'Remember the Sequence';
       case 'pattern': return 'Repeat the Pattern';
+      case 'slider': return 'Match the Values';
+      case 'captcha': return 'Read and Type';
       default: return 'Complete the Challenge';
     }
   };
@@ -539,6 +605,76 @@ export const WakeUpChallenge = ({
               </div>
             </>
           )}
+        </div>
+      )}
+      
+      {challengeType === 'slider' && (
+        <div className="space-y-6">
+          <p className="text-center text-sm text-gray-500">
+            Drag each slider to match the target value (±{difficulty === 'easy' ? 5 : difficulty === 'medium' ? 3 : 2})
+          </p>
+          
+          {sliderTargets.map((target, index) => {
+            const tolerance = difficulty === 'easy' ? 5 : difficulty === 'medium' ? 3 : 2;
+            const isMatch = Math.abs(sliderValues[index] - target) <= tolerance;
+            
+            return (
+              <div key={index} className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Slider {index + 1}</span>
+                  <span className={`font-bold ${isMatch ? 'text-green-500' : 'text-gray-700'}`}>
+                    {sliderValues[index]} → Target: {target}
+                  </span>
+                </div>
+                <Slider
+                  value={[sliderValues[index]]}
+                  onValueChange={(value) => handleSliderChange(index, value)}
+                  max={100}
+                  min={0}
+                  step={1}
+                  className={isMatch ? '[&>span]:bg-green-500' : ''}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
+      
+      {challengeType === 'captcha' && (
+        <div className="space-y-4">
+          <div className="text-center py-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl">
+            <p className="text-sm text-gray-500 mb-2">Type the word below:</p>
+            <p 
+              className="text-3xl font-bold tracking-[0.3em] select-none"
+              style={{ 
+                fontFamily: 'monospace',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
+                background: `linear-gradient(${Math.random() * 30 - 15}deg, #ea580c, #d97706)`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                transform: `skewX(${Math.random() * 10 - 5}deg) rotate(${Math.random() * 4 - 2}deg)`,
+              }}
+            >
+              {captchaWord}
+            </p>
+          </div>
+          
+          <div className="flex gap-2">
+            <Input
+              type="text"
+              value={captchaInput}
+              onChange={(e) => setCaptchaInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCaptchaSubmit()}
+              placeholder="Type here..."
+              className={`text-center text-xl font-mono uppercase ${
+                isCorrect === false ? 'border-red-500 bg-red-50' : ''
+              }`}
+              autoFocus
+            />
+            <Button onClick={handleCaptchaSubmit} className="bg-orange-500 hover:bg-orange-600">
+              Submit
+            </Button>
+          </div>
         </div>
       )}
       
