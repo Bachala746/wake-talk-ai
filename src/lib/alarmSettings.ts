@@ -139,13 +139,17 @@ export const themeMessages: Record<MessageTheme, { greeting: string; messages: s
 };
 
 // Ringtone styles
-export type RingtoneStyle = 'gentle' | 'energetic' | 'nature' | 'classic';
+export type RingtoneStyle = 'gentle' | 'energetic' | 'nature' | 'classic' | 'urgent' | 'digital' | 'retro' | 'military';
 
-export const ringtoneStyles: { value: RingtoneStyle; label: string; description: string; frequency: number; type: OscillatorType }[] = [
-  { value: 'gentle', label: 'Gentle Chimes', description: 'Soft and soothing', frequency: 400, type: 'sine' },
-  { value: 'energetic', label: 'Energetic Beats', description: 'Upbeat and lively', frequency: 800, type: 'square' },
-  { value: 'nature', label: 'Nature Sounds', description: 'Calm and natural', frequency: 350, type: 'triangle' },
-  { value: 'classic', label: 'Classic Alarm', description: 'Traditional alarm tone', frequency: 1000, type: 'sawtooth' },
+export const ringtoneStyles: { value: RingtoneStyle; label: string; description: string; frequency: number; type: OscillatorType; volume: number }[] = [
+  { value: 'gentle', label: 'Gentle Chimes', description: 'Soft and soothing', frequency: 440, type: 'sine', volume: 0.4 },
+  { value: 'energetic', label: 'Energetic Beats', description: 'Upbeat and lively', frequency: 880, type: 'square', volume: 0.6 },
+  { value: 'nature', label: 'Nature Sounds', description: 'Calm and natural', frequency: 392, type: 'triangle', volume: 0.5 },
+  { value: 'classic', label: 'Classic Alarm', description: 'Traditional alarm tone', frequency: 1000, type: 'sawtooth', volume: 0.7 },
+  { value: 'urgent', label: 'Urgent Alert', description: 'High-pitched emergency', frequency: 1500, type: 'square', volume: 0.8 },
+  { value: 'digital', label: 'Digital Beep', description: 'Modern electronic tone', frequency: 1200, type: 'sine', volume: 0.7 },
+  { value: 'retro', label: 'Retro Buzzer', description: '80s arcade style', frequency: 660, type: 'sawtooth', volume: 0.65 },
+  { value: 'military', label: 'Military Reveille', description: 'Loud and commanding', frequency: 1800, type: 'square', volume: 0.9 },
 ];
 
 // Snooze aggressiveness levels
@@ -177,7 +181,7 @@ export const snoozeMessages: Record<SnoozeLevel, string[]> = {
 };
 
 // Wake-up challenge types
-export type ChallengeType = 'none' | 'math' | 'shake' | 'typing' | 'memory' | 'pattern';
+export type ChallengeType = 'none' | 'math' | 'shake' | 'typing' | 'memory' | 'pattern' | 'slider' | 'captcha';
 
 export const challengeTypes: { value: ChallengeType; label: string; description: string; icon: string }[] = [
   { value: 'none', label: 'None', description: 'No challenge required', icon: '😴' },
@@ -186,6 +190,8 @@ export const challengeTypes: { value: ChallengeType; label: string; description:
   { value: 'typing', label: 'Type Word', description: 'Type a word correctly', icon: '⌨️' },
   { value: 'memory', label: 'Memory Game', description: 'Remember a number sequence', icon: '🧠' },
   { value: 'pattern', label: 'Pattern Match', description: 'Repeat a visual pattern', icon: '🧩' },
+  { value: 'slider', label: 'Slider Puzzle', description: 'Drag sliders to target values', icon: '🎚️' },
+  { value: 'captcha', label: 'Word Captcha', description: 'Read and type distorted text', icon: '🔤' },
 ];
 
 export type ChallengeDifficulty = 'easy' | 'medium' | 'hard';
