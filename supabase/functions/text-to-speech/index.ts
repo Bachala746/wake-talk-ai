@@ -23,6 +23,22 @@ const voicePresets: Record<string, { voiceId: string; settings: { stability: num
     voiceId: 'nPczCjzI2devNBz1zQrb', // Brian
     settings: { stability: 0.4, similarity_boost: 0.85, style: 0.8 }
   },
+  roger: {
+    voiceId: 'CwhRBWXzGAHq8TQ4Fs17', // Roger
+    settings: { stability: 0.6, similarity_boost: 0.75, style: 0.5 }
+  },
+  alice: {
+    voiceId: 'Xb7hH8MSUJpSbSDYk0k2', // Alice
+    settings: { stability: 0.65, similarity_boost: 0.7, style: 0.45 }
+  },
+  daniel: {
+    voiceId: 'onwK4e9ZLuTAKqWW03F9', // Daniel
+    settings: { stability: 0.55, similarity_boost: 0.8, style: 0.6 }
+  },
+  jessica: {
+    voiceId: 'cgSgspJ2msm6clMCkdW9', // Jessica
+    settings: { stability: 0.5, similarity_boost: 0.75, style: 0.55 }
+  },
 }
 
 // Convert ArrayBuffer to base64 in chunks to avoid stack overflow
