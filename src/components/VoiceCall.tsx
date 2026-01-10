@@ -234,44 +234,56 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
       setIsPlaying(true);
       lastSpeechTimeRef.current = Date.now();
       
-      // Try ElevenLabs first, fallback to browser speech
+      // Try ElevenLabs with retry logic, fallback to browser speech
       let useElevenLabs = true;
+      const maxRetries = 2;
       
-      try {
-        const { data, error } = await supabase.functions.invoke('text-to-speech', {
-          body: { 
-            text: messageToSpeak,
-            voiceStyle: settings.voiceStyle
-          }
-        });
-        
-        if (error) {
-          console.error("ElevenLabs API error:", error);
-          useElevenLabs = false;
-        } else if (!data?.audioContent) {
-          console.error("No audio content received");
-          useElevenLabs = false;
-        } else if (intentionallyCanceledRef.current || !shouldContinueSpeaking.current) {
-          isSpeechActiveRef.current = false;
-          setIsPlaying(false);
-          return;
-        } else {
-          // Convert base64 to audio and play
-          const audioData = atob(data.audioContent);
-          const audioArray = new Uint8Array(audioData.length);
-          for (let i = 0; i < audioData.length; i++) {
-            audioArray[i] = audioData.charCodeAt(i);
+      const tryElevenLabs = async (retryCount = 0): Promise<boolean> => {
+        try {
+          // Add delay between retries (exponential backoff)
+          if (retryCount > 0) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
           }
           
-          const audioBlob = new Blob([audioArray], { type: 'audio/mpeg' });
-          const audioUrl = URL.createObjectURL(audioBlob);
+          const { data, error } = await supabase.functions.invoke('text-to-speech', {
+            body: { 
+              text: messageToSpeak,
+              voiceStyle: settings.voiceStyle
+            }
+          });
+          
+          if (error) {
+            console.error(`ElevenLabs API error (attempt ${retryCount + 1}):`, error);
+            // Check if it's a rate limit/auth error and retry
+            if (retryCount < maxRetries) {
+              console.log(`Retrying ElevenLabs... (${retryCount + 1}/${maxRetries})`);
+              return tryElevenLabs(retryCount + 1);
+            }
+            return false;
+          }
+          
+          if (!data?.audioContent) {
+            console.error("No audio content received");
+            if (retryCount < maxRetries) {
+              return tryElevenLabs(retryCount + 1);
+            }
+            return false;
+          }
+          
+          if (intentionallyCanceledRef.current || !shouldContinueSpeaking.current) {
+            isSpeechActiveRef.current = false;
+            setIsPlaying(false);
+            return true; // Return true to prevent fallback
+          }
+          
+          // Convert base64 to audio and play using data URI (avoids atob corruption)
+          const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
           
           const audio = new Audio(audioUrl);
           currentAudioRef.current = audio;
           
           audio.onended = () => {
             console.log("ElevenLabs audio ended");
-            URL.revokeObjectURL(audioUrl);
             setIsPlaying(false);
             isSpeechActiveRef.current = false;
             currentAudioRef.current = null;
@@ -279,23 +291,31 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
             if (shouldContinueSpeaking.current && !intentionallyCanceledRef.current && elapsedTimeRef.current < (talkDuration * 60) - 3) {
               speechTimeoutRef.current = window.setTimeout(() => {
                 speakMessage();
-              }, 500);
+              }, 800); // Slightly longer delay to avoid rate limiting
             }
           };
           
           audio.onerror = (e) => {
             console.error("Audio playback error:", e);
-            URL.revokeObjectURL(audioUrl);
-            useElevenLabs = false;
+            return false;
           };
           
           await audio.play();
           console.log("ElevenLabs audio playing");
-          return;
+          return true;
+        } catch (elevenLabsError) {
+          console.log(`ElevenLabs failed (attempt ${retryCount + 1}):`, elevenLabsError);
+          if (retryCount < maxRetries) {
+            return tryElevenLabs(retryCount + 1);
+          }
+          return false;
         }
-      } catch (elevenLabsError) {
-        console.log("ElevenLabs failed, using browser speech:", elevenLabsError);
-        useElevenLabs = false;
+      };
+      
+      useElevenLabs = await tryElevenLabs();
+      
+      if (useElevenLabs) {
+        return; // Successfully used ElevenLabs
       }
       
       // Fallback: Use browser's built-in speech synthesis
