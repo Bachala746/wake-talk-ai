@@ -33,7 +33,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
   const elapsedTimeRef = useRef(0);
   const audioContextRef = useRef<AudioContext | null>(null);
   const ringtoneIntervalRef = useRef<number | null>(null);
-  const speechTimeoutRef = useRef<number | null>(null);
+  const speechTimeoutRef = useRef<number | NodeJS.Timeout | null>(null);
   const lastSpeechTimeRef = useRef(0);
   const isSpeechActiveRef = useRef(false);
   const intentionallyCanceledRef = useRef(false);
@@ -234,93 +234,11 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
       setIsPlaying(true);
       lastSpeechTimeRef.current = Date.now();
       
-      // Try ElevenLabs with retry logic, fallback to browser speech
-      let useElevenLabs = true;
-      const maxRetries = 2;
+      // Use browser's built-in speech synthesis (ElevenLabs is rate-limited)
+      const hasSpeechSynthesis = 'speechSynthesis' in window;
       
-      const tryElevenLabs = async (retryCount = 0): Promise<boolean> => {
-        try {
-          // Add delay between retries (exponential backoff)
-          if (retryCount > 0) {
-            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
-          }
-          
-          const { data, error } = await supabase.functions.invoke('text-to-speech', {
-            body: { 
-              text: messageToSpeak,
-              voiceStyle: settings.voiceStyle
-            }
-          });
-          
-          if (error) {
-            console.error(`ElevenLabs API error (attempt ${retryCount + 1}):`, error);
-            // Check if it's a rate limit/auth error and retry
-            if (retryCount < maxRetries) {
-              console.log(`Retrying ElevenLabs... (${retryCount + 1}/${maxRetries})`);
-              return tryElevenLabs(retryCount + 1);
-            }
-            return false;
-          }
-          
-          if (!data?.audioContent) {
-            console.error("No audio content received");
-            if (retryCount < maxRetries) {
-              return tryElevenLabs(retryCount + 1);
-            }
-            return false;
-          }
-          
-          if (intentionallyCanceledRef.current || !shouldContinueSpeaking.current) {
-            isSpeechActiveRef.current = false;
-            setIsPlaying(false);
-            return true; // Return true to prevent fallback
-          }
-          
-          // Convert base64 to audio and play using data URI (avoids atob corruption)
-          const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
-          
-          const audio = new Audio(audioUrl);
-          currentAudioRef.current = audio;
-          
-          audio.onended = () => {
-            console.log("ElevenLabs audio ended");
-            setIsPlaying(false);
-            isSpeechActiveRef.current = false;
-            currentAudioRef.current = null;
-            
-            if (shouldContinueSpeaking.current && !intentionallyCanceledRef.current && elapsedTimeRef.current < (talkDuration * 60) - 3) {
-              speechTimeoutRef.current = window.setTimeout(() => {
-                speakMessage();
-              }, 800); // Slightly longer delay to avoid rate limiting
-            }
-          };
-          
-          audio.onerror = (e) => {
-            console.error("Audio playback error:", e);
-            return false;
-          };
-          
-          await audio.play();
-          console.log("ElevenLabs audio playing");
-          return true;
-        } catch (elevenLabsError) {
-          console.log(`ElevenLabs failed (attempt ${retryCount + 1}):`, elevenLabsError);
-          if (retryCount < maxRetries) {
-            return tryElevenLabs(retryCount + 1);
-          }
-          return false;
-        }
-      };
-      
-      useElevenLabs = await tryElevenLabs();
-      
-      if (useElevenLabs) {
-        return; // Successfully used ElevenLabs
-      }
-      
-      // Fallback: Use browser's built-in speech synthesis
-      if (!useElevenLabs && 'speechSynthesis' in window) {
-        console.log("Using browser speech synthesis fallback");
+      if (hasSpeechSynthesis) {
+        console.log("Using browser speech synthesis");
         
         const utterance = new SpeechSynthesisUtterance(messageToSpeak);
         utterance.rate = 0.9;
@@ -332,7 +250,13 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
         if (voices.length > 0) {
           const englishVoices = voices.filter(v => v.lang.startsWith('en'));
           if (englishVoices.length > 0) {
-            utterance.voice = englishVoices[0];
+            // Try to find a good quality voice
+            const preferredVoice = englishVoices.find(v => 
+              v.name.includes('Google') || 
+              v.name.includes('Premium') || 
+              v.name.includes('Enhanced')
+            ) || englishVoices[0];
+            utterance.voice = preferredVoice;
           }
         }
         
@@ -342,7 +266,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
           isSpeechActiveRef.current = false;
           
           if (shouldContinueSpeaking.current && !intentionallyCanceledRef.current && elapsedTimeRef.current < (talkDuration * 60) - 3) {
-            speechTimeoutRef.current = window.setTimeout(() => {
+            speechTimeoutRef.current = setTimeout(() => {
               speakMessage();
             }, 500);
           }
@@ -354,24 +278,23 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
           isSpeechActiveRef.current = false;
           
           if (!intentionallyCanceledRef.current && shouldContinueSpeaking.current) {
-            speechTimeoutRef.current = window.setTimeout(() => {
+            speechTimeoutRef.current = setTimeout(() => {
               speakMessage();
             }, 1000);
           }
         };
         
         window.speechSynthesis.speak(utterance);
-        return;
-      }
-      
-      // If no speech synthesis available, just continue silently
-      console.log("No speech synthesis available");
-      setIsPlaying(false);
-      isSpeechActiveRef.current = false;
-      if (shouldContinueSpeaking.current && !intentionallyCanceledRef.current) {
-        speechTimeoutRef.current = window.setTimeout(() => {
-          speakMessage();
-        }, 3000);
+      } else {
+        // If no speech synthesis available, just continue silently
+        console.log("No speech synthesis available");
+        setIsPlaying(false);
+        isSpeechActiveRef.current = false;
+        if (shouldContinueSpeaking.current && !intentionallyCanceledRef.current) {
+          speechTimeoutRef.current = setTimeout(() => {
+            speakMessage();
+          }, 3000);
+        }
       }
       
     } catch (error) {
@@ -380,7 +303,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
       isSpeechActiveRef.current = false;
       
       if (!intentionallyCanceledRef.current && shouldContinueSpeaking.current) {
-        speechTimeoutRef.current = window.setTimeout(() => {
+        speechTimeoutRef.current = setTimeout(() => {
           speakMessage();
         }, 1000);
       }
