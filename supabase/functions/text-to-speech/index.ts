@@ -1,4 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -39,22 +40,6 @@ const voicePresets: Record<string, { voiceId: string; settings: { stability: num
     voiceId: 'cgSgspJ2msm6clMCkdW9', // Jessica
     settings: { stability: 0.5, similarity_boost: 0.75, style: 0.55 }
   },
-}
-
-// Convert ArrayBuffer to base64 in chunks to avoid stack overflow
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  const chunkSize = 8192;
-  let binary = '';
-  
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    const chunk = bytes.slice(i, i + chunkSize);
-    for (let j = 0; j < chunk.length; j++) {
-      binary += String.fromCharCode(chunk[j]);
-    }
-  }
-  
-  return btoa(binary);
 }
 
 serve(async (req) => {
@@ -112,7 +97,7 @@ serve(async (req) => {
     }
 
     const arrayBuffer = await response.arrayBuffer()
-    const base64Audio = arrayBufferToBase64(arrayBuffer)
+    const base64Audio = base64Encode(arrayBuffer)
 
     console.log('Speech generated successfully')
 
