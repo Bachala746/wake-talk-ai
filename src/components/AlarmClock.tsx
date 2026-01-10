@@ -18,6 +18,7 @@ import {
   SnoozeLevel,
   ChallengeType,
   ChallengeDifficulty,
+  InteractionMode,
   voiceStyles,
   greetingStyles,
   messageThemes,
@@ -25,6 +26,7 @@ import {
   snoozeLevels,
   challengeTypes,
   challengeDifficulties,
+  interactionModes,
   defaultAlarmSettings,
 } from "@/lib/alarmSettings";
 
@@ -69,6 +71,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   
   // Customization states
+  const [interactionMode, setInteractionMode] = useState<InteractionMode>(defaultAlarmSettings.interactionMode);
   const [voiceStyle, setVoiceStyle] = useState<VoiceStyle>(defaultAlarmSettings.voiceStyle);
   const [greetingStyle, setGreetingStyle] = useState<GreetingStyle>(defaultAlarmSettings.greetingStyle);
   const [userName, setUserName] = useState(defaultAlarmSettings.userName);
@@ -150,6 +153,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
 
   const handleSaveAlarm = () => {
     const settings: AlarmSettings = {
+      interactionMode,
       voiceStyle,
       greetingStyle,
       userName,
@@ -211,6 +215,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setTalkDuration([alarm.duration]);
     setSelectedDays(alarm.days);
     // Load settings
+    setInteractionMode(alarm.settings.interactionMode || defaultAlarmSettings.interactionMode);
     setVoiceStyle(alarm.settings.voiceStyle);
     setGreetingStyle(alarm.settings.greetingStyle);
     setUserName(alarm.settings.userName);
@@ -230,6 +235,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setTalkDuration([5]);
     setSelectedDays([]);
     // Reset to defaults
+    setInteractionMode(defaultAlarmSettings.interactionMode);
     setVoiceStyle(defaultAlarmSettings.voiceStyle);
     setGreetingStyle(defaultAlarmSettings.greetingStyle);
     setUserName(defaultAlarmSettings.userName);
@@ -436,7 +442,9 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                             {alarm.days.length > 0 && ` • ${alarm.days.join(', ')}`}
                           </div>
                           <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                            <span className="capitalize">{alarm.settings.voiceStyle}</span>
+                            <span className={`px-1.5 py-0.5 rounded ${alarm.settings.interactionMode === 'two-way' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
+                              {alarm.settings.interactionMode === 'two-way' ? '💬 Two-Way' : '📢 One-Way'}
+                            </span>
                             <span>•</span>
                             <span>{messageThemes.find(t => t.value === alarm.settings.messageTheme)?.icon}</span>
                             <span className="capitalize">{alarm.settings.messageTheme}</span>
@@ -538,6 +546,30 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
             </TabsList>
 
             <TabsContent value="basic" className="space-y-4">
+              {/* Interaction Mode Selector */}
+              <div>
+                <Label className="text-sm font-medium mb-3 block">
+                  Interaction Mode
+                </Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {interactionModes.map((mode) => (
+                    <Button
+                      key={mode.value}
+                      type="button"
+                      variant={interactionMode === mode.value ? "default" : "outline"}
+                      className={`h-auto py-4 flex flex-col items-center gap-2 ${
+                        interactionMode === mode.value ? 'ring-2 ring-primary ring-offset-2' : ''
+                      }`}
+                      onClick={() => setInteractionMode(mode.value)}
+                    >
+                      <span className="text-2xl">{mode.icon}</span>
+                      <span className="font-semibold text-sm">{mode.label}</span>
+                      <span className="text-xs text-muted-foreground text-center">{mode.description}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
               <div>
                 <Label htmlFor="dialog-alarm-time" className="text-sm font-medium mb-2 block">
                   Time

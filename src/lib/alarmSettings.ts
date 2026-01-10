@@ -1,3 +1,21 @@
+// Interaction modes
+export type InteractionMode = 'one-way' | 'two-way';
+
+export const interactionModes: { value: InteractionMode; label: string; description: string; icon: string }[] = [
+  { 
+    value: 'one-way', 
+    label: 'One-Way Motivation', 
+    description: 'AI speaks motivational messages, you listen',
+    icon: '📢'
+  },
+  { 
+    value: 'two-way', 
+    label: 'Two-Way Conversation', 
+    description: 'Have a real voice conversation with AI',
+    icon: '💬'
+  },
+];
+
 // Voice styles with different personalities
 export type VoiceStyle = 'calm' | 'energetic' | 'gentle' | 'powerful' | 'roger' | 'alice' | 'daniel' | 'jessica';
 
@@ -204,6 +222,7 @@ export const challengeDifficulties: { value: ChallengeDifficulty; label: string;
 
 // Complete alarm settings interface
 export interface AlarmSettings {
+  interactionMode: InteractionMode;
   voiceStyle: VoiceStyle;
   greetingStyle: GreetingStyle;
   userName: string;
@@ -216,6 +235,7 @@ export interface AlarmSettings {
 }
 
 export const defaultAlarmSettings: AlarmSettings = {
+  interactionMode: 'one-way',
   voiceStyle: 'gentle',
   greetingStyle: 'casual',
   userName: '',
