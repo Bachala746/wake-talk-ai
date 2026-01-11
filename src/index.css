@@ -108,6 +108,30 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Mobile-first touch-friendly defaults */
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Prevent horizontal overflow on mobile */
+  body {
+    overflow-x: hidden;
+    min-width: 320px;
+  }
+
+  /* Better touch targets */
+  button, a, input, select, textarea {
+    touch-action: manipulation;
+  }
+
+  /* Prevent text overflow by default */
+  h1, h2, h3, h4, h5, h6, p, span, label {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
 }
 
 @layer utilities {

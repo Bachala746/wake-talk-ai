@@ -357,19 +357,19 @@ export const TwoWayVoiceCall = ({
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-3 sm:p-4">
       {/* Animated sunrise background */}
       <div className="absolute inset-0 bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300">
         <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <div className="w-32 h-32 rounded-full bg-yellow-200 animate-pulse shadow-2xl" 
+          <div className="w-24 sm:w-32 h-24 sm:h-32 rounded-full bg-yellow-200 animate-pulse shadow-2xl" 
                style={{ boxShadow: '0 0 100px 50px rgba(255, 200, 100, 0.6)' }} />
         </div>
       </div>
 
-      <Card className="relative z-10 w-full max-w-md p-6 bg-white/90 backdrop-blur-lg shadow-2xl border-0 rounded-3xl">
-        <div className="text-center space-y-5">
+      <Card className="relative z-10 w-full max-w-md p-4 sm:p-6 bg-white/90 backdrop-blur-lg shadow-2xl border-0 rounded-2xl sm:rounded-3xl">
+        <div className="text-center space-y-4 sm:space-y-5">
           {/* Header */}
-          <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center gap-2 sm:gap-3">
             <div className="relative">
               {isSpeaking && (
                 <>
@@ -377,29 +377,29 @@ export const TwoWayVoiceCall = ({
                   <div className="absolute inset-0 rounded-full bg-green-400/20 animate-pulse" />
                 </>
               )}
-              <div className={`relative p-4 rounded-full transition-all duration-300 ${
+              <div className={`relative p-3 sm:p-4 rounded-full transition-all duration-300 ${
                 isSpeaking 
                   ? 'bg-gradient-to-br from-green-400 to-emerald-500' 
                   : 'bg-gradient-to-br from-orange-400 to-amber-500'
               }`}>
-                <MessageSquare className="w-8 h-8 text-white" />
+                <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
               </div>
             </div>
             
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">AI Conversation</h2>
-              <p className="text-sm text-gray-600 flex items-center justify-center gap-1">
-                <span className={`w-2 h-2 rounded-full ${isSpeaking ? 'bg-green-500' : isListening ? 'bg-blue-500' : 'bg-gray-400'} animate-pulse`} />
-                {isSpeaking ? 'AI Speaking...' : isListening ? 'Listening...' : 'Your Turn'}
+            <div className="min-w-0 w-full">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-800">AI Conversation</h2>
+              <p className="text-xs sm:text-sm text-gray-600 flex items-center justify-center gap-1">
+                <span className={`w-2 h-2 rounded-full shrink-0 ${isSpeaking ? 'bg-green-500' : isListening ? 'bg-blue-500' : 'bg-gray-400'} animate-pulse`} />
+                <span className="truncate">{isSpeaking ? 'AI Speaking...' : isListening ? 'Listening...' : 'Your Turn'}</span>
               </p>
             </div>
           </div>
 
           {/* Current AI Message */}
-          <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-4 min-h-[80px]">
+          <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl sm:rounded-2xl p-3 sm:p-4 min-h-[70px] sm:min-h-[80px]">
             <div className="flex items-start gap-2">
-              <Volume2 className="w-5 h-5 text-orange-500 mt-0.5 shrink-0" />
-              <p className="text-gray-700 text-sm leading-relaxed text-left">
+              <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 mt-0.5 shrink-0" />
+              <p className="text-gray-700 text-xs sm:text-sm leading-relaxed text-left break-words">
                 {currentMessage || "Connecting..."}
               </p>
             </div>
@@ -407,10 +407,10 @@ export const TwoWayVoiceCall = ({
 
           {/* User Transcript */}
           {(isListening || userTranscript) && (
-            <div className="bg-blue-50 rounded-2xl p-4 min-h-[60px]">
+            <div className="bg-blue-50 rounded-xl sm:rounded-2xl p-3 sm:p-4 min-h-[50px] sm:min-h-[60px]">
               <div className="flex items-start gap-2">
-                <Mic className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
-                <p className="text-gray-700 text-sm leading-relaxed text-left">
+                <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mt-0.5 shrink-0" />
+                <p className="text-gray-700 text-xs sm:text-sm leading-relaxed text-left break-words">
                   {userTranscript || "Listening..."}
                 </p>
               </div>
@@ -419,7 +419,7 @@ export const TwoWayVoiceCall = ({
 
           {/* Timer */}
           <div className="space-y-2">
-            <div className="flex justify-between text-sm text-gray-600">
+            <div className="flex justify-between text-xs sm:text-sm text-gray-600">
               <span>{formatTime(elapsedTime)}</span>
               <span>-{formatTime(talkDuration * 60 - elapsedTime)}</span>
             </div>
@@ -427,11 +427,11 @@ export const TwoWayVoiceCall = ({
           </div>
 
           {/* Exchange Counter */}
-          <div className="flex justify-center gap-2">
+          <div className="flex justify-center gap-1.5 sm:gap-2">
             {[...Array(4)].map((_, i) => (
               <div 
                 key={i}
-                className={`w-3 h-3 rounded-full transition-colors ${
+                className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-colors ${
                   i < exchangeCount ? 'bg-green-500' : 'bg-gray-200'
                 }`}
               />
@@ -439,19 +439,19 @@ export const TwoWayVoiceCall = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-2 sm:gap-3 pt-2">
             {/* Mic Button */}
             <Button
               onClick={isListening ? stopListening : startListening}
               disabled={isSpeaking}
-              className={`flex-1 py-6 rounded-2xl transition-all ${
+              className={`flex-1 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all text-sm sm:text-base ${
                 isListening 
                   ? 'bg-blue-500 hover:bg-blue-600 animate-pulse' 
                   : 'bg-blue-400 hover:bg-blue-500'
               }`}
             >
-              {isListening ? <MicOff className="w-6 h-6 mr-2" /> : <Mic className="w-6 h-6 mr-2" />}
-              {isListening ? 'Stop' : 'Speak'}
+              {isListening ? <MicOff className="w-5 h-5 sm:w-6 sm:h-6 mr-1.5 sm:mr-2 shrink-0" /> : <Mic className="w-5 h-5 sm:w-6 sm:h-6 mr-1.5 sm:mr-2 shrink-0" />}
+              <span>{isListening ? 'Stop' : 'Speak'}</span>
             </Button>
 
             {/* Submit Button */}
@@ -459,10 +459,10 @@ export const TwoWayVoiceCall = ({
               <Button
                 onClick={handleUserSubmit}
                 disabled={isSpeaking}
-                className="flex-1 py-6 rounded-2xl bg-green-500 hover:bg-green-600"
+                className="flex-1 py-5 sm:py-6 rounded-xl sm:rounded-2xl bg-green-500 hover:bg-green-600 text-sm sm:text-base"
               >
-                <Volume2 className="w-6 h-6 mr-2" />
-                Send
+                <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 mr-1.5 sm:mr-2 shrink-0" />
+                <span>Send</span>
               </Button>
             )}
 
@@ -470,14 +470,14 @@ export const TwoWayVoiceCall = ({
             <Button
               onClick={() => handleEndCall(true)}
               variant="destructive"
-              className="py-6 px-6 rounded-2xl"
+              className="py-5 sm:py-6 px-4 sm:px-6 rounded-xl sm:rounded-2xl"
             >
-              <PhoneOff className="w-6 h-6" />
+              <PhoneOff className="w-5 h-5 sm:w-6 sm:h-6" />
             </Button>
           </div>
 
           {/* Status */}
-          <p className="text-xs text-gray-500">
+          <p className="text-[10px] sm:text-xs text-gray-500 truncate">
             {isRingtonePhase && "🔔 "}
             Exchange {exchangeCount + 1}/4 • {settings.messageTheme} mode
           </p>
