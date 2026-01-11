@@ -406,39 +406,39 @@ export const WakeUpChallenge = ({
   };
 
   return (
-    <Card className="p-6 bg-white/95 backdrop-blur-lg shadow-2xl border-0 rounded-3xl max-w-md w-full">
+    <Card className="p-4 sm:p-6 bg-white/95 backdrop-blur-lg shadow-2xl border-0 rounded-2xl sm:rounded-3xl max-w-md w-full mx-3 sm:mx-0">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className={`p-3 rounded-xl ${
+      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+        <div className={`p-2.5 sm:p-3 rounded-lg sm:rounded-xl shrink-0 ${
           isCorrect === true ? 'bg-green-500' : 
           isCorrect === false ? 'bg-red-500' : 
           'bg-gradient-to-br from-orange-400 to-amber-500'
         } text-white transition-colors`}>
-          {isCorrect === true ? <CheckCircle className="h-6 w-6" /> :
-           isCorrect === false ? <XCircle className="h-6 w-6" /> :
+          {isCorrect === true ? <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6" /> :
+           isCorrect === false ? <XCircle className="h-5 w-5 sm:h-6 sm:w-6" /> :
            getChallengeIcon()}
         </div>
-        <div>
-          <h3 className="text-lg font-bold text-gray-800">{getChallengeTitle()}</h3>
-          <p className="text-sm text-gray-500 capitalize">{difficulty} difficulty</p>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-base sm:text-lg font-bold text-gray-800 truncate">{getChallengeTitle()}</h3>
+          <p className="text-xs sm:text-sm text-gray-500 capitalize">{difficulty} difficulty</p>
         </div>
       </div>
       
       {/* Challenge Content */}
       {challengeType === 'math' && (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-500">Time left</span>
-            <span className={`text-sm font-bold ${timeLeft <= 5 ? 'text-red-500' : 'text-gray-700'}`}>
+            <span className="text-xs sm:text-sm text-gray-500">Time left</span>
+            <span className={`text-xs sm:text-sm font-bold ${timeLeft <= 5 ? 'text-red-500' : 'text-gray-700'}`}>
               {timeLeft}s
             </span>
           </div>
           <Progress value={(timeLeft / (difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 15)) * 100} className="h-2" />
           
-          <div className="text-center py-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl">
-            <p className="text-4xl font-bold text-gray-800 mb-2">{mathProblem.problem} = ?</p>
+          <div className="text-center py-4 sm:py-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl sm:rounded-2xl">
+            <p className="text-2xl sm:text-4xl font-bold text-gray-800 mb-2 break-all px-2">{mathProblem.problem} = ?</p>
             {attempts > 0 && (
-              <p className="text-sm text-red-500">Wrong! Try again ({3 - attempts} attempts left)</p>
+              <p className="text-xs sm:text-sm text-red-500">Wrong! Try again ({3 - attempts} left)</p>
             )}
           </div>
           
@@ -449,10 +449,10 @@ export const WakeUpChallenge = ({
               onChange={(e) => setUserAnswer(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleMathSubmit()}
               placeholder="Your answer"
-              className="text-center text-xl font-bold"
+              className="text-center text-lg sm:text-xl font-bold flex-1 min-w-0"
               autoFocus
             />
-            <Button onClick={handleMathSubmit} className="bg-orange-500 hover:bg-orange-600">
+            <Button onClick={handleMathSubmit} className="bg-orange-500 hover:bg-orange-600 shrink-0 px-4 sm:px-6">
               Submit
             </Button>
           </div>
@@ -460,38 +460,38 @@ export const WakeUpChallenge = ({
       )}
       
       {challengeType === 'shake' && (
-        <div className="space-y-4 text-center">
-          <div className="py-8">
-            <div className={`inline-block p-6 rounded-full ${
+        <div className="space-y-3 sm:space-y-4 text-center">
+          <div className="py-6 sm:py-8">
+            <div className={`inline-block p-4 sm:p-6 rounded-full ${
               shakeCount >= shakeRequired ? 'bg-green-500' : 'bg-gradient-to-br from-orange-400 to-amber-500'
             } transition-colors animate-pulse`}>
-              <Smartphone className="h-12 w-12 text-white" />
+              <Smartphone className="h-8 w-8 sm:h-12 sm:w-12 text-white" />
             </div>
           </div>
           
-          <Progress value={(shakeCount / shakeRequired) * 100} className="h-3" />
+          <Progress value={(shakeCount / shakeRequired) * 100} className="h-2.5 sm:h-3" />
           
-          <p className="text-lg font-bold text-gray-800">
+          <p className="text-base sm:text-lg font-bold text-gray-800">
             {shakeCount} / {shakeRequired} shakes
           </p>
-          <p className="text-sm text-gray-500">Shake your phone vigorously!</p>
+          <p className="text-xs sm:text-sm text-gray-500">Shake your phone vigorously!</p>
           
           {/* Desktop fallback - tap button */}
           <Button 
             onClick={handleManualShake}
-            className="w-full bg-gradient-to-r from-orange-400 to-amber-500 hover:from-orange-500 hover:to-amber-600 text-white py-6"
+            className="w-full bg-gradient-to-r from-orange-400 to-amber-500 hover:from-orange-500 hover:to-amber-600 text-white py-5 sm:py-6 text-sm sm:text-base"
           >
-            <RotateCcw className="h-5 w-5 mr-2 animate-spin" />
-            Tap Rapidly (Desktop Mode)
+            <RotateCcw className="h-4 w-4 sm:h-5 sm:w-5 mr-2 animate-spin shrink-0" />
+            <span>Tap Rapidly (Desktop Mode)</span>
           </Button>
         </div>
       )}
       
       {challengeType === 'typing' && (
-        <div className="space-y-4">
-          <div className="text-center py-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl">
-            <p className="text-sm text-gray-500 mb-2">Type this word:</p>
-            <p className="text-3xl font-bold text-gray-800 tracking-wide uppercase">{typingWord}</p>
+        <div className="space-y-3 sm:space-y-4">
+          <div className="text-center py-4 sm:py-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl sm:rounded-2xl">
+            <p className="text-xs sm:text-sm text-gray-500 mb-2">Type this word:</p>
+            <p className="text-xl sm:text-3xl font-bold text-gray-800 tracking-wide uppercase break-all px-2">{typingWord}</p>
           </div>
           
           <div className="flex gap-2">
@@ -501,12 +501,12 @@ export const WakeUpChallenge = ({
               onChange={(e) => setTypedText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleTypingSubmit()}
               placeholder="Type here..."
-              className={`text-center text-xl font-mono ${
+              className={`text-center text-lg sm:text-xl font-mono flex-1 min-w-0 ${
                 isCorrect === false ? 'border-red-500 bg-red-50' : ''
               }`}
               autoFocus
             />
-            <Button onClick={handleTypingSubmit} className="bg-orange-500 hover:bg-orange-600">
+            <Button onClick={handleTypingSubmit} className="bg-orange-500 hover:bg-orange-600 shrink-0 px-4 sm:px-6">
               Submit
             </Button>
           </div>
@@ -514,40 +514,40 @@ export const WakeUpChallenge = ({
       )}
       
       {challengeType === 'memory' && (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {showingSequence ? (
-            <div className="text-center py-8">
-              <p className="text-sm text-gray-500 mb-4">Remember this sequence:</p>
-              <div className="inline-block p-8 bg-gradient-to-br from-orange-400 to-amber-500 rounded-2xl">
-                <span className="text-5xl font-bold text-white">
+            <div className="text-center py-6 sm:py-8">
+              <p className="text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">Remember this sequence:</p>
+              <div className="inline-block p-6 sm:p-8 bg-gradient-to-br from-orange-400 to-amber-500 rounded-xl sm:rounded-2xl">
+                <span className="text-4xl sm:text-5xl font-bold text-white">
                   {memorySequence[currentShowIndex]}
                 </span>
               </div>
-              <p className="text-sm text-gray-500 mt-4">
+              <p className="text-xs sm:text-sm text-gray-500 mt-3 sm:mt-4">
                 {currentShowIndex + 1} of {memorySequence.length}
               </p>
             </div>
           ) : (
             <>
-              <p className="text-center text-sm text-gray-500 mb-4">
+              <p className="text-center text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">
                 Enter the sequence ({userSequence.length}/{memorySequence.length})
               </p>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
                   <Button
                     key={num}
                     onClick={() => handleMemoryInput(num)}
-                    className="h-14 text-xl font-bold bg-gray-100 hover:bg-orange-100 text-gray-800"
+                    className="h-12 sm:h-14 text-lg sm:text-xl font-bold bg-gray-100 hover:bg-orange-100 text-gray-800"
                   >
                     {num}
                   </Button>
                 ))}
               </div>
-              <div className="flex justify-center gap-1 mt-4">
+              <div className="flex justify-center gap-1 mt-3 sm:mt-4">
                 {memorySequence.map((_, i) => (
                   <div
                     key={i}
-                    className={`w-3 h-3 rounded-full ${
+                    className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${
                       i < userSequence.length ? 'bg-orange-500' : 'bg-gray-200'
                     }`}
                   />
@@ -559,18 +559,18 @@ export const WakeUpChallenge = ({
       )}
       
       {challengeType === 'pattern' && (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {showingPattern ? (
             <div className="text-center">
-              <p className="text-sm text-gray-500 mb-4">Watch the pattern:</p>
-              <div className={`grid gap-2 mx-auto`} style={{ 
+              <p className="text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">Watch the pattern:</p>
+              <div className={`grid gap-1.5 sm:gap-2 mx-auto`} style={{ 
                 gridTemplateColumns: `repeat(${patternData.gridSize}, minmax(0, 1fr))`,
-                maxWidth: patternData.gridSize * 50 + 'px'
+                maxWidth: Math.min(patternData.gridSize * 48, 240) + 'px'
               }}>
                 {Array.from({ length: patternData.gridSize * patternData.gridSize }).map((_, i) => (
                   <div
                     key={i}
-                    className={`aspect-square rounded-lg transition-all duration-200 ${
+                    className={`aspect-square rounded-md sm:rounded-lg transition-all duration-200 ${
                       patternData.pattern[currentPatternIndex] === i
                         ? 'bg-orange-500 scale-110'
                         : 'bg-gray-200'
@@ -578,24 +578,24 @@ export const WakeUpChallenge = ({
                   />
                 ))}
               </div>
-              <p className="text-sm text-gray-500 mt-4">
+              <p className="text-xs sm:text-sm text-gray-500 mt-3 sm:mt-4">
                 {currentPatternIndex + 1} of {patternData.pattern.length}
               </p>
             </div>
           ) : (
             <>
-              <p className="text-center text-sm text-gray-500 mb-4">
+              <p className="text-center text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">
                 Tap the cells in order ({userPattern.length}/{patternData.pattern.length})
               </p>
-              <div className={`grid gap-2 mx-auto`} style={{ 
+              <div className={`grid gap-1.5 sm:gap-2 mx-auto`} style={{ 
                 gridTemplateColumns: `repeat(${patternData.gridSize}, minmax(0, 1fr))`,
-                maxWidth: patternData.gridSize * 50 + 'px'
+                maxWidth: Math.min(patternData.gridSize * 48, 240) + 'px'
               }}>
                 {Array.from({ length: patternData.gridSize * patternData.gridSize }).map((_, i) => (
                   <button
                     key={i}
                     onClick={() => handlePatternClick(i)}
-                    className={`aspect-square rounded-lg transition-all duration-150 ${
+                    className={`aspect-square rounded-md sm:rounded-lg transition-all duration-150 ${
                       userPattern.includes(i)
                         ? 'bg-orange-500'
                         : 'bg-gray-200 hover:bg-gray-300 active:scale-95'
@@ -609,9 +609,9 @@ export const WakeUpChallenge = ({
       )}
       
       {challengeType === 'slider' && (
-        <div className="space-y-6">
-          <p className="text-center text-sm text-gray-500">
-            Drag each slider to match the target value (±{difficulty === 'easy' ? 5 : difficulty === 'medium' ? 3 : 2})
+        <div className="space-y-4 sm:space-y-6">
+          <p className="text-center text-xs sm:text-sm text-gray-500">
+            Drag each slider to match the target (±{difficulty === 'easy' ? 5 : difficulty === 'medium' ? 3 : 2})
           </p>
           
           {sliderTargets.map((target, index) => {
@@ -620,10 +620,10 @@ export const WakeUpChallenge = ({
             
             return (
               <div key={index} className="space-y-2">
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs sm:text-sm">
                   <span className="text-gray-500">Slider {index + 1}</span>
                   <span className={`font-bold ${isMatch ? 'text-green-500' : 'text-gray-700'}`}>
-                    {sliderValues[index]} → Target: {target}
+                    {sliderValues[index]} → {target}
                   </span>
                 </div>
                 <Slider
@@ -641,11 +641,11 @@ export const WakeUpChallenge = ({
       )}
       
       {challengeType === 'captcha' && (
-        <div className="space-y-4">
-          <div className="text-center py-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl">
-            <p className="text-sm text-gray-500 mb-2">Type the word below:</p>
+        <div className="space-y-3 sm:space-y-4">
+          <div className="text-center py-4 sm:py-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl sm:rounded-2xl">
+            <p className="text-xs sm:text-sm text-gray-500 mb-2">Type the word below:</p>
             <p 
-              className="text-3xl font-bold tracking-[0.3em] select-none"
+              className="text-2xl sm:text-3xl font-bold tracking-[0.2em] sm:tracking-[0.3em] select-none px-2 break-all"
               style={{ 
                 fontFamily: 'monospace',
                 textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
@@ -666,12 +666,12 @@ export const WakeUpChallenge = ({
               onChange={(e) => setCaptchaInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCaptchaSubmit()}
               placeholder="Type here..."
-              className={`text-center text-xl font-mono uppercase ${
+              className={`text-center text-lg sm:text-xl font-mono uppercase flex-1 min-w-0 ${
                 isCorrect === false ? 'border-red-500 bg-red-50' : ''
               }`}
               autoFocus
             />
-            <Button onClick={handleCaptchaSubmit} className="bg-orange-500 hover:bg-orange-600">
+            <Button onClick={handleCaptchaSubmit} className="bg-orange-500 hover:bg-orange-600 shrink-0 px-4 sm:px-6">
               Submit
             </Button>
           </div>
@@ -679,9 +679,9 @@ export const WakeUpChallenge = ({
       )}
       
       {challengeType === 'none' && (
-        <div className="text-center py-8">
-          <p className="text-gray-500 mb-4">No challenge required</p>
-          <Button onClick={onComplete} className="bg-orange-500 hover:bg-orange-600">
+        <div className="text-center py-6 sm:py-8">
+          <p className="text-gray-500 mb-3 sm:mb-4 text-sm sm:text-base">No challenge required</p>
+          <Button onClick={onComplete} className="bg-orange-500 hover:bg-orange-600 px-6 sm:px-8">
             Dismiss Alarm
           </Button>
         </div>

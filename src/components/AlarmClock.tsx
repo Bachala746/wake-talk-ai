@@ -292,7 +292,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative min-h-[80vh] flex flex-col items-center justify-center px-4 py-16 overflow-hidden">
+      <section className="relative min-h-[80vh] flex flex-col items-center justify-center px-3 sm:px-4 py-12 sm:py-16 overflow-hidden">
         {/* Light warm gradient background */}
         <div className="absolute inset-0 bg-gradient-to-b from-amber-100 via-orange-200 to-amber-200" />
         
@@ -312,16 +312,16 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 text-center max-w-3xl mx-auto">
+        <div className="relative z-10 text-center max-w-3xl mx-auto px-2">
           {/* Icon */}
-          <div className="mb-8 animate-float">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/40 backdrop-blur-sm border border-white/50 shadow-lg animate-glow-pulse">
-              <Sun className="h-10 w-10 text-orange-600" />
+          <div className="mb-6 sm:mb-8 animate-float">
+            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/40 backdrop-blur-sm border border-white/50 shadow-lg animate-glow-pulse">
+              <Sun className="h-8 w-8 sm:h-10 sm:w-10 text-orange-600" />
             </div>
           </div>
 
           {/* Main Headline */}
-          <h1 className="text-5xl md:text-7xl font-bold text-slate-800 mb-6 tracking-tight">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold text-slate-800 mb-4 sm:mb-6 tracking-tight leading-tight">
             Good Morning,
             <br />
             <span className="text-orange-600">
@@ -330,7 +330,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           </h1>
 
           {/* Subtitle */}
-          <p className="text-lg md:text-xl text-slate-700 mb-10 max-w-xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl text-slate-700 mb-8 sm:mb-10 max-w-xl mx-auto leading-relaxed px-2">
             Your AI-powered morning companion that wakes you up gently and starts your day with meaningful conversations.
           </p>
 
@@ -338,36 +338,36 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           <Button
             onClick={openNewDialog}
             size="lg"
-            className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-6 rounded-xl text-lg shadow-xl hover:shadow-orange-400/40 transition-all duration-300 hover:-translate-y-1"
+            className="bg-orange-500 hover:bg-orange-600 text-white px-6 sm:px-8 py-5 sm:py-6 rounded-xl text-base sm:text-lg shadow-xl hover:shadow-orange-400/40 transition-all duration-300 hover:-translate-y-1 w-full sm:w-auto max-w-xs sm:max-w-none mx-auto"
           >
-            <Clock className="h-5 w-5 mr-2" />
-            Set Your Wake-up Time
+            <Clock className="h-5 w-5 mr-2 shrink-0" />
+            <span className="truncate">Set Your Wake-up Time</span>
           </Button>
 
           {/* Feature highlights */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-8 text-slate-600 text-sm">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 mt-6 sm:mt-8 text-slate-600 text-xs sm:text-sm">
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
+              <Clock className="h-4 w-4 shrink-0" />
               <span>Daily wake-up calls</span>
             </div>
             <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4" />
+              <Sparkles className="h-4 w-4 shrink-0" />
               <span>AI conversations to energize you</span>
             </div>
           </div>
 
           {/* Motivational Quote in Hero */}
-          <div className="mt-10 max-w-xl mx-auto">
-            <div className="p-5 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg">
-              <div className="flex items-start gap-4">
-                <div className="bg-gradient-to-br from-orange-400 to-amber-500 rounded-xl p-2.5 shrink-0 shadow-md">
-                  <Flame className="h-5 w-5 text-white" />
+          <div className="mt-8 sm:mt-10 max-w-xl mx-auto">
+            <div className="p-4 sm:p-5 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg">
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="bg-gradient-to-br from-orange-400 to-amber-500 rounded-xl p-2 sm:p-2.5 shrink-0 shadow-md">
+                  <Flame className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
-                <div className="min-h-[60px] flex flex-col justify-center">
-                  <p className="text-base font-medium text-slate-700 italic leading-relaxed">
+                <div className="min-h-[50px] sm:min-h-[60px] flex flex-col justify-center min-w-0 flex-1">
+                  <p className="text-sm sm:text-base font-medium text-slate-700 italic leading-relaxed break-words">
                     "{motivationalQuotes[currentQuoteIndex].quote}"
                   </p>
-                  <p className="text-sm text-orange-600 font-semibold mt-2">
+                  <p className="text-xs sm:text-sm text-orange-600 font-semibold mt-2 truncate">
                     — {motivationalQuotes[currentQuoteIndex].author}
                   </p>
                 </div>
@@ -385,8 +385,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       </section>
 
       {/* Main Content Section */}
-      <section className="relative py-16 px-4 bg-gradient-to-b from-amber-200 via-amber-200 to-amber-100 min-h-screen">
-        <div className="max-w-lg mx-auto">
+      <section className="relative py-10 sm:py-16 px-3 sm:px-4 bg-gradient-to-b from-amber-200 via-amber-200 to-amber-100 min-h-screen">
+        <div className="max-w-lg mx-auto w-full">
           {/* Section Header */}
           <div className="text-center mb-10">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-warm mb-4 shadow-lg">
@@ -396,16 +396,16 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           </div>
 
           {/* Current Time Display */}
-          <Card className="p-6 mb-8 bg-white/90 backdrop-blur-sm border border-white/50 shadow-lg">
+          <Card className="p-4 sm:p-6 mb-6 sm:mb-8 bg-white/90 backdrop-blur-sm border border-white/50 shadow-lg">
             <div className="text-center">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="bg-gradient-warm p-2.5 rounded-xl shadow-md">
-                  <GreetingIcon className="h-5 w-5 text-white" />
+              <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                <div className="bg-gradient-warm p-2 sm:p-2.5 rounded-xl shadow-md shrink-0">
+                  <GreetingIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
-                <span className="text-xl font-semibold text-foreground">{greeting.text}</span>
+                <span className="text-lg sm:text-xl font-semibold text-foreground">{greeting.text}</span>
               </div>
-              <div className="text-4xl font-bold text-foreground mb-1">{formatTime(currentTime)}</div>
-              <div className="text-muted-foreground text-sm">
+              <div className="text-3xl sm:text-4xl font-bold text-foreground mb-1">{formatTime(currentTime)}</div>
+              <div className="text-muted-foreground text-xs sm:text-sm">
                 {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
               </div>
             </div>
@@ -426,64 +426,65 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
               alarms.map((alarm, index) => (
                 <Card 
                   key={alarm.id} 
-                  className="p-5 bg-white/60 backdrop-blur-sm border border-white/50 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
+                  className="p-3 sm:p-4 bg-white/60 backdrop-blur-sm border border-white/50 shadow-md hover:shadow-lg transition-all duration-300"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-4">
-                        <div className={`text-4xl font-bold ${alarm.isActive ? 'text-primary' : 'text-muted-foreground'}`}>
-                          {alarm.time}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-foreground text-lg">{alarm.label}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {alarm.duration} min talk
-                            {alarm.days.length > 0 && ` • ${alarm.days.join(', ')}`}
-                          </div>
-                          <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                            <span className={`px-1.5 py-0.5 rounded ${alarm.settings.interactionMode === 'two-way' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
-                              {alarm.settings.interactionMode === 'two-way' ? '💬 Two-Way' : '📢 One-Way'}
-                            </span>
-                            <span>•</span>
-                            <span>{messageThemes.find(t => t.value === alarm.settings.messageTheme)?.icon}</span>
-                            <span className="capitalize">{alarm.settings.messageTheme}</span>
-                          </div>
-                          {alarm.isActive && (
-                            <div className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary font-semibold mt-2 px-2 py-1 rounded-full">
-                              <Zap className="h-3 w-3" />
-                              {getTimeUntilAlarm(alarm)} remaining
-                            </div>
-                          )}
-                        </div>
+                  <div className="flex flex-col gap-3">
+                    {/* Top row: Time and controls */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className={`text-2xl sm:text-3xl font-bold shrink-0 ${alarm.isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {alarm.time}
+                      </div>
+                      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="hover:bg-primary/10 h-8 w-8 sm:h-9 sm:w-9"
+                          onClick={() => openEditDialog(alarm)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="hover:bg-destructive/10 h-8 w-8 sm:h-9 sm:w-9"
+                          onClick={() => deleteAlarm(alarm.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                        <Button
+                          variant={alarm.isActive ? "default" : "outline"}
+                          size="sm"
+                          className={`h-8 px-3 text-xs sm:text-sm ${alarm.isActive ? "bg-gradient-warm border-0 shadow-md" : ""}`}
+                          onClick={() => toggleAlarm(alarm.id)}
+                        >
+                          {alarm.isActive ? "ON" : "OFF"}
+                        </Button>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="hover:bg-primary/10"
-                        onClick={() => openEditDialog(alarm)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="hover:bg-destructive/10"
-                        onClick={() => deleteAlarm(alarm.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                      <Button
-                        variant={alarm.isActive ? "default" : "outline"}
-                        size="sm"
-                        className={alarm.isActive ? "bg-gradient-warm border-0 shadow-md" : ""}
-                        onClick={() => toggleAlarm(alarm.id)}
-                      >
-                        {alarm.isActive ? "ON" : "OFF"}
-                      </Button>
+                    {/* Bottom row: Details */}
+                    <div className="min-w-0">
+                      <div className="font-semibold text-foreground text-base sm:text-lg truncate">{alarm.label}</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground truncate">
+                        {alarm.duration} min talk
+                        {alarm.days.length > 0 && ` • ${alarm.days.join(', ')}`}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-xs text-muted-foreground">
+                        <span className={`px-1.5 py-0.5 rounded shrink-0 ${alarm.settings.interactionMode === 'two-way' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
+                          {alarm.settings.interactionMode === 'two-way' ? '💬 Two-Way' : '📢 One-Way'}
+                        </span>
+                        <span className="flex items-center gap-1 shrink-0">
+                          <span>{messageThemes.find(t => t.value === alarm.settings.messageTheme)?.icon}</span>
+                          <span className="capitalize">{alarm.settings.messageTheme}</span>
+                        </span>
+                      </div>
+                      {alarm.isActive && (
+                        <div className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary font-semibold mt-2 px-2 py-1 rounded-full">
+                          <Zap className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{getTimeUntilAlarm(alarm)} remaining</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Card>
@@ -492,24 +493,24 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-2 sm:gap-3 pt-2">
             <Button 
               onClick={openNewDialog}
-              className="flex-1 bg-gradient-warm hover:opacity-90 text-white py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
+              className="flex-1 bg-gradient-warm hover:opacity-90 text-white py-5 sm:py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base min-w-0"
               size="lg"
             >
-              <Clock className="h-5 w-5 mr-2" />
-              Add Alarm
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 shrink-0" />
+              <span className="truncate">Add Alarm</span>
             </Button>
             
             <Button 
               onClick={() => onStartCall("now", 5, defaultAlarmSettings)}
               variant="outline"
-              className="flex-1 py-6 rounded-xl border-2 border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-300"
+              className="flex-1 py-5 sm:py-6 rounded-xl border-2 border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-300 text-sm sm:text-base min-w-0"
               size="lg"
             >
-              <Phone className="h-5 w-5 mr-2 text-primary" />
-              Test Call
+              <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-primary shrink-0" />
+              <span className="truncate">Test Call</span>
             </Button>
             </div>
           </div>
@@ -517,54 +518,54 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       </section>
 
       <Dialog open={isDialogOpen} onOpenChange={closeDialog}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto mx-2 w-[calc(100%-1rem)] rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
-              {editingAlarmId ? "Edit Alarm" : "New AI Alarm"}
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+              <span className="truncate">{editingAlarmId ? "Edit Alarm" : "New AI Alarm"}</span>
             </DialogTitle>
           </DialogHeader>
           
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-4">
-              <TabsTrigger value="basic" className="text-xs sm:text-sm">
-                <Clock className="h-4 w-4 mr-1" />
-                Basic
+            <TabsList className="grid w-full grid-cols-4 mb-4 h-auto p-1">
+              <TabsTrigger value="basic" className="text-[10px] sm:text-xs px-1 py-2 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1">
+                <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span>Basic</span>
               </TabsTrigger>
-              <TabsTrigger value="voice" className="text-xs sm:text-sm">
-                <Mic className="h-4 w-4 mr-1" />
-                Voice
+              <TabsTrigger value="voice" className="text-[10px] sm:text-xs px-1 py-2 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1">
+                <Mic className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span>Voice</span>
               </TabsTrigger>
-              <TabsTrigger value="sound" className="text-xs sm:text-sm">
-                <Bell className="h-4 w-4 mr-1" />
-                Sound
+              <TabsTrigger value="sound" className="text-[10px] sm:text-xs px-1 py-2 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1">
+                <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span>Sound</span>
               </TabsTrigger>
-              <TabsTrigger value="challenge" className="text-xs sm:text-sm">
-                <Gamepad2 className="h-4 w-4 mr-1" />
-                Challenge
+              <TabsTrigger value="challenge" className="text-[10px] sm:text-xs px-1 py-2 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1">
+                <Gamepad2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span>Challenge</span>
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="basic" className="space-y-4">
               {/* Interaction Mode Selector */}
               <div>
-                <Label className="text-sm font-medium mb-3 block">
+                <Label className="text-xs sm:text-sm font-medium mb-2 sm:mb-3 block">
                   Interaction Mode
                 </Label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {interactionModes.map((mode) => (
                     <Button
                       key={mode.value}
                       type="button"
                       variant={interactionMode === mode.value ? "default" : "outline"}
-                      className={`h-auto py-4 flex flex-col items-center gap-2 ${
-                        interactionMode === mode.value ? 'ring-2 ring-primary ring-offset-2' : ''
+                      className={`h-auto py-3 sm:py-4 flex flex-col items-center gap-1 sm:gap-2 ${
+                        interactionMode === mode.value ? 'ring-2 ring-primary ring-offset-1' : ''
                       }`}
                       onClick={() => setInteractionMode(mode.value)}
                     >
-                      <span className="text-2xl">{mode.icon}</span>
-                      <span className="font-semibold text-sm">{mode.label}</span>
-                      <span className="text-xs text-muted-foreground text-center">{mode.description}</span>
+                      <span className="text-xl sm:text-2xl">{mode.icon}</span>
+                      <span className="font-semibold text-xs sm:text-sm">{mode.label}</span>
+                      <span className="text-[10px] sm:text-xs text-muted-foreground text-center leading-tight line-clamp-2">{mode.description}</span>
                     </Button>
                   ))}
                 </div>
@@ -616,10 +617,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
               </div>
 
               <div>
-                <Label className="text-sm font-medium mb-3 block">
+                <Label className="text-xs sm:text-sm font-medium mb-2 sm:mb-3 block">
                   Repeat Days
                 </Label>
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex gap-1.5 sm:gap-2 flex-wrap">
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
                     <Button
                       key={day}
@@ -627,7 +628,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                       variant={selectedDays.includes(day) ? "default" : "outline"}
                       size="sm"
                       onClick={() => toggleDay(day)}
-                      className="px-3"
+                      className="px-2 sm:px-3 h-8 text-xs sm:text-sm"
                     >
                       {day}
                     </Button>
@@ -638,8 +639,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
 
             <TabsContent value="voice" className="space-y-4">
               <div>
-                <Label className="text-sm font-medium mb-3 block flex items-center gap-2">
-                  <Mic className="h-4 w-4" />
+                <Label className="text-xs sm:text-sm font-medium mb-2 sm:mb-3 block flex items-center gap-2">
+                  <Mic className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                   Voice Style
                 </Label>
                 <div className="grid grid-cols-2 gap-2">
@@ -649,10 +650,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                       type="button"
                       variant={voiceStyle === style.value ? "default" : "outline"}
                       onClick={() => setVoiceStyle(style.value)}
-                      className="flex flex-col h-auto py-3 px-4"
+                      className="flex flex-col h-auto py-2.5 sm:py-3 px-2 sm:px-4 min-w-0"
                     >
-                      <span className="font-semibold">{style.label}</span>
-                      <span className="text-xs opacity-70">{style.description}</span>
+                      <span className="font-semibold text-xs sm:text-sm truncate w-full">{style.label}</span>
+                      <span className="text-[10px] sm:text-xs opacity-70 truncate w-full">{style.description}</span>
                     </Button>
                   ))}
                 </div>
@@ -687,8 +688,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
               </div>
 
               <div>
-                <Label className="text-sm font-medium mb-3 block flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4" />
+                <Label className="text-xs sm:text-sm font-medium mb-2 sm:mb-3 block flex items-center gap-2">
+                  <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                   Message Theme
                 </Label>
                 <div className="grid grid-cols-2 gap-2">
@@ -698,12 +699,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                       type="button"
                       variant={messageTheme === theme.value ? "default" : "outline"}
                       onClick={() => setMessageTheme(theme.value)}
-                      className="flex items-center gap-2 justify-start"
+                      className="flex items-center gap-1.5 sm:gap-2 justify-start py-2.5 px-2 sm:px-3 h-auto min-w-0"
                     >
-                      <span>{theme.icon}</span>
-                      <div className="text-left">
-                        <div className="font-semibold text-sm">{theme.label}</div>
-                      </div>
+                      <span className="shrink-0">{theme.icon}</span>
+                      <span className="font-semibold text-xs sm:text-sm truncate">{theme.label}</span>
                     </Button>
                   ))}
                 </div>
@@ -712,8 +711,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
 
             <TabsContent value="sound" className="space-y-4">
               <div>
-                <Label className="text-sm font-medium mb-3 block flex items-center gap-2">
-                  <Bell className="h-4 w-4" />
+                <Label className="text-xs sm:text-sm font-medium mb-2 sm:mb-3 block flex items-center gap-2">
+                  <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                   Ringtone Style
                 </Label>
                 <div className="grid grid-cols-2 gap-2">
@@ -723,23 +722,24 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                       type="button"
                       variant={ringtoneStyle === style.value ? "default" : "outline"}
                       onClick={() => setRingtoneStyle(style.value)}
-                      className="flex flex-col h-auto py-3"
+                      className="flex flex-col h-auto py-2.5 sm:py-3 px-2 min-w-0"
                     >
-                      <span className="font-semibold">{style.label}</span>
-                      <span className="text-xs opacity-70">{style.description}</span>
+                      <span className="font-semibold text-xs sm:text-sm truncate w-full">{style.label}</span>
+                      <span className="text-[10px] sm:text-xs opacity-70 truncate w-full">{style.description}</span>
                     </Button>
                   ))}
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/50">
-                <div>
-                  <Label className="text-sm font-medium">Gradual Volume</Label>
-                  <p className="text-xs text-muted-foreground">Start soft and increase over time</p>
+              <div className="flex items-center justify-between gap-3 p-3 sm:p-4 rounded-lg border bg-muted/50">
+                <div className="min-w-0 flex-1">
+                  <Label className="text-xs sm:text-sm font-medium">Gradual Volume</Label>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Start soft and increase</p>
                 </div>
                 <Switch
                   checked={gradualVolume}
                   onCheckedChange={setGradualVolume}
+                  className="shrink-0"
                 />
               </div>
 
@@ -768,11 +768,11 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
 
             <TabsContent value="challenge" className="space-y-4">
               <div>
-                <Label className="text-sm font-medium mb-3 block flex items-center gap-2">
-                  <Gamepad2 className="h-4 w-4" />
+                <Label className="text-xs sm:text-sm font-medium mb-2 sm:mb-3 block flex items-center gap-2">
+                  <Gamepad2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                   Wake-up Challenge
                 </Label>
-                <p className="text-xs text-muted-foreground mb-3">
+                <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 sm:mb-3">
                   Must complete this challenge to dismiss the alarm
                 </p>
                 <div className="grid grid-cols-2 gap-2">
@@ -782,12 +782,12 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                       type="button"
                       variant={challengeType === type.value ? "default" : "outline"}
                       onClick={() => setChallengeType(type.value)}
-                      className="flex items-center gap-2 justify-start h-auto py-3"
+                      className="flex items-center gap-1.5 sm:gap-2 justify-start h-auto py-2.5 sm:py-3 px-2 sm:px-3 min-w-0"
                     >
-                      <span className="text-lg">{type.icon}</span>
-                      <div className="text-left">
-                        <div className="font-semibold text-sm">{type.label}</div>
-                        <div className="text-xs opacity-70">{type.description}</div>
+                      <span className="text-base sm:text-lg shrink-0">{type.icon}</span>
+                      <div className="text-left min-w-0 flex-1">
+                        <div className="font-semibold text-xs sm:text-sm truncate">{type.label}</div>
+                        <div className="text-[10px] sm:text-xs opacity-70 truncate">{type.description}</div>
                       </div>
                     </Button>
                   ))}
@@ -820,22 +820,22 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
             </TabsContent>
           </Tabs>
 
-          <DialogFooter className="gap-2 sm:gap-0 mt-4">
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 mt-4">
             <Button
               type="button"
               variant="outline"
               onClick={closeDialog}
-              className="flex-1 sm:flex-none"
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button
               type="button"
               onClick={handleSaveAlarm}
-              className="flex-1 sm:flex-none"
+              className="w-full sm:w-auto"
             >
-              <Settings className="h-4 w-4 mr-2" />
-              {editingAlarmId ? "Update Alarm" : "Save Alarm"}
+              <Settings className="h-4 w-4 mr-2 shrink-0" />
+              <span className="truncate">{editingAlarmId ? "Update Alarm" : "Save Alarm"}</span>
             </Button>
           </DialogFooter>
         </DialogContent>
