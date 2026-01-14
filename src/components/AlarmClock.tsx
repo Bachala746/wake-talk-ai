@@ -554,19 +554,27 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                 </Label>
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {interactionModes.map((mode) => (
-                    <Button
+                    <div
                       key={mode.value}
-                      type="button"
-                      variant={interactionMode === mode.value ? "default" : "outline"}
-                      className={`h-auto py-3 sm:py-4 flex flex-col items-center gap-1 sm:gap-2 ${
-                        interactionMode === mode.value ? 'ring-2 ring-primary ring-offset-1' : ''
-                      }`}
                       onClick={() => setInteractionMode(mode.value)}
+                      className={`cursor-pointer rounded-lg border-2 p-3 sm:p-4 flex flex-col items-center text-center transition-all ${
+                        interactionMode === mode.value 
+                          ? 'border-primary bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1' 
+                          : 'border-border bg-background hover:border-primary/50'
+                      }`}
                     >
-                      <span className="text-xl sm:text-2xl">{mode.icon}</span>
-                      <span className="font-semibold text-xs sm:text-sm">{mode.label}</span>
-                      <span className="text-[10px] sm:text-xs text-muted-foreground text-center leading-tight line-clamp-2">{mode.description}</span>
-                    </Button>
+                      <span className="text-xl sm:text-2xl mb-1">{mode.icon}</span>
+                      <span className={`font-semibold text-xs sm:text-sm mb-1 ${
+                        interactionMode === mode.value ? 'text-primary-foreground' : 'text-foreground'
+                      }`}>
+                        {mode.label}
+                      </span>
+                      <span className={`text-[10px] sm:text-xs leading-tight ${
+                        interactionMode === mode.value ? 'text-primary-foreground/80' : 'text-muted-foreground'
+                      }`}>
+                        {mode.description}
+                      </span>
+                    </div>
                   ))}
                 </div>
               </div>
