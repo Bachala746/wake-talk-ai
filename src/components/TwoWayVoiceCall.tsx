@@ -11,6 +11,7 @@ import {
   defaultAlarmSettings,
 } from "@/lib/alarmSettings";
 import { WakeUpChallenge } from "./WakeUpChallenge";
+import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 
 interface TwoWayVoiceCallProps {
   alarmTime: string;
@@ -108,45 +109,33 @@ export const TwoWayVoiceCall = ({
     }
   }, []);
 
-  // Speak a message using browser TTS
+  // Speak a message using ElevenLabs TTS
   const speakMessage = useCallback((text: string): Promise<void> => {
     return new Promise((resolve) => {
-      if (!('speechSynthesis' in window)) {
-        setCurrentMessage(text);
-        setTimeout(resolve, 3000);
-        return;
-      }
-
       setIsSpeaking(true);
       setCurrentMessage(text);
       
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.9;
-      utterance.pitch = 1;
-      utterance.volume = 1;
-      
-      const voices = window.speechSynthesis.getVoices();
-      const englishVoices = voices.filter(v => v.lang.startsWith('en'));
-      if (englishVoices.length > 0) {
-        const preferredVoice = englishVoices.find(v => 
-          v.name.includes('Google') || v.name.includes('Premium') || v.name.includes('Enhanced')
-        ) || englishVoices[0];
-        utterance.voice = preferredVoice;
-      }
-      
-      utterance.onend = () => {
-        setIsSpeaking(false);
-        resolve();
-      };
-      
-      utterance.onerror = () => {
-        setIsSpeaking(false);
-        resolve();
-      };
-      
-      window.speechSynthesis.speak(utterance);
+      speakWithElevenLabs(
+        text,
+        settings.voiceStyle,
+        () => {
+          // onStart
+          console.log("ElevenLabs speech started");
+        },
+        () => {
+          // onEnd
+          setIsSpeaking(false);
+          resolve();
+        },
+        (error) => {
+          // onError
+          console.error("ElevenLabs speech error:", error);
+          setIsSpeaking(false);
+          resolve();
+        }
+      );
     });
-  }, []);
+  }, [settings.voiceStyle]);
 
   // Start speech recognition
   const startListening = useCallback(() => {
@@ -268,9 +257,7 @@ export const TwoWayVoiceCall = ({
     return () => {
       clearTimeout(initTimer);
       stopRingtone();
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
+      cancelSpeech();
       if (recognitionRef.current) {
         recognitionRef.current.abort();
       }
@@ -304,7 +291,7 @@ export const TwoWayVoiceCall = ({
     if (showChallengeFirst && settings.challengeType && settings.challengeType !== 'none' && !showChallenge) {
       shouldContinueRef.current = false;
       stopRingtone();
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      cancelSpeech();
       setShowChallenge(true);
       toast.info("Complete the challenge to dismiss!");
       return;
@@ -312,7 +299,7 @@ export const TwoWayVoiceCall = ({
     
     shouldContinueRef.current = false;
     stopRingtone();
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    cancelSpeech();
     setIsConnected(false);
     toast.success("Have an amazing day! 🌟");
     setTimeout(onEndCall, 1000);
