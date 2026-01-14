@@ -137,11 +137,35 @@ export const TwoWayVoiceCall = ({
     });
   }, [settings.voiceStyle]);
 
-  // Start speech recognition
-  const startListening = useCallback(() => {
+  // Request microphone permission
+  const requestMicPermission = useCallback(async (): Promise<boolean> => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop()); // Release immediately
+      return true;
+    } catch (error) {
+      console.error("Microphone permission error:", error);
+      toast.error("Microphone access denied. Please enable it in your browser settings.");
+      return false;
+    }
+  }, []);
+
+  // Start speech recognition with auto-submit capability
+  const startListening = useCallback(async (autoSubmit: boolean = false) => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       toast.error("Speech recognition not supported in this browser");
       return;
+    }
+
+    // Request permission first
+    const hasPermission = await requestMicPermission();
+    if (!hasPermission) return;
+
+    // Stop any existing recognition
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch (e) {}
     }
 
     const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
@@ -150,38 +174,94 @@ export const TwoWayVoiceCall = ({
     recognition.continuous = false;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
+    recognition.maxAlternatives = 1;
+    
+    let finalTranscript = "";
+    let silenceTimer: number | null = null;
     
     recognition.onstart = () => {
+      console.log("Speech recognition started");
       setIsListening(true);
       setUserTranscript("");
+      toast.info("🎤 Listening... Speak now!", { duration: 2000 });
     };
     
     recognition.onresult = (event: any) => {
-      const transcript = Array.from(event.results)
-        .map((result: any) => result[0].transcript)
-        .join('');
-      setUserTranscript(transcript);
+      let interim = "";
+      finalTranscript = "";
+      
+      for (let i = 0; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interim += event.results[i][0].transcript;
+        }
+      }
+      
+      setUserTranscript(finalTranscript || interim);
+      
+      // Reset silence timer on new speech
+      if (silenceTimer) clearTimeout(silenceTimer);
+      
+      // Auto-submit after 2 seconds of silence if we have final transcript
+      if (autoSubmit && finalTranscript) {
+        silenceTimer = window.setTimeout(() => {
+          console.log("Auto-submitting after silence");
+          recognition.stop();
+        }, 2000);
+      }
     };
     
     recognition.onend = () => {
+      console.log("Speech recognition ended, transcript:", finalTranscript || userTranscript);
       setIsListening(false);
+      if (silenceTimer) clearTimeout(silenceTimer);
+      
+      // Auto-process if we have a transcript
+      const transcript = finalTranscript || userTranscript;
+      if (autoSubmit && transcript && transcript.trim()) {
+        // Use a small delay to ensure state is updated
+        setTimeout(() => {
+          processUserResponse(transcript.trim());
+        }, 100);
+      }
     };
     
     recognition.onerror = (event: any) => {
       console.error("Speech recognition error:", event.error);
       setIsListening(false);
-      if (event.error === 'no-speech') {
-        toast.info("I didn't hear anything. Tap the mic to try again!");
+      if (silenceTimer) clearTimeout(silenceTimer);
+      
+      switch (event.error) {
+        case 'no-speech':
+          toast.info("I didn't hear anything. Tap the mic to try again!");
+          break;
+        case 'not-allowed':
+          toast.error("Microphone access denied. Please enable it in settings.");
+          break;
+        case 'network':
+          toast.error("Network error. Please check your connection.");
+          break;
+        default:
+          toast.error("Voice recognition error. Tap the mic to retry.");
       }
     };
     
     recognitionRef.current = recognition;
-    recognition.start();
-  }, []);
+    
+    try {
+      recognition.start();
+    } catch (error) {
+      console.error("Failed to start recognition:", error);
+      toast.error("Failed to start voice recognition. Please try again.");
+    }
+  }, [requestMicPermission, userTranscript]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
-      recognitionRef.current.stop();
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {}
     }
   }, []);
 
@@ -208,16 +288,11 @@ export const TwoWayVoiceCall = ({
     }
   }, [conversationHistory, settings.messageTheme]);
 
-  // Handle user submission
-  const handleUserSubmit = useCallback(async () => {
-    if (!userTranscript.trim()) {
-      toast.info("Please speak your response first!");
-      return;
-    }
-
-    stopListening();
+  // Process user response and get AI reply
+  const processUserResponse = useCallback(async (transcript: string) => {
+    if (!transcript.trim()) return;
     
-    const userMessage = userTranscript.trim();
+    const userMessage = transcript.trim();
     const newHistory: Message[] = [...conversationHistory, { role: 'user', content: userMessage }];
     setConversationHistory(newHistory);
     setUserTranscript("");
@@ -235,10 +310,34 @@ export const TwoWayVoiceCall = ({
       await speakMessage("You're doing great! Have an amazing day ahead!");
       handleEndCall(false);
     } else {
-      // Ready for next input
-      toast.info("Tap the mic when you're ready to respond!");
+      // Automatically start listening for next response
+      setTimeout(() => {
+        if (shouldContinueRef.current) {
+          startListening(true); // Auto-submit mode
+        }
+      }, 500);
     }
-  }, [userTranscript, conversationHistory, getAIResponse, speakMessage, exchangeCount, talkDuration, stopListening]);
+  }, [conversationHistory, getAIResponse, speakMessage, exchangeCount, talkDuration, startListening]);
+
+  // Handle manual user submission (for button click)
+  const handleUserSubmit = useCallback(async () => {
+    if (!userTranscript.trim()) {
+      toast.info("Please speak your response first!");
+      return;
+    }
+
+    stopListening();
+    await processUserResponse(userTranscript);
+  }, [userTranscript, processUserResponse, stopListening]);
+
+  // Handle manual mic button click
+  const handleMicClick = useCallback(() => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening(false); // Manual mode - no auto-submit
+    }
+  }, [isListening, stopListening, startListening]);
 
   // Initialize call
   useEffect(() => {
@@ -251,7 +350,13 @@ export const TwoWayVoiceCall = ({
       const greeting = openingMessages[Math.floor(Math.random() * openingMessages.length)];
       setConversationHistory([{ role: 'assistant', content: greeting }]);
       await speakMessage(greeting);
-      toast.info("Tap the microphone to respond!");
+      
+      // Automatically start listening after AI greeting
+      setTimeout(() => {
+        if (shouldContinueRef.current) {
+          startListening(true); // Auto-submit mode for conversation flow
+        }
+      }, 500);
     }, 1500);
 
     return () => {
@@ -429,7 +534,7 @@ export const TwoWayVoiceCall = ({
           <div className="flex gap-2 sm:gap-3 pt-2">
             {/* Mic Button */}
             <Button
-              onClick={isListening ? stopListening : startListening}
+              onClick={handleMicClick}
               disabled={isSpeaking}
               className={`flex-1 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all text-sm sm:text-base ${
                 isListening 
