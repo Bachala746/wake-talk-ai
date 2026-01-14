@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Phone, PhoneOff, Volume2, Heart, Sun } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import {
   AlarmSettings,
   themeMessages,
@@ -13,7 +12,7 @@ import {
   defaultAlarmSettings,
 } from "@/lib/alarmSettings";
 import { WakeUpChallenge } from "./WakeUpChallenge";
-
+import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 interface VoiceCallProps {
   alarmTime: string;
   talkDuration: number;
@@ -128,10 +127,8 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
       }
       currentAudioRef.current = null;
     }
-    // Also cancel browser speech synthesis
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
+    // Cancel speech synthesis
+    cancelSpeech();
   };
 
   useEffect(() => {
@@ -234,34 +231,18 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
       setIsPlaying(true);
       lastSpeechTimeRef.current = Date.now();
       
-      // Use browser's built-in speech synthesis (ElevenLabs is rate-limited)
-      const hasSpeechSynthesis = 'speechSynthesis' in window;
+      console.log("Using ElevenLabs TTS");
       
-      if (hasSpeechSynthesis) {
-        console.log("Using browser speech synthesis");
-        
-        const utterance = new SpeechSynthesisUtterance(messageToSpeak);
-        utterance.rate = 0.9;
-        utterance.pitch = 1;
-        utterance.volume = 1;
-        
-        // Select voice based on style
-        const voices = window.speechSynthesis.getVoices();
-        if (voices.length > 0) {
-          const englishVoices = voices.filter(v => v.lang.startsWith('en'));
-          if (englishVoices.length > 0) {
-            // Try to find a good quality voice
-            const preferredVoice = englishVoices.find(v => 
-              v.name.includes('Google') || 
-              v.name.includes('Premium') || 
-              v.name.includes('Enhanced')
-            ) || englishVoices[0];
-            utterance.voice = preferredVoice;
-          }
-        }
-        
-        utterance.onend = () => {
-          console.log("Browser speech ended");
+      await speakWithElevenLabs(
+        messageToSpeak,
+        settings.voiceStyle,
+        () => {
+          // onStart
+          console.log("ElevenLabs speech started");
+        },
+        () => {
+          // onEnd
+          console.log("ElevenLabs speech ended");
           setIsPlaying(false);
           isSpeechActiveRef.current = false;
           
@@ -270,32 +251,12 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
               speakMessage();
             }, 500);
           }
-        };
-        
-        utterance.onerror = (e) => {
-          console.error("Browser speech error:", e);
-          setIsPlaying(false);
-          isSpeechActiveRef.current = false;
-          
-          if (!intentionallyCanceledRef.current && shouldContinueSpeaking.current) {
-            speechTimeoutRef.current = setTimeout(() => {
-              speakMessage();
-            }, 1000);
-          }
-        };
-        
-        window.speechSynthesis.speak(utterance);
-      } else {
-        // If no speech synthesis available, just continue silently
-        console.log("No speech synthesis available");
-        setIsPlaying(false);
-        isSpeechActiveRef.current = false;
-        if (shouldContinueSpeaking.current && !intentionallyCanceledRef.current) {
-          speechTimeoutRef.current = setTimeout(() => {
-            speakMessage();
-          }, 3000);
+        },
+        (error) => {
+          // onError
+          console.error("ElevenLabs speech error:", error);
         }
-      }
+      );
       
     } catch (error) {
       console.error("Speech error:", error);
