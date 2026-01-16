@@ -41,6 +41,8 @@ export const TwoWayVoiceCall = ({
   const [exchangeCount, setExchangeCount] = useState(0);
   const [showChallenge, setShowChallenge] = useState(false);
   const [isRingtonePhase, setIsRingtonePhase] = useState(true);
+  const [micPermission, setMicPermission] = useState<'prompt' | 'granted' | 'denied' | 'checking'>('checking');
+  const [needsUserTap, setNeedsUserTap] = useState(false);
   
   const audioContextRef = useRef<AudioContext | null>(null);
   const ringtoneIntervalRef = useRef<number | null>(null);
@@ -48,6 +50,7 @@ export const TwoWayVoiceCall = ({
   const shouldContinueRef = useRef(true);
   const ringtoneVolumeRef = useRef(0.1);
   const elapsedTimeRef = useRef(0);
+  const hasRequestedMicRef = useRef(false);
 
   const openingMessages = [
     "Good morning! Did you sleep well last night?",
@@ -137,29 +140,77 @@ export const TwoWayVoiceCall = ({
     });
   }, [settings.voiceStyle]);
 
-  // Request microphone permission
+  // Check microphone permission status
+  const checkMicPermission = useCallback(async () => {
+    try {
+      // Check if permissions API is available
+      if (navigator.permissions && navigator.permissions.query) {
+        const result = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        if (result.state === 'granted') {
+          setMicPermission('granted');
+          return 'granted';
+        } else if (result.state === 'denied') {
+          setMicPermission('denied');
+          return 'denied';
+        } else {
+          setMicPermission('prompt');
+          return 'prompt';
+        }
+      } else {
+        // Permissions API not available, assume prompt needed
+        setMicPermission('prompt');
+        return 'prompt';
+      }
+    } catch (error) {
+      console.log("Permission query not supported, will request on user action");
+      setMicPermission('prompt');
+      return 'prompt';
+    }
+  }, []);
+
+  // Request microphone permission - MUST be called from user gesture on mobile
   const requestMicPermission = useCallback(async (): Promise<boolean> => {
     try {
+      console.log("Requesting microphone permission...");
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach(track => track.stop()); // Release immediately
+      setMicPermission('granted');
+      hasRequestedMicRef.current = true;
+      console.log("Microphone permission granted");
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Microphone permission error:", error);
-      toast.error("Microphone access denied. Please enable it in your browser settings.");
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        setMicPermission('denied');
+        toast.error("Microphone access denied. Please enable it in your browser settings and refresh the page.", { duration: 5000 });
+      } else if (error.name === 'NotFoundError') {
+        toast.error("No microphone found. Please connect a microphone.", { duration: 5000 });
+      } else {
+        toast.error("Could not access microphone. Please check your device settings.", { duration: 5000 });
+      }
       return false;
     }
   }, []);
 
   // Start speech recognition with auto-submit capability
-  const startListening = useCallback(async (autoSubmit: boolean = false) => {
+  const startListening = useCallback(async (autoSubmit: boolean = false, fromUserGesture: boolean = false) => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      toast.error("Speech recognition not supported in this browser");
-      return;
+      toast.error("Speech recognition not supported in this browser. Please use Chrome or Safari.", { duration: 5000 });
+      return false;
     }
 
-    // Request permission first
-    const hasPermission = await requestMicPermission();
-    if (!hasPermission) return;
+    // If we don't have permission yet, request it (only works from user gesture)
+    if (micPermission !== 'granted') {
+      if (fromUserGesture) {
+        const hasPermission = await requestMicPermission();
+        if (!hasPermission) return false;
+      } else {
+        // Need user to tap the button first
+        setNeedsUserTap(true);
+        toast.info("Tap the 'Speak' button to enable your microphone", { duration: 3000 });
+        return false;
+      }
+    }
 
     // Stop any existing recognition
     if (recognitionRef.current) {
@@ -183,6 +234,7 @@ export const TwoWayVoiceCall = ({
       console.log("Speech recognition started");
       setIsListening(true);
       setUserTranscript("");
+      setNeedsUserTap(false);
       toast.info("🎤 Listening... Speak now!", { duration: 2000 });
     };
     
@@ -234,16 +286,21 @@ export const TwoWayVoiceCall = ({
       
       switch (event.error) {
         case 'no-speech':
-          toast.info("I didn't hear anything. Tap the mic to try again!");
+          toast.info("I didn't hear anything. Tap the mic to try again!", { duration: 3000 });
           break;
         case 'not-allowed':
-          toast.error("Microphone access denied. Please enable it in settings.");
+          setMicPermission('denied');
+          setNeedsUserTap(true);
+          toast.error("Microphone blocked. Please allow access in your browser settings and refresh.", { duration: 5000 });
           break;
         case 'network':
-          toast.error("Network error. Please check your connection.");
+          toast.error("Network error. Please check your connection.", { duration: 3000 });
+          break;
+        case 'audio-capture':
+          toast.error("No microphone found or microphone is busy.", { duration: 3000 });
           break;
         default:
-          toast.error("Voice recognition error. Tap the mic to retry.");
+          toast.error("Voice recognition error. Tap the mic to retry.", { duration: 3000 });
       }
     };
     
@@ -251,11 +308,13 @@ export const TwoWayVoiceCall = ({
     
     try {
       recognition.start();
+      return true;
     } catch (error) {
       console.error("Failed to start recognition:", error);
-      toast.error("Failed to start voice recognition. Please try again.");
+      toast.error("Failed to start voice recognition. Please try again.", { duration: 3000 });
+      return false;
     }
-  }, [requestMicPermission, userTranscript]);
+  }, [requestMicPermission, userTranscript, micPermission]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
@@ -310,14 +369,20 @@ export const TwoWayVoiceCall = ({
       await speakMessage("You're doing great! Have an amazing day ahead!");
       handleEndCall(false);
     } else {
-      // Automatically start listening for next response
-      setTimeout(() => {
-        if (shouldContinueRef.current) {
-          startListening(true); // Auto-submit mode
-        }
-      }, 500);
+      // After AI speaks, prompt user to tap if we don't have permission yet
+      if (micPermission === 'granted') {
+        setTimeout(() => {
+          if (shouldContinueRef.current) {
+            startListening(true, false); // Auto-submit mode, but not from gesture
+          }
+        }, 500);
+      } else {
+        // Need user interaction to get mic permission
+        setNeedsUserTap(true);
+        toast.info("Tap 'Speak' to respond", { duration: 3000 });
+      }
     }
-  }, [conversationHistory, getAIResponse, speakMessage, exchangeCount, talkDuration, startListening]);
+  }, [conversationHistory, getAIResponse, speakMessage, exchangeCount, talkDuration, startListening, micPermission]);
 
   // Handle manual user submission (for button click)
   const handleUserSubmit = useCallback(async () => {
@@ -330,14 +395,20 @@ export const TwoWayVoiceCall = ({
     await processUserResponse(userTranscript);
   }, [userTranscript, processUserResponse, stopListening]);
 
-  // Handle manual mic button click
-  const handleMicClick = useCallback(() => {
+  // Handle manual mic button click - THIS is a user gesture, so permission can be requested
+  const handleMicClick = useCallback(async () => {
     if (isListening) {
       stopListening();
     } else {
-      startListening(false); // Manual mode - no auto-submit
+      // This is from a user tap, so we can request permission
+      await startListening(true, true); // Auto-submit mode, from user gesture
     }
   }, [isListening, stopListening, startListening]);
+
+  // Check permission on mount
+  useEffect(() => {
+    checkMicPermission();
+  }, [checkMicPermission]);
 
   // Initialize call
   useEffect(() => {
@@ -351,12 +422,18 @@ export const TwoWayVoiceCall = ({
       setConversationHistory([{ role: 'assistant', content: greeting }]);
       await speakMessage(greeting);
       
-      // Automatically start listening after AI greeting
-      setTimeout(() => {
-        if (shouldContinueRef.current) {
-          startListening(true); // Auto-submit mode for conversation flow
-        }
-      }, 500);
+      // After AI greeting, prompt for mic if needed
+      if (micPermission === 'granted') {
+        setTimeout(() => {
+          if (shouldContinueRef.current) {
+            startListening(true, false);
+          }
+        }, 500);
+      } else {
+        // Show prompt to tap Speak button
+        setNeedsUserTap(true);
+        toast.info("Tap 'Speak' to respond to the AI", { duration: 4000 });
+      }
     }, 1500);
 
     return () => {
@@ -530,20 +607,52 @@ export const TwoWayVoiceCall = ({
             ))}
           </div>
 
+          {/* Permission Warning */}
+          {micPermission === 'denied' && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-center">
+              <p className="text-red-600 text-xs sm:text-sm font-medium">
+                🎤 Microphone access blocked
+              </p>
+              <p className="text-red-500 text-[10px] sm:text-xs mt-1">
+                Please enable microphone in your browser settings and refresh the page
+              </p>
+            </div>
+          )}
+
+          {/* Tap to Enable Mic Prompt */}
+          {needsUserTap && micPermission !== 'denied' && !isListening && !isSpeaking && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center animate-pulse">
+              <p className="text-blue-600 text-xs sm:text-sm font-medium">
+                👆 Tap "Speak" to enable your microphone
+              </p>
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="flex gap-2 sm:gap-3 pt-2">
             {/* Mic Button */}
             <Button
               onClick={handleMicClick}
-              disabled={isSpeaking}
+              disabled={isSpeaking || micPermission === 'denied'}
               className={`flex-1 py-5 sm:py-6 rounded-xl sm:rounded-2xl transition-all text-sm sm:text-base ${
                 isListening 
                   ? 'bg-blue-500 hover:bg-blue-600 animate-pulse' 
-                  : 'bg-blue-400 hover:bg-blue-500'
+                  : needsUserTap && !isSpeaking
+                    ? 'bg-green-500 hover:bg-green-600 animate-bounce'
+                    : 'bg-blue-400 hover:bg-blue-500'
               }`}
             >
-              {isListening ? <MicOff className="w-5 h-5 sm:w-6 sm:h-6 mr-1.5 sm:mr-2 shrink-0" /> : <Mic className="w-5 h-5 sm:w-6 sm:h-6 mr-1.5 sm:mr-2 shrink-0" />}
-              <span>{isListening ? 'Stop' : 'Speak'}</span>
+              {isListening ? (
+                <>
+                  <MicOff className="w-5 h-5 sm:w-6 sm:h-6 mr-1.5 sm:mr-2 shrink-0" />
+                  <span>Stop</span>
+                </>
+              ) : (
+                <>
+                  <Mic className="w-5 h-5 sm:w-6 sm:h-6 mr-1.5 sm:mr-2 shrink-0" />
+                  <span>{needsUserTap ? 'Tap to Speak' : 'Speak'}</span>
+                </>
+              )}
             </Button>
 
             {/* Submit Button */}
