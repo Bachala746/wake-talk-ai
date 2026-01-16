@@ -54,7 +54,7 @@ interface Alarm {
 }
 
 interface AlarmClockProps {
-  onStartCall: (alarmTime: string, talkDuration: number, settings: AlarmSettings) => void;
+  onStartCall: (alarmTime: string, talkDuration: number, settings: AlarmSettings, isTestCall?: boolean) => void;
 }
 
 export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
@@ -493,26 +493,38 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-2 sm:gap-3 pt-2">
+          <div className="flex flex-col gap-2 sm:gap-3 pt-2">
             <Button 
               onClick={openNewDialog}
-              className="flex-1 bg-gradient-warm hover:opacity-90 text-white py-5 sm:py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base min-w-0"
+              className="w-full bg-gradient-warm hover:opacity-90 text-white py-5 sm:py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
               size="lg"
             >
               <Clock className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 shrink-0" />
-              <span className="truncate">Add Alarm</span>
+              <span>Add Alarm</span>
             </Button>
             
-            <Button 
-              onClick={() => onStartCall("now", 5, defaultAlarmSettings)}
-              variant="outline"
-              className="flex-1 py-5 sm:py-6 rounded-xl border-2 border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-300 text-sm sm:text-base min-w-0"
-              size="lg"
-            >
-              <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-primary shrink-0" />
-              <span className="truncate">Test Call</span>
-            </Button>
+            <div className="flex gap-2 sm:gap-3">
+              <Button 
+                onClick={() => onStartCall("now", 5, defaultAlarmSettings, true)}
+                variant="outline"
+                className="flex-1 py-4 sm:py-5 rounded-xl border-2 border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-300 text-xs sm:text-sm min-w-0"
+                size="lg"
+              >
+                <Phone className="h-4 w-4 mr-1.5 text-primary shrink-0" />
+                <span className="truncate">One-Way Test</span>
+              </Button>
+              
+              <Button 
+                onClick={() => onStartCall("now", 5, { ...defaultAlarmSettings, interactionMode: 'two-way' }, true)}
+                variant="outline"
+                className="flex-1 py-4 sm:py-5 rounded-xl border-2 border-blue-300 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300 text-xs sm:text-sm min-w-0"
+                size="lg"
+              >
+                <MessageSquare className="h-4 w-4 mr-1.5 text-blue-500 shrink-0" />
+                <span className="truncate">Two-Way Test</span>
+              </Button>
             </div>
+          </div>
           </div>
         </div>
       </section>

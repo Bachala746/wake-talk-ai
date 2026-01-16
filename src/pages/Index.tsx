@@ -10,10 +10,11 @@ const Index = () => {
     alarmTime: string;
     talkDuration: number;
     settings: AlarmSettings;
+    isTestCall?: boolean;
   } | null>(null);
 
-  const handleStartCall = (alarmTime: string, talkDuration: number, settings: AlarmSettings = defaultAlarmSettings) => {
-    setCallData({ alarmTime, talkDuration, settings });
+  const handleStartCall = (alarmTime: string, talkDuration: number, settings: AlarmSettings = defaultAlarmSettings, isTestCall: boolean = false) => {
+    setCallData({ alarmTime, talkDuration, settings, isTestCall });
     setIsInCall(true);
   };
 
@@ -31,6 +32,7 @@ const Index = () => {
           talkDuration={callData.talkDuration}
           settings={callData.settings}
           onEndCall={handleEndCall}
+          isTestCall={callData.isTestCall}
         />
       );
     }
