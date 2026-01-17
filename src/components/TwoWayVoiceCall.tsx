@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { PhoneOff, Mic, MicOff, Volume2, MessageSquare, Loader2 } from "lucide-react";
+import { PhoneOff, Mic, MicOff, Volume2, MessageSquare, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { AlarmSettings, ringtoneStyles, defaultAlarmSettings } from "@/lib/alarmSettings";
+import { AlarmSettings, defaultAlarmSettings } from "@/lib/alarmSettings";
 import { WakeUpChallenge } from "./WakeUpChallenge";
 import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 import { useElevenLabsScribe } from "@/hooks/useElevenLabsScribe";
@@ -23,55 +22,111 @@ interface Message {
   content: string;
 }
 
+// Motivational messages when user doesn't respond
+const motivationalMessages = [
+  "Hey! Are you still there? Come on, it's time to wake up!",
+  "I know it's hard, but you can do this! Just say something!",
+  "Rise and shine! Your amazing day is waiting for you!",
+  "Don't go back to sleep! Take a deep breath and talk to me!",
+  "You set this alarm for a reason. Let's make today count!",
+  "The world needs you awake! Come on, just one word!",
+  "I'm not giving up on you! Wake up, champion!",
+  "Your goals are calling! Time to answer!",
+  "Every great day starts with waking up. You got this!",
+  "I'll keep talking until you respond! Good morning!",
+];
+
 export const TwoWayVoiceCall = ({ 
   alarmTime, talkDuration, settings = defaultAlarmSettings, onEndCall, isTestCall = false,
 }: TwoWayVoiceCallProps) => {
   const [isConnected, setIsConnected] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [currentMessage, setCurrentMessage] = useState("");
   const [conversationHistory, setConversationHistory] = useState<Message[]>([]);
-  const [exchangeCount, setExchangeCount] = useState(0);
   const [showChallenge, setShowChallenge] = useState(false);
-  const [isRingtonePhase, setIsRingtonePhase] = useState(!isTestCall);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [userHasResponded, setUserHasResponded] = useState(false);
+  const [noResponseCount, setNoResponseCount] = useState(0);
+  const [waitingForResponse, setWaitingForResponse] = useState(false);
   
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const ringtoneIntervalRef = useRef<number | null>(null);
   const shouldContinueRef = useRef(true);
-  const ringtoneVolumeRef = useRef(0.1);
-  const elapsedTimeRef = useRef(0);
   const pendingTranscriptRef = useRef("");
+  const responseTimeoutRef = useRef<number | null>(null);
+  const isWaitingRef = useRef(false);
 
+  // Clear any pending timeout
+  const clearResponseTimeout = useCallback(() => {
+    if (responseTimeoutRef.current) {
+      clearTimeout(responseTimeoutRef.current);
+      responseTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Speak a message and wait for completion
+  const speakMessage = useCallback(async (message: string): Promise<void> => {
+    return new Promise((resolve) => {
+      setIsSpeaking(true);
+      setCurrentMessage(message);
+      speakWithElevenLabs(
+        message, 
+        settings.voiceStyle, 
+        undefined, 
+        () => { setIsSpeaking(false); resolve(); }, 
+        () => { setIsSpeaking(false); resolve(); }
+      );
+    });
+  }, [settings.voiceStyle]);
+
+  // Process user response with AI
   const processUserResponse = useCallback(async (transcript: string) => {
     if (!transcript.trim() || isProcessing) return;
+    
+    clearResponseTimeout();
     setIsProcessing(true);
+    setUserHasResponded(true);
+    setWaitingForResponse(false);
+    isWaitingRef.current = false;
+    setNoResponseCount(0);
+    
     const userMessage = transcript.trim();
     const newHistory: Message[] = [...conversationHistory, { role: 'user', content: userMessage }];
     setConversationHistory(newHistory);
     
     try {
       const { data } = await supabase.functions.invoke('conversation-ai', {
-        body: { userMessage, conversationHistory, theme: settings.messageTheme, isTestCall }
+        body: { 
+          userMessage, 
+          conversationHistory, 
+          theme: settings.messageTheme, 
+          isTestCall,
+          context: 'two-way-alarm'
+        }
       });
-      const aiResponse = data?.response || (isTestCall ? "I heard you! The test is working." : "That's great! Let's make today amazing.");
+      const aiResponse = data?.response || (isTestCall ? "I heard you! The test is working great." : "That's wonderful! Let's make today amazing together.");
       setConversationHistory([...newHistory, { role: 'assistant', content: aiResponse }]);
-      setExchangeCount(prev => prev + 1);
       
-      await new Promise<void>((resolve) => {
-        setIsSpeaking(true);
-        setCurrentMessage(aiResponse);
-        speakWithElevenLabs(aiResponse, settings.voiceStyle, undefined, () => { setIsSpeaking(false); resolve(); }, () => { setIsSpeaking(false); resolve(); });
-      });
+      await speakMessage(aiResponse);
+      
+      // After AI responds, start listening again
+      if (shouldContinueRef.current) {
+        startWaitingForResponse();
+      }
     } catch (e) {
       console.error("AI error:", e);
+      await speakMessage("I had a little trouble there. Can you say that again?");
+      if (shouldContinueRef.current) {
+        startWaitingForResponse();
+      }
     }
     setIsProcessing(false);
-  }, [conversationHistory, settings.messageTheme, settings.voiceStyle, isTestCall, isProcessing]);
+  }, [conversationHistory, settings.messageTheme, isTestCall, isProcessing, clearResponseTimeout]);
 
+  // Initialize scribe for speech recognition
   const scribe = useElevenLabsScribe({
-    autoSubmitAfterSilence: 2500,
-    onFinalTranscript: (text) => { pendingTranscriptRef.current = text; },
+    autoSubmitAfterSilence: 3000,
+    onFinalTranscript: (text) => { 
+      pendingTranscriptRef.current = text; 
+    },
     onEnd: () => {
       if (pendingTranscriptRef.current.trim() && !isProcessing) {
         processUserResponse(pendingTranscriptRef.current);
@@ -81,63 +136,139 @@ export const TwoWayVoiceCall = ({
     onError: () => toast.error("Speech recognition error. Tap mic to retry."),
   });
 
+  // Speak motivational message when user doesn't respond
+  const speakMotivationalMessage = useCallback(async () => {
+    if (!shouldContinueRef.current || isSpeaking || isProcessing) return;
+    
+    scribe.stopListening();
+    setWaitingForResponse(false);
+    
+    const messageIndex = noResponseCount % motivationalMessages.length;
+    const message = motivationalMessages[messageIndex];
+    
+    setNoResponseCount(prev => prev + 1);
+    setConversationHistory(prev => [...prev, { role: 'assistant', content: message }]);
+    
+    await speakMessage(message);
+    
+    // After speaking, start waiting for response again
+    if (shouldContinueRef.current) {
+      startWaitingForResponse();
+    }
+  }, [noResponseCount, isSpeaking, isProcessing, scribe, speakMessage]);
+
+  // Start waiting for user response with timeout
+  const startWaitingForResponse = useCallback(() => {
+    if (!shouldContinueRef.current || isWaitingRef.current) return;
+    
+    isWaitingRef.current = true;
+    setWaitingForResponse(true);
+    clearResponseTimeout();
+    
+    // Start listening
+    scribe.startListening();
+    
+    // Set timeout - if no response in 10 seconds (for test) or 15 seconds (for real alarm), speak again
+    const timeoutDuration = isTestCall ? 10000 : 15000;
+    responseTimeoutRef.current = window.setTimeout(() => {
+      isWaitingRef.current = false;
+      if (shouldContinueRef.current && !isSpeaking && !isProcessing) {
+        speakMotivationalMessage();
+      }
+    }, timeoutDuration);
+  }, [scribe, clearResponseTimeout, isTestCall, isSpeaking, isProcessing, speakMotivationalMessage]);
+
+  // Opening messages
   const openingMessages = isTestCall 
-    ? ["Hello! This is a test call. Can you hear me? Try saying something!"]
-    : ["Good morning! Did you sleep well last night?", "Rise and shine! How are you feeling?"];
+    ? ["Hello! This is a two-way test call. Can you hear me? Try saying something to test your microphone!"]
+    : [
+        "Good morning! Did you sleep well last night? Tell me how you're feeling!",
+        "Rise and shine! It's a brand new day full of possibilities. How are you doing?",
+        "Wake up, wake up! I'm here to make sure you start your day right. Talk to me!",
+      ];
 
-  const stopRingtone = useCallback(() => {
-    if (ringtoneIntervalRef.current) clearInterval(ringtoneIntervalRef.current);
-    if (audioContextRef.current) audioContextRef.current.close();
-  }, []);
-
-  const handleEndCall = useCallback((showChallengeFirst = true) => {
-    if (!isTestCall && showChallengeFirst && settings.challengeType !== 'none' && !showChallenge) {
+  // Handle dismissal with challenges
+  const handleDismiss = useCallback(() => {
+    // Always require challenge for non-test calls
+    if (!isTestCall && settings.challengeType !== 'none') {
       setShowChallenge(true);
+      shouldContinueRef.current = false;
+      clearResponseTimeout();
+      cancelSpeech();
+      scribe.stopListening();
       return;
     }
+    
+    // For test calls or if no challenge, end directly
     shouldContinueRef.current = false;
-    stopRingtone();
+    clearResponseTimeout();
     cancelSpeech();
     scribe.stopListening();
     setIsConnected(false);
     toast.success(isTestCall ? "Test call ended! 🎉" : "Have an amazing day! 🌟");
     setTimeout(onEndCall, 1000);
-  }, [isTestCall, settings.challengeType, showChallenge, stopRingtone, scribe, onEndCall]);
+  }, [isTestCall, settings.challengeType, clearResponseTimeout, scribe, onEndCall]);
 
+  // Handle challenge completion
+  const handleChallengeComplete = useCallback(() => {
+    setShowChallenge(false);
+    setIsConnected(false);
+    toast.success("Challenge completed! Have an amazing day! 🌟");
+    setTimeout(onEndCall, 1000);
+  }, [onEndCall]);
+
+  // Handle challenge failure
+  const handleChallengeFail = useCallback(() => {
+    toast.error("Wrong! Try again to dismiss the alarm!");
+  }, []);
+
+  // Initialize conversation
   useEffect(() => {
     setIsConnected(true);
-    toast.success(isTestCall ? "Test call started! 🎤" : "AI Conversation started! 🌅");
+    toast.success(isTestCall ? "Two-way test call started! 🎤" : "AI Conversation started! 🌅");
     
     const initTimer = setTimeout(async () => {
       const greeting = openingMessages[Math.floor(Math.random() * openingMessages.length)];
       setConversationHistory([{ role: 'assistant', content: greeting }]);
-      setIsSpeaking(true);
-      setCurrentMessage(greeting);
-      await new Promise<void>((resolve) => {
-        speakWithElevenLabs(greeting, settings.voiceStyle, undefined, () => { setIsSpeaking(false); resolve(); }, () => { setIsSpeaking(false); resolve(); });
-      });
-      if (shouldContinueRef.current) scribe.startListening();
+      
+      await speakMessage(greeting);
+      
+      // Start waiting for user response
+      if (shouldContinueRef.current) {
+        startWaitingForResponse();
+      }
     }, isTestCall ? 500 : 1500);
 
-    return () => { clearTimeout(initTimer); stopRingtone(); cancelSpeech(); scribe.stopListening(); };
+    return () => { 
+      clearTimeout(initTimer); 
+      clearResponseTimeout();
+      cancelSpeech(); 
+      scribe.stopListening(); 
+      shouldContinueRef.current = false;
+    };
   }, []);
 
-  useEffect(() => {
-    if (isConnected && elapsedTime < talkDuration * 60) {
-      const timer = setInterval(() => setElapsedTime(prev => { elapsedTimeRef.current = prev + 1; return prev + 1; }), 1000);
-      return () => clearInterval(timer);
-    } else if (!isTestCall && elapsedTime >= talkDuration * 60) {
-      handleEndCall(false);
+  // Manual mic button handler
+  const handleMicClick = useCallback(() => {
+    if (scribe.isListening) {
+      scribe.stopListening();
+      clearResponseTimeout();
+      setWaitingForResponse(false);
+      isWaitingRef.current = false;
+    } else {
+      startWaitingForResponse();
     }
-  }, [isConnected, elapsedTime, talkDuration, isTestCall, handleEndCall]);
-
-  const progress = (elapsedTime / (talkDuration * 60)) * 100;
-  const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+  }, [scribe, clearResponseTimeout, startWaitingForResponse]);
 
   if (showChallenge) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300">
-        <WakeUpChallenge challengeType={settings.challengeType} difficulty={settings.challengeDifficulty} onComplete={() => { setShowChallenge(false); handleEndCall(false); }} onFail={() => toast.error("Wrong! Try again!")} />
+        <WakeUpChallenge 
+          challengeType={settings.challengeType} 
+          difficulty={settings.challengeDifficulty} 
+          onComplete={handleChallengeComplete} 
+          onFail={handleChallengeFail} 
+        />
       </div>
     );
   }
@@ -146,43 +277,98 @@ export const TwoWayVoiceCall = ({
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300">
       <Card className="w-full max-w-md p-6 bg-white/90 backdrop-blur-lg shadow-2xl rounded-3xl">
         <div className="text-center space-y-5">
+          {/* Status indicator */}
           <div className="flex flex-col items-center gap-3">
-            <div className={`p-4 rounded-full ${isSpeaking ? 'bg-green-500' : scribe.isListening ? 'bg-blue-500 animate-pulse' : 'bg-orange-500'}`}>
+            <div className={`p-4 rounded-full transition-all duration-300 ${
+              isSpeaking 
+                ? 'bg-green-500 animate-pulse' 
+                : scribe.isListening 
+                  ? 'bg-blue-500 animate-pulse' 
+                  : isProcessing
+                    ? 'bg-yellow-500'
+                    : 'bg-orange-500'
+            }`}>
               <MessageSquare className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-xl font-bold">{isTestCall ? '🧪 Test Call' : 'AI Conversation'}</h2>
-            <p className="text-sm text-gray-600">{isSpeaking ? 'AI Speaking...' : scribe.isListening ? '🎤 Listening...' : isProcessing ? 'Processing...' : 'Your Turn'}</p>
+            <h2 className="text-xl font-bold">{isTestCall ? '🧪 Two-Way Test' : '💬 AI Conversation'}</h2>
+            <p className="text-sm text-gray-600">
+              {isSpeaking 
+                ? '🔊 AI Speaking...' 
+                : scribe.isListening 
+                  ? '🎤 Listening to you...' 
+                  : isProcessing 
+                    ? '🤔 Processing...' 
+                    : '⏳ Waiting...'}
+            </p>
           </div>
 
+          {/* No response indicator */}
+          {noResponseCount > 0 && !userHasResponded && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
+              <p className="text-sm text-amber-700">
+                I'll keep talking until you respond! ({noResponseCount} attempts)
+              </p>
+            </div>
+          )}
+
+          {/* AI message display */}
           <div className="bg-orange-50 rounded-xl p-4 min-h-[80px]">
             <div className="flex items-start gap-2">
-              <Volume2 className="w-5 h-5 text-orange-500 mt-0.5" />
+              <Volume2 className="w-5 h-5 text-orange-500 mt-0.5 shrink-0" />
               <p className="text-gray-700 text-sm text-left">{currentMessage || "Connecting..."}</p>
             </div>
           </div>
 
+          {/* User transcript display */}
           {(scribe.isListening || scribe.transcript) && (
             <div className="bg-blue-50 rounded-xl p-4">
               <div className="flex items-start gap-2">
-                <Mic className="w-5 h-5 text-blue-500 mt-0.5" />
-                <p className="text-gray-700 text-sm text-left">{scribe.transcript || "Listening..."}</p>
+                <Mic className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
+                <p className="text-gray-700 text-sm text-left">
+                  {scribe.transcript || "Listening... say something!"}
+                </p>
               </div>
             </div>
           )}
 
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-gray-600">
-              <span>{formatTime(elapsedTime)}</span>
-              <span>-{formatTime(talkDuration * 60 - elapsedTime)}</span>
-            </div>
-            <Progress value={progress} className="h-2" />
-          </div>
+          {/* Info text */}
+          <p className="text-xs text-gray-500">
+            {isTestCall 
+              ? "This is a test. Tap the red button to end anytime."
+              : "Complete a challenge to dismiss the alarm."}
+          </p>
 
+          {/* Action buttons */}
           <div className="flex gap-3 pt-2">
-            <Button onClick={() => scribe.isListening ? scribe.stopListening() : scribe.startListening()} disabled={isSpeaking || isProcessing} className={`flex-1 py-6 rounded-xl ${scribe.isListening ? 'bg-blue-500 animate-pulse' : 'bg-green-500'}`}>
-              {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : scribe.isListening ? <><MicOff className="w-6 h-6 mr-2" />Stop</> : <><Mic className="w-6 h-6 mr-2" />Speak</>}
+            <Button 
+              onClick={handleMicClick} 
+              disabled={isSpeaking || isProcessing} 
+              className={`flex-1 py-6 rounded-xl transition-all ${
+                scribe.isListening 
+                  ? 'bg-blue-500 hover:bg-blue-600 animate-pulse' 
+                  : 'bg-green-500 hover:bg-green-600'
+              }`}
+            >
+              {isProcessing ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+              ) : scribe.isListening ? (
+                <>
+                  <MicOff className="w-6 h-6 mr-2" />
+                  Stop
+                </>
+              ) : (
+                <>
+                  <Mic className="w-6 h-6 mr-2" />
+                  Speak
+                </>
+              )}
             </Button>
-            <Button onClick={() => handleEndCall(!isTestCall)} variant="destructive" className="py-6 px-6 rounded-xl">
+            <Button 
+              onClick={handleDismiss} 
+              variant="destructive" 
+              className="py-6 px-6 rounded-xl"
+            >
               <PhoneOff className="w-6 h-6" />
             </Button>
           </div>
