@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +15,15 @@ import {
   XCircle,
   RotateCcw,
   SlidersHorizontal,
-  Text
+  Text,
+  ScanBarcode,
+  QrCode,
+  Footprints,
+  Camera,
+  CameraOff
 } from "lucide-react";
 import { ChallengeType } from "@/lib/alarmSettings";
+import { Html5Qrcode } from "html5-qrcode";
 
 interface WakeUpChallengeProps {
   challengeType: ChallengeType;
@@ -155,6 +161,21 @@ export const WakeUpChallenge = ({
   const [captchaWord, setCaptchaWord] = useState(() => generateCaptchaWord(difficulty));
   const [captchaInput, setCaptchaInput] = useState("");
   
+  // Barcode/QR code scanner state
+  const [scannerReady, setScannerReady] = useState(false);
+  const [scannerError, setScannerError] = useState<string | null>(null);
+  const [scannedCode, setScannedCode] = useState<string | null>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const scannerContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Steps counter state
+  const [stepCount, setStepCount] = useState(0);
+  const [stepsRequired] = useState(difficulty === 'easy' ? 20 : difficulty === 'medium' ? 50 : 100);
+  const [stepsPermissionGranted, setStepsPermissionGranted] = useState(false);
+  const lastAccelRef = useRef({ x: 0, y: 0, z: 0 });
+  const stepThresholdRef = useRef(12);
+  const lastStepTimeRef = useRef(0);
+  
   // Timer for quick math
   const [timeLeft, setTimeLeft] = useState(difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 15);
   
@@ -261,6 +282,133 @@ export const WakeUpChallenge = ({
     
     return () => clearInterval(timer);
   }, [challengeType, difficulty, mathProblem, onFail]);
+  
+  // Barcode/QR Scanner initialization
+  useEffect(() => {
+    if (challengeType !== 'barcode' && challengeType !== 'qrcode') return;
+    
+    const initScanner = async () => {
+      try {
+        const html5QrCode = new Html5Qrcode("qr-reader");
+        scannerRef.current = html5QrCode;
+        
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+          },
+          (decodedText) => {
+            setScannedCode(decodedText);
+            setIsCorrect(true);
+            html5QrCode.stop().catch(console.error);
+            setTimeout(onComplete, 500);
+          },
+          () => {
+            // QR code not detected - ignore
+          }
+        );
+        
+        setScannerReady(true);
+      } catch (err) {
+        console.error("Scanner error:", err);
+        setScannerError(
+          err instanceof Error ? err.message : "Failed to start camera"
+        );
+      }
+    };
+    
+    initScanner();
+    
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.stop().catch(console.error);
+      }
+    };
+  }, [challengeType, onComplete]);
+  
+  // Step counter using accelerometer
+  useEffect(() => {
+    if (challengeType !== 'steps') return;
+    
+    const handleMotion = (event: DeviceMotionEvent) => {
+      const { accelerationIncludingGravity } = event;
+      if (!accelerationIncludingGravity) return;
+      
+      const { x, y, z } = accelerationIncludingGravity;
+      const currentX = x || 0;
+      const currentY = y || 0;
+      const currentZ = z || 0;
+      
+      // Calculate magnitude of acceleration change
+      const deltaX = currentX - lastAccelRef.current.x;
+      const deltaY = currentY - lastAccelRef.current.y;
+      const deltaZ = currentZ - lastAccelRef.current.z;
+      const magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+      
+      const now = Date.now();
+      
+      // Detect step (with debouncing to prevent double counting)
+      if (magnitude > stepThresholdRef.current && now - lastStepTimeRef.current > 300) {
+        lastStepTimeRef.current = now;
+        setStepCount(prev => {
+          const newCount = prev + 1;
+          if (newCount >= stepsRequired) {
+            setIsCorrect(true);
+            setTimeout(onComplete, 500);
+          }
+          return newCount;
+        });
+      }
+      
+      lastAccelRef.current = { x: currentX, y: currentY, z: currentZ };
+    };
+    
+    // Request permission on iOS
+    if (typeof (DeviceMotionEvent as any).requestPermission === 'function') {
+      (DeviceMotionEvent as any).requestPermission()
+        .then((permission: string) => {
+          if (permission === 'granted') {
+            setStepsPermissionGranted(true);
+            window.addEventListener('devicemotion', handleMotion);
+          }
+        })
+        .catch(console.error);
+    } else {
+      setStepsPermissionGranted(true);
+      window.addEventListener('devicemotion', handleMotion);
+    }
+    
+    return () => {
+      window.removeEventListener('devicemotion', handleMotion);
+    };
+  }, [challengeType, stepsRequired, onComplete]);
+  
+  // Manual step simulation for desktop
+  const handleManualStep = () => {
+    setStepCount(prev => {
+      const newCount = prev + 1;
+      if (newCount >= stepsRequired) {
+        setIsCorrect(true);
+        setTimeout(onComplete, 300);
+      }
+      return newCount;
+    });
+  };
+  
+  // Request step permission manually
+  const requestStepPermission = async () => {
+    if (typeof (DeviceMotionEvent as any).requestPermission === 'function') {
+      try {
+        const permission = await (DeviceMotionEvent as any).requestPermission();
+        if (permission === 'granted') {
+          setStepsPermissionGranted(true);
+        }
+      } catch (err) {
+        console.error("Motion permission error:", err);
+      }
+    }
+  };
   
   const handleMathSubmit = () => {
     const answer = parseInt(userAnswer);
@@ -388,6 +536,9 @@ export const WakeUpChallenge = ({
       case 'pattern': return <Puzzle className="h-6 w-6" />;
       case 'slider': return <SlidersHorizontal className="h-6 w-6" />;
       case 'captcha': return <Text className="h-6 w-6" />;
+      case 'barcode': return <ScanBarcode className="h-6 w-6" />;
+      case 'qrcode': return <QrCode className="h-6 w-6" />;
+      case 'steps': return <Footprints className="h-6 w-6" />;
       default: return <Timer className="h-6 w-6" />;
     }
   };
@@ -401,6 +552,9 @@ export const WakeUpChallenge = ({
       case 'pattern': return 'Repeat the Pattern';
       case 'slider': return 'Match the Values';
       case 'captcha': return 'Read and Type';
+      case 'barcode': return 'Scan Any Barcode';
+      case 'qrcode': return 'Scan Any QR Code';
+      case 'steps': return 'Walk to Dismiss';
       default: return 'Complete the Challenge';
     }
   };
@@ -675,6 +829,102 @@ export const WakeUpChallenge = ({
               Submit
             </Button>
           </div>
+        </div>
+      )}
+      
+      {(challengeType === 'barcode' || challengeType === 'qrcode') && (
+        <div className="space-y-3 sm:space-y-4">
+          {scannerError ? (
+            <div className="text-center py-6 sm:py-8">
+              <div className="inline-block p-4 sm:p-6 bg-red-100 rounded-full mb-4">
+                <CameraOff className="h-8 w-8 sm:h-12 sm:w-12 text-red-500" />
+              </div>
+              <p className="text-sm sm:text-base text-red-600 font-medium mb-2">Camera Error</p>
+              <p className="text-xs sm:text-sm text-gray-500 mb-4">{scannerError}</p>
+              <Button 
+                onClick={() => window.location.reload()} 
+                className="bg-orange-500 hover:bg-orange-600"
+              >
+                Retry
+              </Button>
+            </div>
+          ) : scannedCode ? (
+            <div className="text-center py-6 sm:py-8">
+              <div className="inline-block p-4 sm:p-6 bg-green-100 rounded-full mb-4">
+                <CheckCircle className="h-8 w-8 sm:h-12 sm:w-12 text-green-500" />
+              </div>
+              <p className="text-sm sm:text-base text-green-600 font-medium">Code Scanned!</p>
+              <p className="text-xs text-gray-500 mt-2 break-all px-4">{scannedCode.slice(0, 50)}...</p>
+            </div>
+          ) : (
+            <>
+              <div className="text-center">
+                <p className="text-xs sm:text-sm text-gray-500 mb-3">
+                  Point your camera at {challengeType === 'barcode' ? 'any barcode' : 'any QR code'}
+                </p>
+              </div>
+              
+              <div 
+                id="qr-reader" 
+                ref={scannerContainerRef}
+                className="w-full rounded-xl overflow-hidden bg-gray-900"
+                style={{ minHeight: '250px' }}
+              />
+              
+              {!scannerReady && (
+                <div className="text-center">
+                  <div className="inline-block animate-spin h-6 w-6 border-2 border-orange-500 border-t-transparent rounded-full" />
+                  <p className="text-xs sm:text-sm text-gray-500 mt-2">Initializing camera...</p>
+                </div>
+              )}
+              
+              <p className="text-center text-xs text-gray-400">
+                {challengeType === 'barcode' 
+                  ? 'Find any product with a barcode (food, books, etc.)' 
+                  : 'Find any QR code to scan'}
+              </p>
+            </>
+          )}
+        </div>
+      )}
+      
+      {challengeType === 'steps' && (
+        <div className="space-y-3 sm:space-y-4 text-center">
+          <div className="py-6 sm:py-8">
+            <div className={`inline-block p-4 sm:p-6 rounded-full ${
+              stepCount >= stepsRequired ? 'bg-green-500' : 'bg-gradient-to-br from-orange-400 to-amber-500'
+            } transition-colors`}>
+              <Footprints className="h-8 w-8 sm:h-12 sm:w-12 text-white" />
+            </div>
+          </div>
+          
+          <Progress value={(stepCount / stepsRequired) * 100} className="h-2.5 sm:h-3" />
+          
+          <p className="text-base sm:text-lg font-bold text-gray-800">
+            {stepCount} / {stepsRequired} steps
+          </p>
+          <p className="text-xs sm:text-sm text-gray-500">
+            Walk around to count your steps!
+          </p>
+          
+          {!stepsPermissionGranted && (
+            <Button 
+              onClick={requestStepPermission}
+              className="w-full bg-gradient-to-r from-orange-400 to-amber-500 hover:from-orange-500 hover:to-amber-600 text-white py-4"
+            >
+              <Smartphone className="h-4 w-4 mr-2" />
+              Enable Motion Sensor
+            </Button>
+          )}
+          
+          {/* Desktop fallback - tap button */}
+          <Button 
+            onClick={handleManualStep}
+            className="w-full bg-gradient-to-r from-orange-400 to-amber-500 hover:from-orange-500 hover:to-amber-600 text-white py-5 sm:py-6 text-sm sm:text-base"
+          >
+            <Footprints className="h-4 w-4 sm:h-5 sm:w-5 mr-2 shrink-0" />
+            <span>Tap to Simulate Steps (Desktop Mode)</span>
+          </Button>
         </div>
       )}
       

@@ -199,7 +199,7 @@ export const snoozeMessages: Record<SnoozeLevel, string[]> = {
 };
 
 // Wake-up challenge types
-export type ChallengeType = 'none' | 'math' | 'shake' | 'typing' | 'memory' | 'pattern' | 'slider' | 'captcha';
+export type ChallengeType = 'none' | 'math' | 'shake' | 'typing' | 'memory' | 'pattern' | 'slider' | 'captcha' | 'barcode' | 'qrcode' | 'steps';
 
 export const challengeTypes: { value: ChallengeType; label: string; description: string; icon: string }[] = [
   { value: 'none', label: 'None', description: 'No challenge required', icon: '😴' },
@@ -210,6 +210,9 @@ export const challengeTypes: { value: ChallengeType; label: string; description:
   { value: 'pattern', label: 'Pattern Match', description: 'Repeat a visual pattern', icon: '🧩' },
   { value: 'slider', label: 'Slider Puzzle', description: 'Drag sliders to target values', icon: '🎚️' },
   { value: 'captcha', label: 'Word Captcha', description: 'Read and type distorted text', icon: '🔤' },
+  { value: 'barcode', label: 'Scan Barcode', description: 'Scan any barcode to dismiss', icon: '📊' },
+  { value: 'qrcode', label: 'Scan QR Code', description: 'Scan any QR code to dismiss', icon: '📷' },
+  { value: 'steps', label: 'Walk Steps', description: 'Walk required steps to dismiss', icon: '🚶' },
 ];
 
 export type ChallengeDifficulty = 'easy' | 'medium' | 'hard';
