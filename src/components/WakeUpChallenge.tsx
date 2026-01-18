@@ -24,6 +24,15 @@ import {
 } from "lucide-react";
 import { ChallengeType } from "@/lib/alarmSettings";
 import { Html5Qrcode } from "html5-qrcode";
+import { 
+  playStepSound, 
+  playChallengeCompleteSound, 
+  playWrongSound, 
+  playCorrectTapSound, 
+  playShakeSound,
+  playScanSuccessSound,
+  playMilestoneSound 
+} from "@/lib/soundEffects";
 
 interface WakeUpChallengeProps {
   challengeType: ChallengeType;
@@ -198,8 +207,12 @@ export const WakeUpChallenge = ({
       if (deltaX + deltaY + deltaZ > threshold) {
         setShakeCount(prev => {
           const newCount = prev + 1;
+          playShakeSound();
           if (newCount >= shakeRequired) {
+            playChallengeCompleteSound();
             onComplete();
+          } else if (newCount % 10 === 0) {
+            playMilestoneSound();
           }
           return newCount;
         });
@@ -301,8 +314,12 @@ export const WakeUpChallenge = ({
           (decodedText) => {
             setScannedCode(decodedText);
             setIsCorrect(true);
+            playScanSuccessSound();
             html5QrCode.stop().catch(console.error);
-            setTimeout(onComplete, 500);
+            setTimeout(() => {
+              playChallengeCompleteSound();
+              onComplete();
+            }, 500);
           },
           () => {
             // QR code not detected - ignore
@@ -353,9 +370,13 @@ export const WakeUpChallenge = ({
         lastStepTimeRef.current = now;
         setStepCount(prev => {
           const newCount = prev + 1;
+          playStepSound();
           if (newCount >= stepsRequired) {
             setIsCorrect(true);
+            playChallengeCompleteSound();
             setTimeout(onComplete, 500);
+          } else if (newCount % 10 === 0) {
+            playMilestoneSound();
           }
           return newCount;
         });
@@ -388,9 +409,13 @@ export const WakeUpChallenge = ({
   const handleManualStep = () => {
     setStepCount(prev => {
       const newCount = prev + 1;
+      playStepSound();
       if (newCount >= stepsRequired) {
         setIsCorrect(true);
+        playChallengeCompleteSound();
         setTimeout(onComplete, 300);
+      } else if (newCount % 10 === 0) {
+        playMilestoneSound();
       }
       return newCount;
     });
@@ -414,9 +439,11 @@ export const WakeUpChallenge = ({
     const answer = parseInt(userAnswer);
     if (answer === mathProblem.answer) {
       setIsCorrect(true);
+      playChallengeCompleteSound();
       setTimeout(onComplete, 500);
     } else {
       setIsCorrect(false);
+      playWrongSound();
       setAttempts(prev => prev + 1);
       setUserAnswer("");
       if (attempts >= 2) {
@@ -435,6 +462,7 @@ export const WakeUpChallenge = ({
     // Check if correct so far
     if (num !== memorySequence[userSequence.length]) {
       setIsCorrect(false);
+      playWrongSound();
       setTimeout(() => {
         setUserSequence([]);
         setIsCorrect(null);
@@ -444,9 +472,12 @@ export const WakeUpChallenge = ({
       return;
     }
     
+    playCorrectTapSound();
+    
     // Check if complete
     if (newSequence.length === memorySequence.length) {
       setIsCorrect(true);
+      playChallengeCompleteSound();
       setTimeout(onComplete, 500);
     }
   };
@@ -454,9 +485,11 @@ export const WakeUpChallenge = ({
   const handleTypingSubmit = () => {
     if (typedText.toLowerCase() === typingWord.toLowerCase()) {
       setIsCorrect(true);
+      playChallengeCompleteSound();
       setTimeout(onComplete, 500);
     } else {
       setIsCorrect(false);
+      playWrongSound();
       setTypedText("");
       setTimeout(() => setIsCorrect(null), 500);
     }
@@ -469,6 +502,7 @@ export const WakeUpChallenge = ({
     // Check if correct so far
     if (cellIndex !== patternData.pattern[userPattern.length]) {
       setIsCorrect(false);
+      playWrongSound();
       setTimeout(() => {
         setUserPattern([]);
         setIsCorrect(null);
@@ -478,9 +512,12 @@ export const WakeUpChallenge = ({
       return;
     }
     
+    playCorrectTapSound();
+    
     // Check if complete
     if (newPattern.length === patternData.pattern.length) {
       setIsCorrect(true);
+      playChallengeCompleteSound();
       setTimeout(onComplete, 500);
     }
   };
@@ -489,8 +526,12 @@ export const WakeUpChallenge = ({
   const handleManualShake = () => {
     setShakeCount(prev => {
       const newCount = prev + 1;
+      playShakeSound();
       if (newCount >= shakeRequired) {
+        playChallengeCompleteSound();
         setTimeout(onComplete, 300);
+      } else if (newCount % 10 === 0) {
+        playMilestoneSound();
       }
       return newCount;
     });
@@ -510,6 +551,7 @@ export const WakeUpChallenge = ({
     
     if (allCorrect) {
       setIsCorrect(true);
+      playChallengeCompleteSound();
       setTimeout(onComplete, 500);
     }
   };
@@ -518,9 +560,11 @@ export const WakeUpChallenge = ({
   const handleCaptchaSubmit = () => {
     if (captchaInput.toUpperCase() === captchaWord) {
       setIsCorrect(true);
+      playChallengeCompleteSound();
       setTimeout(onComplete, 500);
     } else {
       setIsCorrect(false);
+      playWrongSound();
       setCaptchaInput("");
       setCaptchaWord(generateCaptchaWord(difficulty));
       setTimeout(() => setIsCorrect(null), 500);
