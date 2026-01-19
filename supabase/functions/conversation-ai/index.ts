@@ -63,10 +63,10 @@ IMPORTANT:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash-lite", // Fastest model for quick responses
         messages,
-        max_tokens: 150,
-        temperature: 0.8,
+        max_tokens: 100, // Reduced for faster generation
+        temperature: 0.7,
       }),
     });
 

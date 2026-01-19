@@ -31,7 +31,7 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
     onError,
     onStart,
     onEnd,
-    autoSubmitAfterSilence = 2000,
+    autoSubmitAfterSilence = 1200, // Reduced from 2000ms to 1200ms for faster response
   } = options;
 
   // Request microphone permission

@@ -121,9 +121,9 @@ export const TwoWayVoiceCall = ({
     setIsProcessing(false);
   }, [conversationHistory, settings.messageTheme, isTestCall, isProcessing, clearResponseTimeout]);
 
-  // Initialize scribe for speech recognition
+  // Initialize scribe for speech recognition - faster silence detection
   const scribe = useElevenLabsScribe({
-    autoSubmitAfterSilence: 3000,
+    autoSubmitAfterSilence: 1500, // Faster silence detection for quicker response
     onFinalTranscript: (text) => { 
       pendingTranscriptRef.current = text; 
     },
@@ -157,7 +157,7 @@ export const TwoWayVoiceCall = ({
     }
   }, [noResponseCount, isSpeaking, isProcessing, scribe, speakMessage]);
 
-  // Start waiting for user response with timeout
+  // Start waiting for user response with timeout - faster timeout
   const startWaitingForResponse = useCallback(() => {
     if (!shouldContinueRef.current || isWaitingRef.current) return;
     
@@ -168,8 +168,8 @@ export const TwoWayVoiceCall = ({
     // Start listening
     scribe.startListening();
     
-    // Set timeout - if no response in 10 seconds (for test) or 15 seconds (for real alarm), speak again
-    const timeoutDuration = isTestCall ? 10000 : 15000;
+    // Set timeout - reduced from 10/15 seconds to 8/12 seconds for faster re-engagement
+    const timeoutDuration = isTestCall ? 8000 : 12000;
     responseTimeoutRef.current = window.setTimeout(() => {
       isWaitingRef.current = false;
       if (shouldContinueRef.current && !isSpeaking && !isProcessing) {
