@@ -81,6 +81,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [challengeType, setChallengeType] = useState<ChallengeType>(defaultAlarmSettings.challengeType);
   const [challengeDifficulty, setChallengeDifficulty] = useState<ChallengeDifficulty>(defaultAlarmSettings.challengeDifficulty);
   const [gradualVolume, setGradualVolume] = useState(defaultAlarmSettings.gradualVolume);
+  const [elevenLabsAgentId, setElevenLabsAgentId] = useState(defaultAlarmSettings.elevenLabsAgentId || '');
 
   // Rotate motivational quotes
   useEffect(() => {
@@ -163,6 +164,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       gradualVolume,
       challengeType,
       challengeDifficulty,
+      elevenLabsAgentId: interactionMode === 'two-way' ? elevenLabsAgentId : '',
     };
 
     if (editingAlarmId) {
@@ -225,6 +227,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setGradualVolume(alarm.settings.gradualVolume);
     setChallengeType(alarm.settings.challengeType || defaultAlarmSettings.challengeType);
     setChallengeDifficulty(alarm.settings.challengeDifficulty || defaultAlarmSettings.challengeDifficulty);
+    setElevenLabsAgentId(alarm.settings.elevenLabsAgentId || '');
     setIsDialogOpen(true);
   };
 
@@ -245,6 +248,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setGradualVolume(defaultAlarmSettings.gradualVolume);
     setChallengeType(defaultAlarmSettings.challengeType);
     setChallengeDifficulty(defaultAlarmSettings.challengeDifficulty);
+    setElevenLabsAgentId('');
     setIsDialogOpen(true);
   };
 
@@ -590,6 +594,28 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                   ))}
                 </div>
               </div>
+
+              {/* Real-Time AI Agent ID - Only show for two-way mode */}
+              {interactionMode === 'two-way' && (
+                <div className="p-3 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
+                  <Label className="text-xs sm:text-sm font-medium mb-2 block flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-purple-500" />
+                    Real-Time AI Agent ID (Optional)
+                  </Label>
+                  <Input
+                    type="text"
+                    placeholder="Enter ElevenLabs Agent ID for zero-latency"
+                    value={elevenLabsAgentId}
+                    onChange={(e) => setElevenLabsAgentId(e.target.value)}
+                    className="mb-2"
+                  />
+                  <p className="text-[10px] sm:text-xs text-purple-600">
+                    {elevenLabsAgentId 
+                      ? "⚡ Real-time mode enabled! Zero latency voice-to-voice."
+                      : "Leave empty for standard mode, or add Agent ID from ElevenLabs for instant responses."}
+                  </p>
+                </div>
+              )}
 
               <div>
                 <Label htmlFor="dialog-alarm-time" className="text-sm font-medium mb-2 block">

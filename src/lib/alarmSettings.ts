@@ -235,6 +235,8 @@ export interface AlarmSettings {
   gradualVolume: boolean;
   challengeType: ChallengeType;
   challengeDifficulty: ChallengeDifficulty;
+  // ElevenLabs Agent ID for real-time conversation
+  elevenLabsAgentId?: string;
 }
 
 export const defaultAlarmSettings: AlarmSettings = {
@@ -248,4 +250,5 @@ export const defaultAlarmSettings: AlarmSettings = {
   gradualVolume: true,
   challengeType: 'none',
   challengeDifficulty: 'easy',
+  elevenLabsAgentId: '',
 };
