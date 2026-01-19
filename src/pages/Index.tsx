@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AlarmClock } from "@/components/AlarmClock";
 import { VoiceCall } from "@/components/VoiceCall";
 import { TwoWayVoiceCall } from "@/components/TwoWayVoiceCall";
+import { RealtimeTwoWayCall } from "@/components/RealtimeTwoWayCall";
 import { AlarmSettings, defaultAlarmSettings } from "@/lib/alarmSettings";
 
 const Index = () => {
@@ -26,6 +27,20 @@ const Index = () => {
   if (isInCall && callData) {
     // Route to appropriate component based on interaction mode
     if (callData.settings.interactionMode === 'two-way') {
+      // Use real-time agent if agent ID is configured
+      if (callData.settings.elevenLabsAgentId) {
+        return (
+          <RealtimeTwoWayCall
+            alarmTime={callData.alarmTime}
+            talkDuration={callData.talkDuration}
+            settings={callData.settings}
+            onEndCall={handleEndCall}
+            isTestCall={callData.isTestCall}
+          />
+        );
+      }
+      
+      // Fallback to standard two-way mode
       return (
         <TwoWayVoiceCall
           alarmTime={callData.alarmTime}
