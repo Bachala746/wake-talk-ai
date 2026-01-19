@@ -27,7 +27,7 @@ serve(async (req) => {
       throw new Error('Text is required')
     }
 
-    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY')
+    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY') || Deno.env.get('ELEVENLABS_API_KEY_1')
     
     if (!ELEVENLABS_API_KEY) {
       console.log('ElevenLabs API key not found, falling back to browser TTS')
