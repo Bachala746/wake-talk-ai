@@ -47,7 +47,7 @@ serve(async (req) => {
     console.log(`Generating ElevenLabs TTS for: "${text.substring(0, 50)}..." with voice: ${voiceStyle}`)
 
     const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_22050_32&optimize_streaming_latency=4`,
       {
         method: 'POST',
         headers: {
@@ -56,13 +56,13 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           text,
-          model_id: 'eleven_turbo_v2_5',
+          model_id: 'eleven_turbo_v2_5', // Fastest model
           voice_settings: {
             stability: 0.5,
             similarity_boost: 0.75,
-            style: 0.3,
-            use_speaker_boost: true,
-            speed: 0.95,
+            style: 0.2, // Reduced for faster processing
+            use_speaker_boost: false, // Disabled for speed
+            speed: 1.05, // Slightly faster speech
           },
         }),
       }
