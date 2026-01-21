@@ -8,7 +8,7 @@ import { AlarmSettings, defaultAlarmSettings } from "@/lib/alarmSettings";
 import { WakeUpChallenge } from "./WakeUpChallenge";
 import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 import { useElevenLabsScribe } from "@/hooks/useElevenLabsScribe";
-
+import { AudioWaveform } from "./AudioWaveform";
 interface TwoWayVoiceCallProps {
   alarmTime: string;
   talkDuration: number;
@@ -302,6 +302,20 @@ export const TwoWayVoiceCall = ({
             </p>
           </div>
 
+          {/* Audio Waveform Visualization */}
+          <div className="flex justify-center gap-6 py-2">
+            <AudioWaveform 
+              isActive={scribe.isListening} 
+              type="user" 
+              label="You"
+            />
+            <AudioWaveform 
+              isActive={isSpeaking} 
+              type="ai" 
+              label="AI"
+            />
+          </div>
+
           {/* No response indicator */}
           {noResponseCount > 0 && !userHasResponded && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center gap-2">
@@ -313,18 +327,30 @@ export const TwoWayVoiceCall = ({
           )}
 
           {/* AI message display */}
-          <div className="bg-orange-50 rounded-xl p-4 min-h-[80px]">
+          <div className={`rounded-xl p-4 min-h-[80px] transition-all duration-300 ${
+            isSpeaking 
+              ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 shadow-lg shadow-green-100' 
+              : 'bg-orange-50'
+          }`}>
             <div className="flex items-start gap-2">
-              <Volume2 className="w-5 h-5 text-orange-500 mt-0.5 shrink-0" />
+              <Volume2 className={`w-5 h-5 mt-0.5 shrink-0 transition-colors ${
+                isSpeaking ? 'text-green-500' : 'text-orange-500'
+              }`} />
               <p className="text-gray-700 text-sm text-left">{currentMessage || "Connecting..."}</p>
             </div>
           </div>
 
           {/* User transcript display */}
           {(scribe.isListening || scribe.transcript) && (
-            <div className="bg-blue-50 rounded-xl p-4">
+            <div className={`rounded-xl p-4 transition-all duration-300 ${
+              scribe.isListening 
+                ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-lg shadow-blue-100' 
+                : 'bg-blue-50'
+            }`}>
               <div className="flex items-start gap-2">
-                <Mic className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
+                <Mic className={`w-5 h-5 mt-0.5 shrink-0 transition-colors ${
+                  scribe.isListening ? 'text-blue-500 animate-pulse' : 'text-blue-400'
+                }`} />
                 <p className="text-gray-700 text-sm text-left">
                   {scribe.transcript || "Listening... say something!"}
                 </p>
