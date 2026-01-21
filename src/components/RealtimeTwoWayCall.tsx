@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { AlarmSettings, defaultAlarmSettings } from "@/lib/alarmSettings";
 import { WakeUpChallenge } from "./WakeUpChallenge";
 import { useElevenLabsConversation } from "@/hooks/useElevenLabsConversation";
-
+import { AudioWaveform } from "./AudioWaveform";
 interface RealtimeTwoWayCallProps {
   alarmTime: string;
   talkDuration: number;
@@ -141,20 +141,7 @@ export const RealtimeTwoWayCall = ({
     toast.error("Wrong! Try again to dismiss the alarm!");
   }, []);
 
-  // Generate audio bars based on level
-  const generateBars = (level: number, count: number = 5) => {
-    return Array.from({ length: count }, (_, i) => {
-      const barHeight = Math.max(4, Math.min(32, level * 40 * (0.5 + Math.random() * 0.5)));
-      return (
-        <div
-          key={i}
-          className="w-1.5 bg-current rounded-full transition-all duration-75"
-          style={{ height: `${barHeight}px` }}
-        />
-      );
-    });
-  };
-
+  // No longer needed - using AudioWaveform component instead
   if (showChallenge) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300">
@@ -223,24 +210,21 @@ export const RealtimeTwoWayCall = ({
             </p>
           </div>
 
-          {/* Audio visualization */}
+          {/* Audio Waveform Visualization */}
           {conversation.isConnected && (
-            <div className="flex justify-center gap-8">
-              {/* Input (user) visualization */}
-              <div className="flex flex-col items-center gap-2">
-                <div className="flex items-end gap-0.5 h-8 text-blue-500">
-                  {generateBars(inputLevel)}
-                </div>
-                <span className="text-xs text-gray-500">You</span>
-              </div>
-              
-              {/* Output (AI) visualization */}
-              <div className="flex flex-col items-center gap-2">
-                <div className="flex items-end gap-0.5 h-8 text-green-500">
-                  {generateBars(outputLevel)}
-                </div>
-                <span className="text-xs text-gray-500">AI</span>
-              </div>
+            <div className="flex justify-center gap-6 py-2">
+              <AudioWaveform 
+                isActive={currentMode === 'listening'} 
+                type="user" 
+                label="You"
+                volumeLevel={inputLevel}
+              />
+              <AudioWaveform 
+                isActive={currentMode === 'speaking'} 
+                type="ai" 
+                label="AI"
+                volumeLevel={outputLevel}
+              />
             </div>
           )}
 
