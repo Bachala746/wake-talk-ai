@@ -13,6 +13,7 @@ import {
 } from "@/lib/alarmSettings";
 import { WakeUpChallenge } from "./WakeUpChallenge";
 import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
+import { AudioWaveform } from "./AudioWaveform";
 interface VoiceCallProps {
   alarmTime: string;
   talkDuration: number;
@@ -454,22 +455,15 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
             </div>
           </div>
 
-          {/* Voice visualizer bars when speaking */}
-          {isPlaying && (
-            <div className="flex items-center justify-center gap-1 h-8">
-              {[...Array(7)].map((_, i) => (
-                <div
-                  key={i}
-                  className="w-1.5 bg-gradient-to-t from-green-500 to-emerald-400 rounded-full animate-voice-bar"
-                  style={{
-                    height: '100%',
-                    animationDelay: `${i * 0.1}s`,
-                    animationDuration: `${0.6 + Math.random() * 0.4}s`
-                  }}
-                />
-              ))}
-            </div>
-          )}
+          {/* Audio Waveform Visualization - AI Speaking */}
+          <div className="flex justify-center py-2">
+            <AudioWaveform 
+              isActive={isPlaying} 
+              type="ai" 
+              label={isPlaying ? "AI Speaking" : "Waiting..."}
+              barCount={9}
+            />
+          </div>
 
           {/* Timer */}
           <div className="space-y-2">

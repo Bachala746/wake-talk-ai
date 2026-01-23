@@ -179,6 +179,22 @@ All colors MUST be HSL.
   .animate-voice-bar {
     animation: voice-bar 0.8s ease-in-out infinite;
   }
+  
+  .animate-listening-glow {
+    animation: listening-glow 1s ease-in-out infinite alternate;
+  }
+  
+  .animate-listening-pulse {
+    animation: listening-pulse 1.5s ease-in-out infinite;
+  }
+  
+  .animate-user-wave {
+    animation: user-wave 1.5s ease-out infinite;
+  }
+  
+  .animate-user-wave-delayed {
+    animation: user-wave 1.5s ease-out infinite 0.5s;
+  }
 }
 
 @keyframes float {
@@ -254,5 +270,36 @@ All colors MUST be HSL.
   }
   50% {
     transform: scaleY(1);
+  }
+}
+
+@keyframes listening-glow {
+  from {
+    box-shadow: 0 0 30px hsl(217 91% 60% / 0.4), 0 0 60px hsl(217 91% 60% / 0.2);
+  }
+  to {
+    box-shadow: 0 0 50px hsl(217 91% 60% / 0.6), 0 0 100px hsl(217 91% 60% / 0.3);
+  }
+}
+
+@keyframes listening-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+@keyframes user-wave {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
   }
 }
