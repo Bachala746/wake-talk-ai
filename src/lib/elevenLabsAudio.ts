@@ -8,12 +8,48 @@ interface TTSResponse {
   error?: string;
 }
 
+// Store active audio analyzer for volume monitoring
+let activeAudioContext: AudioContext | null = null;
+let activeAnalyser: AnalyserNode | null = null;
+let volumeCallbackInterval: number | null = null;
+
+export const getAudioVolumeLevel = (): number => {
+  if (!activeAnalyser) return 0;
+  
+  const dataArray = new Uint8Array(activeAnalyser.frequencyBinCount);
+  activeAnalyser.getByteFrequencyData(dataArray);
+  
+  // Calculate average volume from frequency data
+  const sum = dataArray.reduce((acc, val) => acc + val, 0);
+  const average = sum / dataArray.length;
+  
+  // Normalize to 0-1 range
+  return Math.min(average / 128, 1);
+};
+
+const cleanupAudioAnalyzer = () => {
+  if (volumeCallbackInterval) {
+    clearInterval(volumeCallbackInterval);
+    volumeCallbackInterval = null;
+  }
+  if (activeAudioContext && activeAudioContext.state !== 'closed') {
+    try {
+      activeAudioContext.close();
+    } catch (e) {
+      console.log('Error closing audio context:', e);
+    }
+  }
+  activeAudioContext = null;
+  activeAnalyser = null;
+};
+
 export const speakWithElevenLabs = async (
   text: string,
   voiceStyle: string = 'gentle',
   onStart?: () => void,
   onEnd?: () => void,
-  onError?: (error: Error) => void
+  onError?: (error: Error) => void,
+  onVolumeChange?: (volume: number) => void
 ): Promise<HTMLAudioElement | null> => {
   try {
     onStart?.();
@@ -38,20 +74,48 @@ export const speakWithElevenLabs = async (
       const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
       const audio = new Audio(audioUrl);
       
+      // Set up Web Audio API for volume analysis
+      if (onVolumeChange) {
+        try {
+          cleanupAudioAnalyzer();
+          activeAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const source = activeAudioContext.createMediaElementSource(audio);
+          activeAnalyser = activeAudioContext.createAnalyser();
+          activeAnalyser.fftSize = 256;
+          activeAnalyser.smoothingTimeConstant = 0.8;
+          
+          source.connect(activeAnalyser);
+          activeAnalyser.connect(activeAudioContext.destination);
+          
+          // Start volume monitoring
+          volumeCallbackInterval = window.setInterval(() => {
+            const volume = getAudioVolumeLevel();
+            onVolumeChange(volume);
+          }, 50);
+        } catch (e) {
+          console.log('Could not set up audio analyzer:', e);
+        }
+      }
+      
       return new Promise((resolve, reject) => {
         audio.onended = () => {
+          cleanupAudioAnalyzer();
+          onVolumeChange?.(0);
           onEnd?.();
           resolve(audio);
         };
         
         audio.onerror = (e) => {
           console.error('Audio playback error:', e);
+          cleanupAudioAnalyzer();
+          onVolumeChange?.(0);
           onEnd?.();
           reject(new Error('Audio playback failed'));
         };
         
         audio.play().catch((e) => {
           console.error('Audio play failed:', e);
+          cleanupAudioAnalyzer();
           // Fallback to browser TTS
           fallbackToBrowserTTS(text, voiceStyle, onEnd);
           resolve(null);
@@ -66,6 +130,7 @@ export const speakWithElevenLabs = async (
     
   } catch (error) {
     console.error('ElevenLabs TTS error:', error);
+    cleanupAudioAnalyzer();
     onError?.(error as Error);
     
     // Fallback to browser TTS

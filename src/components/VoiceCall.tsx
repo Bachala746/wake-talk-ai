@@ -29,6 +29,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
   const [snoozedCount, setSnoozedCount] = useState(0);
   const [isRingtonePhase, setIsRingtonePhase] = useState(true);
   const [showChallenge, setShowChallenge] = useState(false);
+  const [audioVolume, setAudioVolume] = useState(0);
   const shouldContinueSpeaking = useRef(true);
   const elapsedTimeRef = useRef(0);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -245,6 +246,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
           // onEnd
           console.log("ElevenLabs speech ended");
           setIsPlaying(false);
+          setAudioVolume(0);
           isSpeechActiveRef.current = false;
           
           if (shouldContinueSpeaking.current && !intentionallyCanceledRef.current && elapsedTimeRef.current < (talkDuration * 60) - 3) {
@@ -256,6 +258,10 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
         (error) => {
           // onError
           console.error("ElevenLabs speech error:", error);
+        },
+        (volume) => {
+          // onVolumeChange - update audio volume for waveform visualization
+          setAudioVolume(volume);
         }
       );
       
@@ -455,13 +461,14 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
             </div>
           </div>
 
-          {/* Audio Waveform Visualization - AI Speaking */}
+          {/* Audio Waveform Visualization - AI Speaking with Volume */}
           <div className="flex justify-center py-2">
             <AudioWaveform 
               isActive={isPlaying} 
               type="ai" 
               label={isPlaying ? "AI Speaking" : "Waiting..."}
               barCount={9}
+              volumeLevel={audioVolume}
             />
           </div>
 
