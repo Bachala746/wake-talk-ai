@@ -14,6 +14,7 @@ import {
 import { WakeUpChallenge } from "./WakeUpChallenge";
 import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 import { AudioWaveform } from "./AudioWaveform";
+import { SpeakingAvatar } from "./SpeakingAvatar";
 interface VoiceCallProps {
   alarmTime: string;
   talkDuration: number;
@@ -422,26 +423,10 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
 
       <Card className="relative z-10 w-full max-w-md p-4 sm:p-8 bg-white/90 backdrop-blur-lg shadow-2xl border-0 rounded-2xl sm:rounded-3xl">
         <div className="text-center space-y-4 sm:space-y-6">
-          {/* Header with speaking animation */}
+          {/* Header with speaking avatar */}
           <div className="flex flex-col items-center gap-3 sm:gap-4">
-            {/* Animated speaker icon with sound waves */}
-            <div className="relative">
-              {/* Sound wave rings when speaking */}
-              {isPlaying && (
-                <>
-                  <div className="absolute inset-0 rounded-full bg-green-400/30 animate-sound-wave" />
-                  <div className="absolute inset-0 rounded-full bg-green-400/20 animate-sound-wave-delayed" />
-                  <div className="absolute inset-0 rounded-full bg-green-400/10 animate-sound-wave-delayed-2" />
-                </>
-              )}
-              <div className={`relative p-3 sm:p-4 rounded-full transition-all duration-300 ${
-                isPlaying 
-                  ? 'bg-gradient-to-br from-green-400 to-emerald-500 animate-speaking-glow' 
-                  : 'bg-gradient-to-br from-orange-400 to-amber-500 animate-pulse'
-              }`}>
-                <Phone className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-              </div>
-            </div>
+            {/* Pulsing AI Avatar */}
+            <SpeakingAvatar type="ai" isActive={isPlaying} size="lg" />
             
             <div className="min-w-0 w-full">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-800">AI Motivator</h2>

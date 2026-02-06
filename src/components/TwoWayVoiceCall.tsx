@@ -9,6 +9,7 @@ import { WakeUpChallenge } from "./WakeUpChallenge";
 import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 import { useElevenLabsScribe } from "@/hooks/useElevenLabsScribe";
 import { AudioWaveform } from "./AudioWaveform";
+import { SpeakingAvatar } from "./SpeakingAvatar";
 interface TwoWayVoiceCallProps {
   alarmTime: string;
   talkDuration: number;
@@ -277,30 +278,28 @@ export const TwoWayVoiceCall = ({
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300">
       <Card className="w-full max-w-md p-6 bg-white/90 backdrop-blur-lg shadow-2xl rounded-3xl">
         <div className="text-center space-y-5">
-          {/* Status indicator */}
-          <div className="flex flex-col items-center gap-3">
-            <div className={`p-4 rounded-full transition-all duration-300 ${
-              isSpeaking 
-                ? 'bg-green-500 animate-pulse' 
-                : scribe.isListening 
-                  ? 'bg-blue-500 animate-pulse' 
-                  : isProcessing
-                    ? 'bg-yellow-500'
-                    : 'bg-orange-500'
-            }`}>
-              <MessageSquare className="w-8 h-8 text-white" />
+          {/* Avatars showing who is active */}
+          <div className="flex items-center justify-center gap-8">
+            <div className="flex flex-col items-center gap-2">
+              <SpeakingAvatar type="user" isActive={scribe.isListening} size="md" />
+              <span className={`text-xs font-medium ${scribe.isListening ? 'text-blue-600' : 'text-gray-400'}`}>You</span>
             </div>
-            <h2 className="text-xl font-bold">{isTestCall ? '🧪 Two-Way Test' : '💬 AI Conversation'}</h2>
-            <p className="text-sm text-gray-600">
-              {isSpeaking 
-                ? '🔊 AI Speaking...' 
-                : scribe.isListening 
-                  ? '🎤 Listening to you...' 
-                  : isProcessing 
-                    ? '🤔 Processing...' 
-                    : '⏳ Waiting...'}
-            </p>
+            <div className="flex flex-col items-center gap-2">
+              <SpeakingAvatar type="ai" isActive={isSpeaking} size="md" />
+              <span className={`text-xs font-medium ${isSpeaking ? 'text-green-600' : 'text-gray-400'}`}>AI</span>
+            </div>
           </div>
+
+          <h2 className="text-xl font-bold">{isTestCall ? '🧪 Two-Way Test' : '💬 AI Conversation'}</h2>
+          <p className="text-sm text-gray-600">
+            {isSpeaking 
+              ? '🔊 AI Speaking...' 
+              : scribe.isListening 
+                ? '🎤 Listening to you...' 
+                : isProcessing 
+                  ? '🤔 Processing...' 
+                  : '⏳ Waiting...'}
+          </p>
 
           {/* Audio Waveform Visualization */}
           <div className="flex justify-center gap-6 py-2">
