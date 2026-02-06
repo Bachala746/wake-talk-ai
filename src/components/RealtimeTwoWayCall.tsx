@@ -7,6 +7,7 @@ import { AlarmSettings, defaultAlarmSettings } from "@/lib/alarmSettings";
 import { WakeUpChallenge } from "./WakeUpChallenge";
 import { useElevenLabsConversation } from "@/hooks/useElevenLabsConversation";
 import { AudioWaveform } from "./AudioWaveform";
+import { SpeakingAvatar } from "./SpeakingAvatar";
 interface RealtimeTwoWayCallProps {
   alarmTime: string;
   talkDuration: number;
@@ -167,48 +168,28 @@ export const RealtimeTwoWayCall = ({
             </span>
           </div>
 
-          {/* Status indicator */}
-          <div className="flex flex-col items-center gap-3">
-            <div className="relative">
-              {/* Pulsing rings for active state */}
-              {conversation.isConnected && (
-                <>
-                  <div className={`absolute inset-0 rounded-full animate-ping opacity-30 ${
-                    currentMode === 'speaking' ? 'bg-green-400' : 'bg-blue-400'
-                  }`} style={{ animationDuration: '1.5s' }} />
-                  <div className={`absolute inset-0 rounded-full animate-ping opacity-20 ${
-                    currentMode === 'speaking' ? 'bg-green-400' : 'bg-blue-400'
-                  }`} style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
-                </>
-              )}
-              <div className={`relative p-4 rounded-full transition-all duration-300 ${
-                currentMode === 'speaking' 
-                  ? 'bg-gradient-to-br from-green-400 to-emerald-500' 
-                  : currentMode === 'listening'
-                    ? 'bg-gradient-to-br from-blue-400 to-indigo-500'
-                    : 'bg-gradient-to-br from-gray-400 to-gray-500'
-              }`}>
-                {currentMode === 'speaking' ? (
-                  <Volume2 className="w-8 h-8 text-white" />
-                ) : currentMode === 'listening' ? (
-                  <Mic className="w-8 h-8 text-white" />
-                ) : (
-                  <Radio className="w-8 h-8 text-white animate-pulse" />
-                )}
-              </div>
+          {/* Avatars showing who is active */}
+          <div className="flex items-center justify-center gap-8">
+            <div className="flex flex-col items-center gap-2">
+              <SpeakingAvatar type="user" isActive={currentMode === 'listening'} size="md" />
+              <span className={`text-xs font-medium ${currentMode === 'listening' ? 'text-blue-600' : 'text-gray-400'}`}>You</span>
             </div>
-            
-            <h2 className="text-xl font-bold">
-              {isTestCall ? '🧪 Real-Time Test' : '⚡ AI Conversation'}
-            </h2>
-            <p className="text-sm text-gray-600">
-              {currentMode === 'speaking' 
-                ? '🔊 AI Speaking...' 
-                : currentMode === 'listening'
-                  ? '🎤 Listening to you...' 
-                  : '📡 Connecting...'}
-            </p>
+            <div className="flex flex-col items-center gap-2">
+              <SpeakingAvatar type="ai" isActive={currentMode === 'speaking'} size="md" />
+              <span className={`text-xs font-medium ${currentMode === 'speaking' ? 'text-green-600' : 'text-gray-400'}`}>AI</span>
+            </div>
           </div>
+            
+          <h2 className="text-xl font-bold">
+            {isTestCall ? '🧪 Real-Time Test' : '⚡ AI Conversation'}
+          </h2>
+          <p className="text-sm text-gray-600">
+            {currentMode === 'speaking' 
+              ? '🔊 AI Speaking...' 
+              : currentMode === 'listening'
+                ? '🎤 Listening to you...' 
+                : '📡 Connecting...'}
+          </p>
 
           {/* Audio Waveform Visualization */}
           {conversation.isConnected && (
