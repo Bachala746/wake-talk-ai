@@ -1,4 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+interface QuotaInfo {
+  characterCount: number;
+  characterLimit: number;
+  percentUsed: number;
+}
 
 interface TTSResponse {
   useBrowserTTS: boolean;
@@ -6,7 +13,13 @@ interface TTSResponse {
   text?: string;
   voiceStyle?: string;
   error?: string;
+  quotaExceeded?: boolean;
+  quotaInfo?: QuotaInfo;
 }
+
+// Track if we already showed a quota warning this session to avoid spam
+let quotaWarningShownAt: number | null = null;
+const QUOTA_WARNING_COOLDOWN = 5 * 60 * 1000; // 5 minutes
 
 // Store active audio analyzer for volume monitoring
 let activeAudioContext: AudioContext | null = null;
@@ -42,6 +55,37 @@ const cleanupAudioAnalyzer = () => {
   activeAudioContext = null;
   activeAnalyser = null;
 };
+const handleQuotaWarning = (data: TTSResponse) => {
+  const now = Date.now();
+  const shouldShow = !quotaWarningShownAt || (now - quotaWarningShownAt > QUOTA_WARNING_COOLDOWN);
+
+  if (data.quotaExceeded) {
+    if (shouldShow) {
+      quotaWarningShownAt = now;
+      toast.error("⚠️ ElevenLabs credits exhausted! Using browser voice as fallback. Top up your ElevenLabs account for premium voice.", {
+        duration: 10000,
+      });
+    }
+    return;
+  }
+
+  if (data.quotaInfo && shouldShow) {
+    const { percentUsed, characterCount, characterLimit } = data.quotaInfo;
+    const remaining = characterLimit - characterCount;
+
+    if (percentUsed >= 95) {
+      quotaWarningShownAt = now;
+      toast.error(`🔴 ElevenLabs credits critically low! Only ${remaining.toLocaleString()} characters remaining (${100 - percentUsed}% left).`, {
+        duration: 8000,
+      });
+    } else if (percentUsed >= 80) {
+      quotaWarningShownAt = now;
+      toast.warning(`🟡 ElevenLabs credits running low — ${remaining.toLocaleString()} characters remaining (${100 - percentUsed}% left).`, {
+        duration: 6000,
+      });
+    }
+  }
+};
 
 export const speakWithElevenLabs = async (
   text: string,
@@ -66,6 +110,9 @@ export const speakWithElevenLabs = async (
     if (!data) {
       throw new Error('No response from TTS function');
     }
+
+    // Show quota warnings
+    handleQuotaWarning(data);
 
     // Use ElevenLabs audio if available
     if (!data.useBrowserTTS && data.audioContent) {
