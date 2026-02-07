@@ -21,7 +21,38 @@ serve(async (req) => {
   }
 
   try {
-    const { text, voiceStyle = 'gentle' } = await req.json()
+    const { text, voiceStyle = 'gentle', checkQuotaOnly = false } = await req.json()
+
+    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY') || Deno.env.get('ELEVENLABS_API_KEY_1')
+
+    if (!ELEVENLABS_API_KEY) {
+      return new Response(
+        JSON.stringify({ useBrowserTTS: true, text, voiceStyle, error: 'No API key' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Quota-only check: just return subscription info without generating audio
+    if (checkQuotaOnly) {
+      let quotaInfo = null
+      try {
+        const subResponse = await fetch('https://api.elevenlabs.io/v1/user/subscription', {
+          headers: { 'xi-api-key': ELEVENLABS_API_KEY },
+        })
+        if (subResponse.ok) {
+          const subData = await subResponse.json()
+          const used = subData.character_count || 0
+          const limit = subData.character_limit || 1
+          quotaInfo = { characterCount: used, characterLimit: limit, percentUsed: Math.round((used / limit) * 100) }
+        }
+      } catch (e) {
+        console.log('Could not fetch subscription info:', e)
+      }
+      return new Response(
+        JSON.stringify({ quotaInfo }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     if (!text) {
       throw new Error('Text is required')
