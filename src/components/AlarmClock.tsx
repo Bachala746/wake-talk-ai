@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Clock, Phone, Settings, Sun, Moon, Trash2, Edit, Sparkles, Flame, Zap, Volume2, Mic, Bell, MessageSquare, Gamepad2 } from "lucide-react";
 import { toast } from "sonner";
+import { ElevenLabsQuotaPanel } from "./ElevenLabsQuotaPanel";
 import {
   AlarmSettings,
   VoiceStyle,
@@ -414,6 +415,9 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
               </div>
             </div>
           </Card>
+
+          {/* ElevenLabs Quota Panel */}
+          <ElevenLabsQuotaPanel />
 
           <div className="space-y-5">
           {/* Alarms List */}
