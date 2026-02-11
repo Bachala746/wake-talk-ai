@@ -109,10 +109,10 @@ export default {
 				},
 				'glow-pulse': {
 					'0%, 100%': {
-						boxShadow: '0 0 20px 5px rgba(251, 146, 60, 0.4)'
+						boxShadow: '0 0 20px 5px hsl(var(--ring) / 0.4)'
 					},
 					'50%': {
-						boxShadow: '0 0 35px 10px rgba(251, 146, 60, 0.6)'
+						boxShadow: '0 0 35px 10px hsl(var(--ring) / 0.6)'
 					}
 				}
 			},
