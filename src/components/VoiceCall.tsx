@@ -15,6 +15,8 @@ import { WakeUpChallenge } from "./WakeUpChallenge";
 import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 import { AudioWaveform } from "./AudioWaveform";
 import { SpeakingAvatar } from "./SpeakingAvatar";
+import { useTheme } from "@/hooks/useTheme";
+
 interface VoiceCallProps {
   alarmTime: string;
   talkDuration: number;
@@ -23,6 +25,7 @@ interface VoiceCallProps {
 }
 
 export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSettings, onEndCall }: VoiceCallProps) => {
+  const { isDark } = useTheme();
   const [isConnected, setIsConnected] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [currentMessage, setCurrentMessage] = useState("");
@@ -130,7 +133,6 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
       }
       currentAudioRef.current = null;
     }
-    // Cancel speech synthesis
     cancelSpeech();
   };
 
@@ -392,10 +394,14 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
   if (showChallenge) {
     return (
       <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
-        <div className="absolute inset-0 bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300">
+        <div className={`absolute inset-0 ${
+          isDark 
+            ? 'bg-gradient-to-t from-indigo-900 via-slate-800 to-slate-900' 
+            : 'bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300'
+        }`}>
           <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className="w-32 h-32 rounded-full bg-yellow-200 animate-pulse shadow-2xl" 
-                 style={{ boxShadow: '0 0 100px 50px rgba(255, 200, 100, 0.6)' }} />
+            <div className={`w-32 h-32 rounded-full animate-pulse shadow-2xl ${isDark ? 'bg-indigo-400' : 'bg-yellow-200'}`}
+                 style={{ boxShadow: isDark ? '0 0 100px 50px rgba(129, 140, 248, 0.4)' : '0 0 100px 50px rgba(255, 200, 100, 0.6)' }} />
           </div>
         </div>
         <div className="relative z-10">
@@ -412,16 +418,21 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
 
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-3 sm:p-4">
-      {/* Animated sunrise background */}
-      <div className="absolute inset-0 bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300">
-        {/* Sun rays animation */}
+      {/* Animated background */}
+      <div className={`absolute inset-0 ${
+        isDark 
+          ? 'bg-gradient-to-t from-indigo-900 via-slate-800 to-slate-900' 
+          : 'bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300'
+      }`}>
         <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <div className="w-24 sm:w-32 h-24 sm:h-32 rounded-full bg-yellow-200 animate-pulse shadow-2xl" 
-               style={{ boxShadow: '0 0 100px 50px rgba(255, 200, 100, 0.6)' }} />
+          <div className={`w-24 sm:w-32 h-24 sm:h-32 rounded-full animate-pulse shadow-2xl ${isDark ? 'bg-indigo-400' : 'bg-yellow-200'}`}
+               style={{ boxShadow: isDark ? '0 0 100px 50px rgba(129, 140, 248, 0.4)' : '0 0 100px 50px rgba(255, 200, 100, 0.6)' }} />
         </div>
       </div>
 
-      <Card className="relative z-10 w-full max-w-md p-4 sm:p-8 bg-white/90 backdrop-blur-lg shadow-2xl border-0 rounded-2xl sm:rounded-3xl">
+      <Card className={`relative z-10 w-full max-w-md p-4 sm:p-8 backdrop-blur-lg shadow-2xl border-0 rounded-2xl sm:rounded-3xl ${
+        isDark ? 'bg-slate-800/90' : 'bg-white/90'
+      }`}>
         <div className="text-center space-y-4 sm:space-y-6">
           {/* Header with speaking avatar */}
           <div className="flex flex-col items-center gap-3 sm:gap-4">
@@ -429,8 +440,8 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
             <SpeakingAvatar type="ai" isActive={isPlaying} size="lg" />
             
             <div className="min-w-0 w-full">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-800">AI Motivator</h2>
-              <p className="text-xs sm:text-sm text-gray-600 flex items-center justify-center gap-1">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground">AI Motivator</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground flex items-center justify-center gap-1">
                 {isConnected ? (
                   <>
                     <span className={`w-2 h-2 rounded-full shrink-0 ${isPlaying ? 'bg-green-500' : 'bg-green-400'} animate-pulse`} />
@@ -459,23 +470,27 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
 
           {/* Timer */}
           <div className="space-y-2">
-            <div className="text-3xl sm:text-4xl font-mono font-bold text-gray-800">
+            <div className="text-3xl sm:text-4xl font-mono font-bold text-foreground">
               {formatTime(elapsedTime)}
             </div>
-            <p className="text-xs sm:text-sm text-gray-700 font-medium">Time remaining: {formatTime((talkDuration * 60) - elapsedTime)}</p>
-            <Progress value={progress} className="h-2 bg-gray-200" />
+            <p className="text-xs sm:text-sm text-foreground font-medium">Time remaining: {formatTime((talkDuration * 60) - elapsedTime)}</p>
+            <Progress value={progress} className="h-2 bg-muted/50" />
           </div>
 
           {/* Status indicators */}
           <div className="flex flex-wrap justify-center gap-2 sm:gap-4">
             {isRingtonePhase && (
-              <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-orange-100 text-orange-700">
+              <div className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full ${
+                isDark ? 'bg-indigo-900/50 text-indigo-300' : 'bg-orange-100 text-orange-700'
+              }`}>
                 <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse shrink-0" />
                 <span className="text-xs sm:text-sm font-medium">Ringtone</span>
               </div>
             )}
             {isPlaying && (
-              <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-green-100 text-green-700 animate-pulse">
+              <div className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full animate-pulse ${
+                isDark ? 'bg-emerald-900/50 text-emerald-300' : 'bg-green-100 text-green-700'
+              }`}>
                 <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                 <span className="text-xs sm:text-sm font-medium">Speaking</span>
               </div>
@@ -485,11 +500,13 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
           {/* Current message with animation */}
           <div className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-all duration-500 ${
             isPlaying 
-              ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 shadow-lg' 
-              : 'bg-gradient-to-br from-amber-50 to-orange-50 border border-orange-200'
+              ? isDark ? 'bg-emerald-900/30 border-2 border-emerald-700/50 shadow-lg' : 'bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 shadow-lg'
+              : isDark ? 'bg-indigo-900/30 border border-indigo-700/50' : 'bg-gradient-to-br from-amber-50 to-orange-50 border border-orange-200'
           }`}>
             <p className={`italic leading-relaxed transition-colors duration-300 text-sm sm:text-base break-words ${
-              isPlaying ? 'text-green-800' : 'text-gray-700'
+              isPlaying 
+                ? isDark ? 'text-emerald-200' : 'text-green-800'
+                : isDark ? 'text-slate-300' : 'text-gray-700'
             }`}>
               "{currentMessage || "Preparing your morning motivation..."}"
             </p>
@@ -497,7 +514,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
 
           {/* Snooze counter */}
           {snoozedCount > 0 && (
-            <p className="text-xs sm:text-sm text-orange-600 font-medium">
+            <p className={`text-xs sm:text-sm font-medium ${isDark ? 'text-indigo-400' : 'text-orange-600'}`}>
               Snooze attempts: {snoozedCount} - Stay strong! 💪
             </p>
           )}
@@ -507,7 +524,11 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
             <Button
               variant="outline"
               onClick={handleSnooze}
-              className="flex-1 py-5 sm:py-6 text-orange-600 border-orange-300 hover:bg-orange-50 rounded-xl text-sm sm:text-base"
+              className={`flex-1 py-5 sm:py-6 rounded-xl text-sm sm:text-base ${
+                isDark 
+                  ? 'text-indigo-300 border-indigo-600 hover:bg-indigo-900/50' 
+                  : 'text-orange-600 border-orange-300 hover:bg-orange-50'
+              }`}
               disabled={!isConnected}
             >
               <Sun className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 shrink-0" />

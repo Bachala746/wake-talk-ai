@@ -8,6 +8,8 @@ import { WakeUpChallenge } from "./WakeUpChallenge";
 import { useElevenLabsConversation } from "@/hooks/useElevenLabsConversation";
 import { AudioWaveform } from "./AudioWaveform";
 import { SpeakingAvatar } from "./SpeakingAvatar";
+import { useTheme } from "@/hooks/useTheme";
+
 interface RealtimeTwoWayCallProps {
   alarmTime: string;
   talkDuration: number;
@@ -28,6 +30,7 @@ export const RealtimeTwoWayCall = ({
   onEndCall, 
   isTestCall = false 
 }: RealtimeTwoWayCallProps) => {
+  const { isDark } = useTheme();
   const [showChallenge, setShowChallenge] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<Message[]>([]);
   const [currentMode, setCurrentMode] = useState<'connecting' | 'speaking' | 'listening'>('connecting');
@@ -43,33 +46,24 @@ export const RealtimeTwoWayCall = ({
   const conversation = useElevenLabsConversation({
     agentId,
     onConnect: () => {
-      console.log('Real-time conversation connected');
       toast.success(isTestCall ? "🎤 Real-time test started!" : "🎤 Real-time AI connected!");
       setCurrentMode('listening');
       setCurrentMessage("I'm listening... speak to me!");
     },
     onDisconnect: () => {
-      console.log('Real-time conversation disconnected');
-      if (shouldContinueRef.current) {
-        toast.info("Conversation ended");
-      }
+      if (shouldContinueRef.current) toast.info("Conversation ended");
     },
     onMessage: (message) => {
       setConversationHistory(prev => [...prev, message]);
-      if (message.role === 'assistant') {
-        setCurrentMessage(message.content);
-      }
+      if (message.role === 'assistant') setCurrentMessage(message.content);
     },
-    onModeSwitch: (mode) => {
-      setCurrentMode(mode);
-    },
+    onModeSwitch: (mode) => setCurrentMode(mode),
     onError: (error) => {
       console.error('Conversation error:', error);
       toast.error("Connection error. Please try again.");
     },
   });
 
-  // Audio level visualization
   useEffect(() => {
     if (!conversation.isConnected) return;
 
@@ -92,7 +86,6 @@ export const RealtimeTwoWayCall = ({
     };
   }, [conversation.isConnected, conversation.getInputVolume, conversation.getOutputVolume]);
 
-  // Start conversation on mount
   useEffect(() => {
     const startCall = async () => {
       if (!agentId) {
@@ -113,9 +106,7 @@ export const RealtimeTwoWayCall = ({
     };
   }, []);
 
-  // Handle dismissal with challenges
   const handleDismiss = useCallback(() => {
-    // Always require challenge for non-test calls
     if (!isTestCall && settings.challengeType !== 'none') {
       setShowChallenge(true);
       shouldContinueRef.current = false;
@@ -123,29 +114,29 @@ export const RealtimeTwoWayCall = ({
       return;
     }
     
-    // For test calls or if no challenge, end directly
     shouldContinueRef.current = false;
     conversation.endConversation();
     toast.success(isTestCall ? "Test call ended! 🎉" : "Have an amazing day! 🌟");
     setTimeout(onEndCall, 1000);
   }, [isTestCall, settings.challengeType, conversation, onEndCall]);
 
-  // Handle challenge completion
   const handleChallengeComplete = useCallback(() => {
     setShowChallenge(false);
     toast.success("Challenge completed! Have an amazing day! 🌟");
     setTimeout(onEndCall, 1000);
   }, [onEndCall]);
 
-  // Handle challenge failure
   const handleChallengeFail = useCallback(() => {
     toast.error("Wrong! Try again to dismiss the alarm!");
   }, []);
 
-  // No longer needed - using AudioWaveform component instead
   if (showChallenge) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300">
+      <div className={`min-h-screen flex items-center justify-center p-4 ${
+        isDark 
+          ? 'bg-gradient-to-t from-indigo-900 via-slate-800 to-slate-900' 
+          : 'bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300'
+      }`}>
         <WakeUpChallenge 
           challengeType={settings.challengeType} 
           difficulty={settings.challengeDifficulty} 
@@ -157,33 +148,39 @@ export const RealtimeTwoWayCall = ({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-t from-purple-600 via-indigo-500 to-blue-400">
-      <Card className="w-full max-w-md p-6 bg-white/95 backdrop-blur-lg shadow-2xl rounded-3xl">
+    <div className={`min-h-screen flex items-center justify-center p-4 ${
+      isDark 
+        ? 'bg-gradient-to-t from-indigo-950 via-slate-900 to-indigo-900' 
+        : 'bg-gradient-to-t from-purple-600 via-indigo-500 to-blue-400'
+    }`}>
+      <Card className={`w-full max-w-md p-6 backdrop-blur-lg shadow-2xl rounded-3xl ${
+        isDark ? 'bg-slate-800/95' : 'bg-white/95'
+      }`}>
         <div className="text-center space-y-5">
-          {/* Real-time indicator */}
           <div className="flex items-center justify-center gap-2 mb-2">
             <Zap className="w-4 h-4 text-yellow-500" />
-            <span className="text-xs font-medium text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full">
+            <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+              isDark ? 'text-yellow-300 bg-yellow-900/30' : 'text-yellow-600 bg-yellow-100'
+            }`}>
               Real-Time AI • Zero Latency
             </span>
           </div>
 
-          {/* Avatars showing who is active */}
           <div className="flex items-center justify-center gap-8">
             <div className="flex flex-col items-center gap-2">
               <SpeakingAvatar type="user" isActive={currentMode === 'listening'} size="md" />
-              <span className={`text-xs font-medium ${currentMode === 'listening' ? 'text-blue-600' : 'text-gray-400'}`}>You</span>
+              <span className={`text-xs font-medium ${currentMode === 'listening' ? (isDark ? 'text-blue-400' : 'text-blue-600') : 'text-muted-foreground'}`}>You</span>
             </div>
             <div className="flex flex-col items-center gap-2">
               <SpeakingAvatar type="ai" isActive={currentMode === 'speaking'} size="md" />
-              <span className={`text-xs font-medium ${currentMode === 'speaking' ? 'text-green-600' : 'text-gray-400'}`}>AI</span>
+              <span className={`text-xs font-medium ${currentMode === 'speaking' ? (isDark ? 'text-emerald-400' : 'text-green-600') : 'text-muted-foreground'}`}>AI</span>
             </div>
           </div>
             
-          <h2 className="text-xl font-bold">
+          <h2 className="text-xl font-bold text-foreground">
             {isTestCall ? '🧪 Real-Time Test' : '⚡ AI Conversation'}
           </h2>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             {currentMode === 'speaking' 
               ? '🔊 AI Speaking...' 
               : currentMode === 'listening'
@@ -191,7 +188,6 @@ export const RealtimeTwoWayCall = ({
                 : '📡 Connecting...'}
           </p>
 
-          {/* Audio Waveform Visualization */}
           {conversation.isConnected && (
             <div className="flex justify-center gap-6 py-2">
               <AudioWaveform 
@@ -209,44 +205,45 @@ export const RealtimeTwoWayCall = ({
             </div>
           )}
 
-          {/* AI message display */}
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4 min-h-[80px] border border-indigo-100">
+          <div className={`rounded-xl p-4 min-h-[80px] border ${
+            isDark 
+              ? 'bg-indigo-900/30 border-indigo-700/30' 
+              : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-100'
+          }`}>
             <div className="flex items-start gap-2">
-              <MessageSquare className="w-5 h-5 text-indigo-500 mt-0.5 shrink-0" />
-              <p className="text-gray-700 text-sm text-left">{currentMessage}</p>
+              <MessageSquare className={`w-5 h-5 mt-0.5 shrink-0 ${isDark ? 'text-indigo-400' : 'text-indigo-500'}`} />
+              <p className={`text-sm text-left ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>{currentMessage}</p>
             </div>
           </div>
 
-          {/* Recent transcript */}
           {conversation.currentTranscript && (
-            <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+            <div className={`rounded-xl p-4 border ${
+              isDark ? 'bg-blue-900/20 border-blue-700/30' : 'bg-blue-50 border-blue-100'
+            }`}>
               <div className="flex items-start gap-2">
-                <Mic className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
-                <p className="text-gray-700 text-sm text-left italic">
+                <Mic className={`w-5 h-5 mt-0.5 shrink-0 ${isDark ? 'text-blue-400' : 'text-blue-500'}`} />
+                <p className={`text-sm text-left italic ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                   "{conversation.currentTranscript}"
                 </p>
               </div>
             </div>
           )}
 
-          {/* Connection status */}
           <div className="flex items-center justify-center gap-2">
             <span className={`w-2 h-2 rounded-full ${
-              conversation.isConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+              conversation.isConnected ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground'
             }`} />
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-muted-foreground">
               {conversation.isConnected ? 'Connected' : conversation.isConnecting ? 'Connecting...' : 'Disconnected'}
             </span>
           </div>
 
-          {/* Info text */}
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             {isTestCall 
               ? "Real-time mode: Just speak naturally!"
               : "Complete a challenge to dismiss the alarm."}
           </p>
 
-          {/* Dismiss button */}
           <Button 
             onClick={handleDismiss} 
             variant="destructive" 

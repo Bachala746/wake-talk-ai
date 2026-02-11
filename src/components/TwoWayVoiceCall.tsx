@@ -10,6 +10,8 @@ import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 import { useElevenLabsScribe } from "@/hooks/useElevenLabsScribe";
 import { AudioWaveform } from "./AudioWaveform";
 import { SpeakingAvatar } from "./SpeakingAvatar";
+import { useTheme } from "@/hooks/useTheme";
+
 interface TwoWayVoiceCallProps {
   alarmTime: string;
   talkDuration: number;
@@ -23,7 +25,6 @@ interface Message {
   content: string;
 }
 
-// Motivational messages when user doesn't respond
 const motivationalMessages = [
   "Hey! Are you still there? Come on, it's time to wake up!",
   "I know it's hard, but you can do this! Just say something!",
@@ -40,6 +41,7 @@ const motivationalMessages = [
 export const TwoWayVoiceCall = ({ 
   alarmTime, talkDuration, settings = defaultAlarmSettings, onEndCall, isTestCall = false,
 }: TwoWayVoiceCallProps) => {
+  const { isDark } = useTheme();
   const [isConnected, setIsConnected] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [currentMessage, setCurrentMessage] = useState("");
@@ -263,7 +265,11 @@ export const TwoWayVoiceCall = ({
 
   if (showChallenge) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300">
+      <div className={`min-h-screen flex items-center justify-center p-4 ${
+        isDark 
+          ? 'bg-gradient-to-t from-indigo-900 via-slate-800 to-slate-900' 
+          : 'bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300'
+      }`}>
         <WakeUpChallenge 
           challengeType={settings.challengeType} 
           difficulty={settings.challengeDifficulty} 
@@ -275,23 +281,29 @@ export const TwoWayVoiceCall = ({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300">
-      <Card className="w-full max-w-md p-6 bg-white/90 backdrop-blur-lg shadow-2xl rounded-3xl">
+    <div className={`min-h-screen flex items-center justify-center p-4 ${
+      isDark 
+        ? 'bg-gradient-to-t from-indigo-900 via-slate-800 to-slate-900' 
+        : 'bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300'
+    }`}>
+      <Card className={`w-full max-w-md p-6 backdrop-blur-lg shadow-2xl rounded-3xl ${
+        isDark ? 'bg-slate-800/90' : 'bg-white/90'
+      }`}>
         <div className="text-center space-y-5">
           {/* Avatars showing who is active */}
           <div className="flex items-center justify-center gap-8">
             <div className="flex flex-col items-center gap-2">
               <SpeakingAvatar type="user" isActive={scribe.isListening} size="md" />
-              <span className={`text-xs font-medium ${scribe.isListening ? 'text-blue-600' : 'text-gray-400'}`}>You</span>
+              <span className={`text-xs font-medium ${scribe.isListening ? (isDark ? 'text-blue-400' : 'text-blue-600') : 'text-muted-foreground'}`}>You</span>
             </div>
             <div className="flex flex-col items-center gap-2">
               <SpeakingAvatar type="ai" isActive={isSpeaking} size="md" />
-              <span className={`text-xs font-medium ${isSpeaking ? 'text-green-600' : 'text-gray-400'}`}>AI</span>
+              <span className={`text-xs font-medium ${isSpeaking ? (isDark ? 'text-emerald-400' : 'text-green-600') : 'text-muted-foreground'}`}>AI</span>
             </div>
           </div>
 
-          <h2 className="text-xl font-bold">{isTestCall ? '🧪 Two-Way Test' : '💬 AI Conversation'}</h2>
-          <p className="text-sm text-gray-600">
+          <h2 className="text-xl font-bold text-foreground">{isTestCall ? '🧪 Two-Way Test' : '💬 AI Conversation'}</h2>
+          <p className="text-sm text-muted-foreground">
             {isSpeaking 
               ? '🔊 AI Speaking...' 
               : scribe.isListening 
@@ -317,9 +329,11 @@ export const TwoWayVoiceCall = ({
 
           {/* No response indicator */}
           {noResponseCount > 0 && !userHasResponded && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
-              <p className="text-sm text-amber-700">
+            <div className={`border rounded-xl p-3 flex items-center gap-2 ${
+              isDark ? 'bg-amber-900/20 border-amber-700/30' : 'bg-amber-50 border-amber-200'
+            }`}>
+              <AlertCircle className={`w-5 h-5 shrink-0 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
+              <p className={`text-sm ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>
                 I'll keep talking until you respond! ({noResponseCount} attempts)
               </p>
             </div>
@@ -328,14 +342,14 @@ export const TwoWayVoiceCall = ({
           {/* AI message display */}
           <div className={`rounded-xl p-4 min-h-[80px] transition-all duration-300 ${
             isSpeaking 
-              ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 shadow-lg shadow-green-100' 
-              : 'bg-orange-50'
+              ? isDark ? 'bg-emerald-900/30 border-2 border-emerald-700/50 shadow-lg' : 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 shadow-lg shadow-green-100' 
+              : isDark ? 'bg-indigo-900/30' : 'bg-orange-50'
           }`}>
             <div className="flex items-start gap-2">
               <Volume2 className={`w-5 h-5 mt-0.5 shrink-0 transition-colors ${
-                isSpeaking ? 'text-green-500' : 'text-orange-500'
+                isSpeaking ? (isDark ? 'text-emerald-400' : 'text-green-500') : (isDark ? 'text-indigo-400' : 'text-orange-500')
               }`} />
-              <p className="text-gray-700 text-sm text-left">{currentMessage || "Connecting..."}</p>
+              <p className={`text-sm text-left ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>{currentMessage || "Connecting..."}</p>
             </div>
           </div>
 
@@ -343,14 +357,14 @@ export const TwoWayVoiceCall = ({
           {(scribe.isListening || scribe.transcript) && (
             <div className={`rounded-xl p-4 transition-all duration-300 ${
               scribe.isListening 
-                ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-lg shadow-blue-100' 
-                : 'bg-blue-50'
+                ? isDark ? 'bg-blue-900/30 border-2 border-blue-700/50 shadow-lg' : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-lg shadow-blue-100' 
+                : isDark ? 'bg-blue-900/20' : 'bg-blue-50'
             }`}>
               <div className="flex items-start gap-2">
                 <Mic className={`w-5 h-5 mt-0.5 shrink-0 transition-colors ${
-                  scribe.isListening ? 'text-blue-500 animate-pulse' : 'text-blue-400'
+                  scribe.isListening ? (isDark ? 'text-blue-400 animate-pulse' : 'text-blue-500 animate-pulse') : (isDark ? 'text-blue-500' : 'text-blue-400')
                 }`} />
-                <p className="text-gray-700 text-sm text-left">
+                <p className={`text-sm text-left ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                   {scribe.transcript || "Listening... say something!"}
                 </p>
               </div>
@@ -358,7 +372,7 @@ export const TwoWayVoiceCall = ({
           )}
 
           {/* Info text */}
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             {isTestCall 
               ? "This is a test. Tap the red button to end anytime."
               : "Complete a challenge to dismiss the alarm."}

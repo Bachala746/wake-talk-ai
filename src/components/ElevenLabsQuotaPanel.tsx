@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { BarChart3, RefreshCw, AlertTriangle, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTheme } from "@/hooks/useTheme";
 
 interface QuotaData {
   characterCount: number;
@@ -13,6 +14,7 @@ interface QuotaData {
 }
 
 export const ElevenLabsQuotaPanel = () => {
+  const { isDark } = useTheme();
   const [quota, setQuota] = useState<QuotaData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,25 +26,15 @@ export const ElevenLabsQuotaPanel = () => {
       const { data, error: fnError } = await supabase.functions.invoke("text-to-speech", {
         body: { text: "", voiceStyle: "gentle", checkQuotaOnly: true },
       });
-
       if (fnError) throw new Error(fnError.message);
-
-      if (data?.quotaInfo) {
-        setQuota(data.quotaInfo);
-      } else {
-        setError("Could not retrieve quota info");
-      }
+      if (data?.quotaInfo) { setQuota(data.quotaInfo); } else { setError("Could not retrieve quota info"); }
     } catch (e) {
       console.error("Quota fetch error:", e);
       setError("Failed to check credits");
-    } finally {
-      setIsLoading(false);
-    }
+    } finally { setIsLoading(false); }
   }, []);
 
-  useEffect(() => {
-    fetchQuota();
-  }, [fetchQuota]);
+  useEffect(() => { fetchQuota(); }, [fetchQuota]);
 
   const remaining = quota ? quota.characterLimit - quota.characterCount : 0;
   const percentRemaining = quota ? 100 - quota.percentUsed : 0;
@@ -68,9 +60,12 @@ export const ElevenLabsQuotaPanel = () => {
   };
 
   return (
-    <Card className="p-4 sm:p-5 bg-white/80 backdrop-blur-sm border border-white/50 shadow-md">
+    <Card className={`p-4 sm:p-5 backdrop-blur-sm border shadow-md ${
+      isDark 
+        ? 'bg-slate-800/80 border-slate-700/50' 
+        : 'bg-white/80 border-white/50'
+    }`}>
       <div className="space-y-4">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="bg-gradient-to-br from-violet-500 to-indigo-600 p-2 rounded-xl shadow-md">
@@ -81,13 +76,7 @@ export const ElevenLabsQuotaPanel = () => {
               <p className="text-xs text-muted-foreground">Voice synthesis usage</p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={fetchQuota}
-            disabled={isLoading}
-          >
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={fetchQuota} disabled={isLoading}>
             <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
           </Button>
         </div>
@@ -95,55 +84,37 @@ export const ElevenLabsQuotaPanel = () => {
         {error ? (
           <div className="text-center py-3">
             <p className="text-xs text-muted-foreground">{error}</p>
-            <Button variant="link" size="sm" onClick={fetchQuota} className="text-xs mt-1">
-              Try again
-            </Button>
+            <Button variant="link" size="sm" onClick={fetchQuota} className="text-xs mt-1">Try again</Button>
           </div>
         ) : quota ? (
           <>
-            {/* Progress bar */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Used</span>
                 <div className="flex items-center gap-1.5">
                   {getStatusIcon()}
-                  <span className={`font-semibold ${getStatusColor()}`}>
-                    {percentRemaining}% remaining
-                  </span>
+                  <span className={`font-semibold ${getStatusColor()}`}>{percentRemaining}% remaining</span>
                 </div>
               </div>
-              <Progress
-                value={quota.percentUsed}
-                className={`h-2.5 bg-muted/50 ${getProgressColor()}`}
-              />
+              <Progress value={quota.percentUsed} className={`h-2.5 bg-muted/50 ${getProgressColor()}`} />
             </div>
 
-            {/* Stats */}
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-muted/30 rounded-xl p-3 text-center">
-                <p className="text-lg font-bold text-foreground">
-                  {remaining.toLocaleString()}
-                </p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                  Characters left
-                </p>
+                <p className="text-lg font-bold text-foreground">{remaining.toLocaleString()}</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Characters left</p>
               </div>
               <div className="bg-muted/30 rounded-xl p-3 text-center">
-                <p className="text-lg font-bold text-foreground">
-                  {quota.characterLimit.toLocaleString()}
-                </p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                  Total quota
-                </p>
+                <p className="text-lg font-bold text-foreground">{quota.characterLimit.toLocaleString()}</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total quota</p>
               </div>
             </div>
 
-            {/* Warning message */}
             {quota.percentUsed >= 80 && (
               <div className={`flex items-start gap-2 p-3 rounded-xl text-xs ${
                 quota.percentUsed >= 95 
-                  ? "bg-red-50 text-red-700 border border-red-200" 
-                  : "bg-amber-50 text-amber-700 border border-amber-200"
+                  ? isDark ? "bg-red-900/30 text-red-300 border border-red-700/30" : "bg-red-50 text-red-700 border border-red-200"
+                  : isDark ? "bg-amber-900/30 text-amber-300 border border-amber-700/30" : "bg-amber-50 text-amber-700 border border-amber-200"
               }`}>
                 <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                 <span>

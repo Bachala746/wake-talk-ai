@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTheme } from "@/hooks/useTheme";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -136,6 +137,7 @@ export const WakeUpChallenge = ({
   onComplete, 
   onFail 
 }: WakeUpChallengeProps) => {
+  const { isDark } = useTheme();
   // State for different challenge types
   const [mathProblem, setMathProblem] = useState(() => generateMathProblem(difficulty));
   const [userAnswer, setUserAnswer] = useState("");
@@ -604,21 +606,23 @@ export const WakeUpChallenge = ({
   };
 
   return (
-    <Card className="p-4 sm:p-6 bg-white/95 backdrop-blur-lg shadow-2xl border-0 rounded-2xl sm:rounded-3xl max-w-md w-full mx-3 sm:mx-0">
+    <Card className={`p-4 sm:p-6 backdrop-blur-lg shadow-2xl border-0 rounded-2xl sm:rounded-3xl max-w-md w-full mx-3 sm:mx-0 ${
+      isDark ? 'bg-slate-800/95' : 'bg-white/95'
+    }`}>
       {/* Header */}
       <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
         <div className={`p-2.5 sm:p-3 rounded-lg sm:rounded-xl shrink-0 ${
           isCorrect === true ? 'bg-green-500' : 
           isCorrect === false ? 'bg-red-500' : 
-          'bg-gradient-to-br from-orange-400 to-amber-500'
+          isDark ? 'bg-gradient-to-br from-indigo-500 to-purple-600' : 'bg-gradient-to-br from-orange-400 to-amber-500'
         } text-white transition-colors`}>
           {isCorrect === true ? <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6" /> :
            isCorrect === false ? <XCircle className="h-5 w-5 sm:h-6 sm:w-6" /> :
            getChallengeIcon()}
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="text-base sm:text-lg font-bold text-gray-800 truncate">{getChallengeTitle()}</h3>
-          <p className="text-xs sm:text-sm text-gray-500 capitalize">{difficulty} difficulty</p>
+          <h3 className="text-base sm:text-lg font-bold text-foreground truncate">{getChallengeTitle()}</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground capitalize">{difficulty} difficulty</p>
         </div>
       </div>
       
