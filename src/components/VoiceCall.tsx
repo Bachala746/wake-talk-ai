@@ -410,6 +410,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
             difficulty={settings.challengeDifficulty}
             onComplete={handleChallengeComplete}
             onFail={handleChallengeFail}
+            speakMatchSettings={settings.speakMatchSettings}
           />
         </div>
       </div>

@@ -199,7 +199,7 @@ export const snoozeMessages: Record<SnoozeLevel, string[]> = {
 };
 
 // Wake-up challenge types
-export type ChallengeType = 'none' | 'math' | 'shake' | 'typing' | 'memory' | 'pattern' | 'slider' | 'captcha' | 'barcode' | 'qrcode' | 'steps';
+export type ChallengeType = 'none' | 'math' | 'shake' | 'typing' | 'memory' | 'pattern' | 'slider' | 'captcha' | 'barcode' | 'qrcode' | 'steps' | 'speakMatch';
 
 export const challengeTypes: { value: ChallengeType; label: string; description: string; icon: string }[] = [
   { value: 'none', label: 'None', description: 'No challenge required', icon: '😴' },
@@ -213,7 +213,102 @@ export const challengeTypes: { value: ChallengeType; label: string; description:
   { value: 'barcode', label: 'Scan Barcode', description: 'Scan any barcode to dismiss', icon: '📊' },
   { value: 'qrcode', label: 'Scan QR Code', description: 'Scan any QR code to dismiss', icon: '📷' },
   { value: 'steps', label: 'Walk Steps', description: 'Walk required steps to dismiss', icon: '🚶' },
+  { value: 'speakMatch', label: 'Speak & Match', description: 'Read text aloud to dismiss', icon: '🗣️' },
 ];
+
+// Speak & Match challenge settings
+export type SpeakMatchParagraphLength = 'short' | 'medium' | 'long';
+export type SpeakMatchAccuracy = 'relaxed' | 'standard' | 'strict';
+export type SpeakMatchParagraphType = 'motivational' | 'funny' | 'tongueTwister' | 'knowledge' | 'custom';
+
+export const speakMatchParagraphLengths: { value: SpeakMatchParagraphLength; label: string; description: string }[] = [
+  { value: 'short', label: 'Short', description: '2–3 lines' },
+  { value: 'medium', label: 'Medium', description: '5–6 lines' },
+  { value: 'long', label: 'Long', description: '8–12 lines' },
+];
+
+export const speakMatchAccuracyLevels: { value: SpeakMatchAccuracy; label: string; threshold: number }[] = [
+  { value: 'relaxed', label: 'Relaxed (70%)', threshold: 70 },
+  { value: 'standard', label: 'Standard (85%)', threshold: 85 },
+  { value: 'strict', label: 'Strict (95%)', threshold: 95 },
+];
+
+export const speakMatchTimeLimits = [30, 60, 90, 120];
+
+export const speakMatchRetryLimits: { value: number; label: string }[] = [
+  { value: 1, label: '1 attempt' },
+  { value: 3, label: '3 attempts' },
+  { value: 0, label: 'Unlimited' },
+];
+
+export const speakMatchParagraphTypes: { value: SpeakMatchParagraphType; label: string; icon: string }[] = [
+  { value: 'motivational', label: 'Motivational', icon: '💪' },
+  { value: 'funny', label: 'Funny', icon: '😂' },
+  { value: 'tongueTwister', label: 'Tongue Twister', icon: '👅' },
+  { value: 'knowledge', label: 'Random Knowledge', icon: '📚' },
+  { value: 'custom', label: 'Custom Text', icon: '✏️' },
+];
+
+export const speakMatchParagraphs: Record<SpeakMatchParagraphType, Record<SpeakMatchParagraphLength, string[]>> = {
+  motivational: {
+    short: [
+      "Every morning is a fresh start. Rise up, show up, and never give up.",
+      "You are stronger than you think. Today is your day to prove it.",
+      "Success begins the moment you decide to try. Make today count.",
+    ],
+    medium: [
+      "The sun rises every day without hesitation, and so should you. Every challenge you face is an opportunity to grow stronger. Believe in your potential and take that first step forward. The world is waiting for the amazing things only you can create.",
+      "Champions are not made in the gym. They are made from something deep inside them. A desire, a dream, a vision. They have to have the skill and the will. But the will must be stronger than the skill. Rise and conquer this beautiful day.",
+    ],
+    long: [
+      "Every great achievement started as a simple thought in someone's mind. That person chose to believe in themselves when nobody else would. They woke up every single morning with purpose and determination. They faced setbacks and failures but refused to quit. They understood that the path to success is never straight. It winds and turns through valleys of doubt and mountains of challenge. But with each step forward, they grew stronger and more resilient. Today, you have that same power within you. Rise up, embrace the challenge, and make this day extraordinary. The world needs your unique gifts and talents.",
+    ],
+  },
+  funny: {
+    short: [
+      "My bed and I have a special relationship. We are perfect for each other. But my alarm clock keeps trying to break us apart.",
+      "I told my pillow about my dreams. It said stop sleeping on the job.",
+    ],
+    medium: [
+      "Scientists have discovered that mornings would be much better if they started later in the afternoon. Unfortunately, this research has been rejected by every boss in history. The snooze button was invented by a genius who understood the human condition perfectly. But here we are, awake and ready to pretend we enjoy it.",
+      "Coffee was discovered by a goat herder who noticed his goats dancing after eating coffee berries. So basically, we owe our entire morning productivity to some dancing goats from centuries ago. Let that sink in while you contemplate your existence this fine morning.",
+    ],
+    long: [
+      "Welcome to another episode of being awake when you would rather not be. Today on the program, we will discuss the fundamental question that has plagued humanity since the invention of the alarm clock. Why do we set alarms when we know we will hate them in the morning? Experts suggest it has something to do with responsibility and adult obligations. But I think it is because we are all secretly optimistic the night before. We think tomorrow morning me will be a different person. Someone who leaps out of bed with energy and enthusiasm. Spoiler alert, tomorrow morning me is always the same grumpy person. But hey, at least you are reading this, which means you are awake. And that is half the battle won right there.",
+    ],
+  },
+  tongueTwister: {
+    short: [
+      "She sells seashells by the seashore. The shells she sells are seashells for sure.",
+      "Peter Piper picked a peck of pickled peppers. How many pickled peppers did Peter Piper pick?",
+    ],
+    medium: [
+      "How much wood would a woodchuck chuck if a woodchuck could chuck wood? He would chuck as much wood as a woodchuck would if a woodchuck could chuck wood. A proper copper coffee pot is a proper copper coffee pot indeed.",
+      "Betty Botter bought some butter but she said the butter is bitter. If I put it in my batter it will make my batter bitter. But a bit of better butter will make my batter better. So Betty Botter bought a bit of better butter.",
+    ],
+    long: [
+      "The sixth sick sheik's sixth sheep is sick. I wish to wish the wish you wish to wish, but if you wish the wish the witch wishes, I will not wish the wish you wish to wish. Whether the weather be fine, or whether the weather be not. Whether the weather be cold, or whether the weather be hot. We will weather the weather, whatever the weather, whether we like it or not. A skunk sat on a stump and thunk the stump stunk, but the stump thunk the skunk stunk. If two witches were watching two watches, which witch would watch which watch?",
+    ],
+  },
+  knowledge: {
+    short: [
+      "Honey never spoils. Archaeologists have found pots of honey in ancient Egyptian tombs that are over three thousand years old.",
+      "Octopuses have three hearts, nine brains, and blue blood. They are truly remarkable creatures of the deep sea.",
+    ],
+    medium: [
+      "The human brain uses approximately twenty percent of the body's total energy despite being only about two percent of total body weight. It processes information at remarkable speeds and can store roughly two point five petabytes of data. That is equivalent to about three million hours of television shows. Your brain is literally more powerful than any computer ever built.",
+      "A day on Venus is longer than a year on Venus. It takes Venus two hundred forty three Earth days to rotate once on its axis but only two hundred twenty five Earth days to orbit the Sun. This means the planet completes an entire trip around the Sun before it finishes a single rotation.",
+    ],
+    long: [
+      "The Great Wall of China is not visible from space with the naked eye, contrary to popular belief. This myth has been debunked by multiple astronauts including Chinese astronaut Yang Liwei. The wall is quite narrow relative to its length, making it impossible to see from orbit without aid. However, it remains one of the most impressive architectural achievements in human history. Stretching over thirteen thousand miles across northern China, it was built over many centuries by various Chinese dynasties. The wall served as a defensive fortification against invasions from the north. Today it stands as a testament to human determination and engineering skill. Millions of tourists visit the Great Wall every year, making it one of the most popular tourist destinations in the world.",
+    ],
+  },
+  custom: {
+    short: [""],
+    medium: [""],
+    long: [""],
+  },
+};
 
 export type ChallengeDifficulty = 'easy' | 'medium' | 'hard';
 
@@ -222,6 +317,25 @@ export const challengeDifficulties: { value: ChallengeDifficulty; label: string;
   { value: 'medium', label: 'Medium', description: 'Moderate difficulty' },
   { value: 'hard', label: 'Hard', description: 'For heavy sleepers' },
 ];
+
+// Speak & Match settings interface
+export interface SpeakMatchSettings {
+  paragraphLength: SpeakMatchParagraphLength;
+  accuracy: SpeakMatchAccuracy;
+  timeLimit: number;
+  retryLimit: number; // 0 = unlimited
+  paragraphType: SpeakMatchParagraphType;
+  customText: string;
+}
+
+export const defaultSpeakMatchSettings: SpeakMatchSettings = {
+  paragraphLength: 'short',
+  accuracy: 'standard',
+  timeLimit: 60,
+  retryLimit: 3,
+  paragraphType: 'motivational',
+  customText: '',
+};
 
 // Complete alarm settings interface
 export interface AlarmSettings {
@@ -237,6 +351,8 @@ export interface AlarmSettings {
   challengeDifficulty: ChallengeDifficulty;
   // ElevenLabs Agent ID for real-time conversation
   elevenLabsAgentId?: string;
+  // Speak & Match settings
+  speakMatchSettings?: SpeakMatchSettings;
 }
 
 export const defaultAlarmSettings: AlarmSettings = {
@@ -251,4 +367,5 @@ export const defaultAlarmSettings: AlarmSettings = {
   challengeType: 'none',
   challengeDifficulty: 'easy',
   elevenLabsAgentId: '',
+  speakMatchSettings: defaultSpeakMatchSettings,
 };

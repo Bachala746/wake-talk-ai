@@ -21,10 +21,22 @@ import {
   QrCode,
   Footprints,
   Camera,
-  CameraOff
+  CameraOff,
+  Mic,
+  MicOff,
+  Volume2
 } from "lucide-react";
-import { ChallengeType } from "@/lib/alarmSettings";
+import { 
+  ChallengeType, 
+  SpeakMatchSettings, 
+  defaultSpeakMatchSettings, 
+  speakMatchParagraphs, 
+  speakMatchAccuracyLevels,
+  SpeakMatchParagraphType,
+  SpeakMatchParagraphLength
+} from "@/lib/alarmSettings";
 import { Html5Qrcode } from "html5-qrcode";
+import { useElevenLabsScribe } from "@/hooks/useElevenLabsScribe";
 import { 
   playStepSound, 
   playChallengeCompleteSound, 
@@ -32,7 +44,8 @@ import {
   playCorrectTapSound, 
   playShakeSound,
   playScanSuccessSound,
-  playMilestoneSound 
+  playMilestoneSound,
+  playPressureTickSound
 } from "@/lib/soundEffects";
 
 interface WakeUpChallengeProps {
@@ -40,6 +53,7 @@ interface WakeUpChallengeProps {
   difficulty: 'easy' | 'medium' | 'hard';
   onComplete: () => void;
   onFail?: () => void;
+  speakMatchSettings?: SpeakMatchSettings;
 }
 
 // Math problem generator
@@ -131,11 +145,52 @@ const generateCaptchaWord = (difficulty: 'easy' | 'medium' | 'hard') => {
   return words[Math.floor(Math.random() * words.length)].toUpperCase();
 };
 
+// Speak & Match: word comparison utility
+const compareWords = (displayed: string, spoken: string): { matchPercent: number; wordResults: { word: string; matched: boolean }[] } => {
+  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().split(/\s+/).filter(Boolean);
+  const displayedWords = normalize(displayed);
+  const spokenWords = normalize(spoken);
+  
+  let matched = 0;
+  const wordResults = displayedWords.map((word, i) => {
+    // Check if the spoken words contain this word (in sequence, allowing skips)
+    const found = spokenWords.some((sw, j) => {
+      // Fuzzy: allow Levenshtein distance of 1 for words > 4 chars
+      if (word === sw) return true;
+      if (word.length > 4 && sw.length > 4) {
+        let diff = 0;
+        const longer = word.length > sw.length ? word : sw;
+        const shorter = word.length > sw.length ? sw : word;
+        for (let k = 0; k < longer.length; k++) {
+          if (shorter[k] !== longer[k]) diff++;
+        }
+        return diff <= 1;
+      }
+      return false;
+    });
+    if (found) matched++;
+    return { word, matched: found };
+  });
+  
+  const matchPercent = displayedWords.length > 0 ? Math.round((matched / displayedWords.length) * 100) : 0;
+  return { matchPercent, wordResults };
+};
+
+// Get a random paragraph for Speak & Match
+const getRandomParagraph = (type: SpeakMatchParagraphType, length: SpeakMatchParagraphLength, customText: string): string => {
+  if (type === 'custom' && customText.trim()) return customText;
+  const paragraphs = speakMatchParagraphs[type]?.[length] || speakMatchParagraphs.motivational[length];
+  const filtered = paragraphs.filter(p => p.trim().length > 0);
+  if (filtered.length === 0) return speakMatchParagraphs.motivational[length][0];
+  return filtered[Math.floor(Math.random() * filtered.length)];
+};
+
 export const WakeUpChallenge = ({ 
   challengeType, 
   difficulty, 
   onComplete, 
-  onFail 
+  onFail,
+  speakMatchSettings
 }: WakeUpChallengeProps) => {
   const { isDark } = useTheme();
   // State for different challenge types
@@ -189,6 +244,40 @@ export const WakeUpChallenge = ({
   
   // Timer for quick math
   const [timeLeft, setTimeLeft] = useState(difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 15);
+  
+  // Speak & Match state
+  const smSettings = speakMatchSettings || defaultSpeakMatchSettings;
+  const [smParagraph, setSmParagraph] = useState(() => 
+    getRandomParagraph(smSettings.paragraphType, smSettings.paragraphLength, smSettings.customText)
+  );
+  const [smTranscript, setSmTranscript] = useState('');
+  const [smPartialTranscript, setSmPartialTranscript] = useState('');
+  const [smWordResults, setSmWordResults] = useState<{ word: string; matched: boolean }[]>([]);
+  const [smMatchPercent, setSmMatchPercent] = useState(0);
+  const [smAttempts, setSmAttempts] = useState(0);
+  const [smTimeLeft, setSmTimeLeft] = useState(smSettings.timeLimit);
+  const [smIsListening, setSmIsListening] = useState(false);
+  const [smCompleted, setSmCompleted] = useState(false);
+  const [smEscalated, setSmEscalated] = useState(false);
+  const pressureTickRef = useRef<number | null>(null);
+  
+  const scribe = useElevenLabsScribe({
+    onPartialTranscript: (text) => {
+      if (challengeType === 'speakMatch') {
+        setSmPartialTranscript(text);
+      }
+    },
+    onFinalTranscript: (text) => {
+      if (challengeType === 'speakMatch') {
+        setSmTranscript(text);
+        // Evaluate match
+        const { matchPercent, wordResults } = compareWords(smParagraph, text);
+        setSmMatchPercent(matchPercent);
+        setSmWordResults(wordResults);
+      }
+    },
+    autoSubmitAfterSilence: 2000,
+  });
   
   // Shake detection
   useEffect(() => {
@@ -573,6 +662,102 @@ export const WakeUpChallenge = ({
     }
   };
   
+  // Speak & Match timer
+  useEffect(() => {
+    if (challengeType !== 'speakMatch' || smCompleted) return;
+    
+    const timer = setInterval(() => {
+      setSmTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          // Time's up - count as failed attempt
+          if (smIsListening) {
+            scribe.stopListening();
+            setSmIsListening(false);
+          }
+          handleSmTimeUp();
+          return 0;
+        }
+        // Play pressure tick in last 10 seconds
+        if (prev <= 11 && prev > 1) {
+          playPressureTickSound();
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [challengeType, smCompleted, smIsListening]);
+  
+  const handleSmStart = async () => {
+    const started = await scribe.startListening();
+    if (started) {
+      setSmIsListening(true);
+      setSmTranscript('');
+      setSmPartialTranscript('');
+      setSmWordResults([]);
+      setSmMatchPercent(0);
+    }
+  };
+  
+  const handleSmStop = () => {
+    scribe.stopListening();
+    setSmIsListening(false);
+    
+    // Evaluate final result
+    const fullTranscript = smTranscript || smPartialTranscript;
+    if (fullTranscript) {
+      const { matchPercent, wordResults } = compareWords(smParagraph, fullTranscript);
+      setSmMatchPercent(matchPercent);
+      setSmWordResults(wordResults);
+      setSmTranscript(fullTranscript);
+      
+      const threshold = speakMatchAccuracyLevels.find(l => l.value === smSettings.accuracy)?.threshold || 85;
+      
+      if (matchPercent >= threshold) {
+        setSmCompleted(true);
+        setIsCorrect(true);
+        playChallengeCompleteSound();
+        setTimeout(onComplete, 500);
+      } else {
+        setIsCorrect(false);
+        playWrongSound();
+        handleSmRetry();
+      }
+    }
+  };
+  
+  const handleSmRetry = () => {
+    const newAttempts = smAttempts + 1;
+    setSmAttempts(newAttempts);
+    
+    // Check retry limit (0 = unlimited)
+    if (smSettings.retryLimit > 0 && newAttempts >= smSettings.retryLimit) {
+      // Anti-snooze: escalate difficulty
+      setSmEscalated(true);
+      // Generate a longer paragraph
+      const escalatedLength = smSettings.paragraphLength === 'short' ? 'medium' : 'long';
+      setSmParagraph(getRandomParagraph(smSettings.paragraphType, escalatedLength, smSettings.customText));
+      setSmAttempts(0); // Reset attempts with harder text
+    }
+    
+    // Reset for next attempt
+    setTimeout(() => {
+      setIsCorrect(null);
+      setSmTranscript('');
+      setSmPartialTranscript('');
+      setSmWordResults([]);
+      setSmMatchPercent(0);
+      setSmTimeLeft(smSettings.timeLimit);
+    }, 1500);
+  };
+  
+  const handleSmTimeUp = () => {
+    setIsCorrect(false);
+    playWrongSound();
+    handleSmRetry();
+  };
+  
   const getChallengeIcon = () => {
     switch (challengeType) {
       case 'math': return <Calculator className="h-6 w-6" />;
@@ -585,6 +770,7 @@ export const WakeUpChallenge = ({
       case 'barcode': return <ScanBarcode className="h-6 w-6" />;
       case 'qrcode': return <QrCode className="h-6 w-6" />;
       case 'steps': return <Footprints className="h-6 w-6" />;
+      case 'speakMatch': return <Mic className="h-6 w-6" />;
       default: return <Timer className="h-6 w-6" />;
     }
   };
@@ -601,6 +787,7 @@ export const WakeUpChallenge = ({
       case 'barcode': return 'Scan Any Barcode';
       case 'qrcode': return 'Scan Any QR Code';
       case 'steps': return 'Walk to Dismiss';
+      case 'speakMatch': return smEscalated ? '🔥 Speak & Match (Harder!)' : 'Speak & Match';
       default: return 'Complete the Challenge';
     }
   };
@@ -973,6 +1160,126 @@ export const WakeUpChallenge = ({
             <Footprints className="h-4 w-4 sm:h-5 sm:w-5 mr-2 shrink-0" />
             <span>Tap to Simulate Steps (Desktop Mode)</span>
           </Button>
+        </div>
+      )}
+      
+      {challengeType === 'speakMatch' && (
+        <div className="space-y-3 sm:space-y-4">
+          {/* Timer bar */}
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs sm:text-sm text-muted-foreground">Time left</span>
+            <span className={`text-xs sm:text-sm font-bold ${smTimeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-foreground'}`}>
+              {smTimeLeft}s
+            </span>
+          </div>
+          <Progress 
+            value={(smTimeLeft / smSettings.timeLimit) * 100} 
+            className={`h-2 ${smTimeLeft <= 10 ? '[&>div]:bg-red-500' : ''}`} 
+          />
+          
+          {/* Escalation warning */}
+          {smEscalated && (
+            <div className={`text-center text-xs font-bold py-1.5 rounded-lg ${
+              isDark ? 'bg-red-900/40 text-red-300' : 'bg-red-100 text-red-600'
+            }`}>
+              🔥 Difficulty increased! Read the new paragraph carefully.
+            </div>
+          )}
+          
+          {/* Paragraph to read */}
+          <div className={`p-4 sm:p-5 rounded-xl sm:rounded-2xl ${
+            isDark ? 'bg-slate-700/50' : 'bg-gradient-to-br from-orange-50 to-amber-50'
+          }`}>
+            <p className="text-xs sm:text-sm text-muted-foreground mb-2 flex items-center gap-1.5">
+              <Volume2 className="h-3.5 w-3.5" />
+              Read this aloud:
+            </p>
+            <p className="text-sm sm:text-base leading-relaxed">
+              {smWordResults.length > 0 ? (
+                smWordResults.map((wr, i) => (
+                  <span 
+                    key={i} 
+                    className={`${wr.matched ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold underline decoration-wavy'} mr-1`}
+                  >
+                    {wr.word}
+                  </span>
+                ))
+              ) : (
+                <span className="text-foreground">{smParagraph}</span>
+              )}
+            </p>
+          </div>
+          
+          {/* Match percentage */}
+          {smMatchPercent > 0 && (
+            <div className="text-center">
+              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${
+                smMatchPercent >= (speakMatchAccuracyLevels.find(l => l.value === smSettings.accuracy)?.threshold || 85)
+                  ? 'bg-green-100 text-green-700' 
+                  : 'bg-red-100 text-red-700'
+              }`}>
+                {smMatchPercent}% match
+                {smMatchPercent >= (speakMatchAccuracyLevels.find(l => l.value === smSettings.accuracy)?.threshold || 85)
+                  ? <CheckCircle className="h-4 w-4" />
+                  : <XCircle className="h-4 w-4" />
+                }
+              </div>
+            </div>
+          )}
+          
+          {/* Live transcript */}
+          {(smTranscript || smPartialTranscript) && (
+            <div className={`p-3 rounded-lg text-xs sm:text-sm ${
+              isDark ? 'bg-slate-600/50' : 'bg-gray-100'
+            }`}>
+              <p className="text-muted-foreground text-xs mb-1">Your speech:</p>
+              <p className="text-foreground">
+                {smTranscript}
+                {smPartialTranscript && (
+                  <span className="text-muted-foreground italic"> {smPartialTranscript}</span>
+                )}
+              </p>
+            </div>
+          )}
+          
+          {/* Attempt counter */}
+          {smAttempts > 0 && (
+            <p className="text-center text-xs text-muted-foreground">
+              Attempt {smAttempts + 1}
+              {smSettings.retryLimit > 0 ? ` of ${smSettings.retryLimit}` : ''}
+            </p>
+          )}
+          
+          {/* Control buttons */}
+          <div className="flex gap-2">
+            {!smIsListening ? (
+              <Button 
+                onClick={handleSmStart} 
+                disabled={smCompleted || smTimeLeft <= 0}
+                className={`flex-1 py-5 text-sm sm:text-base ${
+                  isDark 
+                    ? 'bg-indigo-500 hover:bg-indigo-600 text-white' 
+                    : 'bg-orange-500 hover:bg-orange-600 text-white'
+                }`}
+              >
+                <Mic className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                Start Speaking
+              </Button>
+            ) : (
+              <Button 
+                onClick={handleSmStop}
+                className="flex-1 py-5 text-sm sm:text-base bg-red-500 hover:bg-red-600 text-white"
+              >
+                <MicOff className="h-4 w-4 sm:h-5 sm:w-5 mr-2 animate-pulse" />
+                Stop & Check
+              </Button>
+            )}
+          </div>
+          
+          {/* Accuracy requirement info */}
+          <p className="text-center text-xs text-muted-foreground">
+            Required accuracy: {speakMatchAccuracyLevels.find(l => l.value === smSettings.accuracy)?.label}
+          </p>
         </div>
       )}
       

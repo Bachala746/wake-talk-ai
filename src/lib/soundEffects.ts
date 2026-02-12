@@ -110,6 +110,11 @@ export const playScanSuccessSound = () => {
   }
 };
 
+// Pressure tick sound - for time running out
+export const playPressureTickSound = () => {
+  playTone(1200, 0.06, 0.25, 'square');
+};
+
 // Milestone sound (e.g., every 10 steps)
 export const playMilestoneSound = () => {
   try {

@@ -21,6 +21,10 @@ import {
   ChallengeType,
   ChallengeDifficulty,
   InteractionMode,
+  SpeakMatchSettings,
+  SpeakMatchParagraphLength,
+  SpeakMatchAccuracy,
+  SpeakMatchParagraphType,
   voiceStyles,
   greetingStyles,
   messageThemes,
@@ -30,6 +34,12 @@ import {
   challengeDifficulties,
   interactionModes,
   defaultAlarmSettings,
+  defaultSpeakMatchSettings,
+  speakMatchParagraphLengths,
+  speakMatchAccuracyLevels,
+  speakMatchTimeLimits,
+  speakMatchRetryLimits,
+  speakMatchParagraphTypes,
 } from "@/lib/alarmSettings";
 
 const motivationalQuotes = [
@@ -85,6 +95,14 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [challengeDifficulty, setChallengeDifficulty] = useState<ChallengeDifficulty>(defaultAlarmSettings.challengeDifficulty);
   const [gradualVolume, setGradualVolume] = useState(defaultAlarmSettings.gradualVolume);
   const [elevenLabsAgentId, setElevenLabsAgentId] = useState(defaultAlarmSettings.elevenLabsAgentId || '');
+  
+  // Speak & Match states
+  const [smParagraphLength, setSmParagraphLength] = useState<SpeakMatchParagraphLength>(defaultSpeakMatchSettings.paragraphLength);
+  const [smAccuracy, setSmAccuracy] = useState<SpeakMatchAccuracy>(defaultSpeakMatchSettings.accuracy);
+  const [smTimeLimit, setSmTimeLimit] = useState(defaultSpeakMatchSettings.timeLimit);
+  const [smRetryLimit, setSmRetryLimit] = useState(defaultSpeakMatchSettings.retryLimit);
+  const [smParagraphType, setSmParagraphType] = useState<SpeakMatchParagraphType>(defaultSpeakMatchSettings.paragraphType);
+  const [smCustomText, setSmCustomText] = useState(defaultSpeakMatchSettings.customText);
 
   // Rotate motivational quotes
   useEffect(() => {
@@ -156,6 +174,15 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   };
 
   const handleSaveAlarm = () => {
+    const speakMatchSettingsObj: SpeakMatchSettings = {
+      paragraphLength: smParagraphLength,
+      accuracy: smAccuracy,
+      timeLimit: smTimeLimit,
+      retryLimit: smRetryLimit,
+      paragraphType: smParagraphType,
+      customText: smCustomText,
+    };
+
     const settings: AlarmSettings = {
       interactionMode,
       voiceStyle,
@@ -168,6 +195,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       challengeType,
       challengeDifficulty,
       elevenLabsAgentId: interactionMode === 'two-way' ? elevenLabsAgentId : '',
+      speakMatchSettings: challengeType === 'speakMatch' ? speakMatchSettingsObj : undefined,
     };
 
     if (editingAlarmId) {
@@ -231,6 +259,14 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setChallengeType(alarm.settings.challengeType || defaultAlarmSettings.challengeType);
     setChallengeDifficulty(alarm.settings.challengeDifficulty || defaultAlarmSettings.challengeDifficulty);
     setElevenLabsAgentId(alarm.settings.elevenLabsAgentId || '');
+    // Load speak & match settings
+    const smS = alarm.settings.speakMatchSettings || defaultSpeakMatchSettings;
+    setSmParagraphLength(smS.paragraphLength);
+    setSmAccuracy(smS.accuracy);
+    setSmTimeLimit(smS.timeLimit);
+    setSmRetryLimit(smS.retryLimit);
+    setSmParagraphType(smS.paragraphType);
+    setSmCustomText(smS.customText);
     setIsDialogOpen(true);
   };
 
@@ -252,6 +288,13 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setChallengeType(defaultAlarmSettings.challengeType);
     setChallengeDifficulty(defaultAlarmSettings.challengeDifficulty);
     setElevenLabsAgentId('');
+    // Reset speak & match to defaults
+    setSmParagraphLength(defaultSpeakMatchSettings.paragraphLength);
+    setSmAccuracy(defaultSpeakMatchSettings.accuracy);
+    setSmTimeLimit(defaultSpeakMatchSettings.timeLimit);
+    setSmRetryLimit(defaultSpeakMatchSettings.retryLimit);
+    setSmParagraphType(defaultSpeakMatchSettings.paragraphType);
+    setSmCustomText(defaultSpeakMatchSettings.customText);
     setIsDialogOpen(true);
   };
 
@@ -839,7 +882,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                 </div>
               </div>
 
-              {challengeType !== 'none' && (
+              {challengeType !== 'none' && challengeType !== 'speakMatch' && (
                 <div>
                   <Label className="text-sm font-medium mb-3 block">Challenge Difficulty</Label>
                   <div className="grid grid-cols-3 gap-2">
@@ -852,6 +895,84 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                   <p className="text-xs text-muted-foreground mt-2">
                     {challengeDifficulties.find(d => d.value === challengeDifficulty)?.description}
                   </p>
+                </div>
+              )}
+
+              {/* Speak & Match Settings */}
+              {challengeType === 'speakMatch' && (
+                <div className="space-y-4 pt-2 border-t border-border">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">🗣️ Speak & Match Settings</p>
+                  
+                  <div>
+                    <Label className="text-xs sm:text-sm font-medium mb-2 block">Paragraph Length</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {speakMatchParagraphLengths.map((pl) => (
+                        <Button key={pl.value} type="button" variant={smParagraphLength === pl.value ? "default" : "outline"} size="sm" onClick={() => setSmParagraphLength(pl.value)}>
+                          <div className="text-center">
+                            <div className="text-xs font-semibold">{pl.label}</div>
+                            <div className="text-[10px] opacity-70">{pl.description}</div>
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-xs sm:text-sm font-medium mb-2 block">Accuracy Level</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {speakMatchAccuracyLevels.map((al) => (
+                        <Button key={al.value} type="button" variant={smAccuracy === al.value ? "default" : "outline"} size="sm" onClick={() => setSmAccuracy(al.value)}>
+                          {al.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-xs sm:text-sm font-medium mb-2 block">Time Limit: {smTimeLimit}s</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {speakMatchTimeLimits.map((tl) => (
+                        <Button key={tl} type="button" variant={smTimeLimit === tl ? "default" : "outline"} size="sm" onClick={() => setSmTimeLimit(tl)}>
+                          {tl}s
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-xs sm:text-sm font-medium mb-2 block">Retry Limit</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {speakMatchRetryLimits.map((rl) => (
+                        <Button key={rl.value} type="button" variant={smRetryLimit === rl.value ? "default" : "outline"} size="sm" onClick={() => setSmRetryLimit(rl.value)}>
+                          {rl.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-xs sm:text-sm font-medium mb-2 block">Paragraph Type</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {speakMatchParagraphTypes.map((pt) => (
+                        <Button key={pt.value} type="button" variant={smParagraphType === pt.value ? "default" : "outline"} onClick={() => setSmParagraphType(pt.value)} className="flex items-center gap-1.5 justify-start h-auto py-2.5 px-3 min-w-0">
+                          <span className="shrink-0">{pt.icon}</span>
+                          <span className="font-semibold text-xs sm:text-sm truncate">{pt.label}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {smParagraphType === 'custom' && (
+                    <div>
+                      <Label className="text-xs sm:text-sm font-medium mb-2 block">Custom Text</Label>
+                      <textarea
+                        value={smCustomText}
+                        onChange={(e) => setSmCustomText(e.target.value)}
+                        placeholder="Enter your custom paragraph here..."
+                        className="w-full min-h-[80px] p-3 rounded-lg border border-border bg-background text-sm resize-y"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
             </TabsContent>
