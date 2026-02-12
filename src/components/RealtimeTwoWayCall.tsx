@@ -141,7 +141,8 @@ export const RealtimeTwoWayCall = ({
           challengeType={settings.challengeType} 
           difficulty={settings.challengeDifficulty} 
           onComplete={handleChallengeComplete} 
-          onFail={handleChallengeFail} 
+          onFail={handleChallengeFail}
+          speakMatchSettings={settings.speakMatchSettings}
         />
       </div>
     );
