@@ -265,12 +265,17 @@ export const WakeUpChallenge = ({
     onPartialTranscript: (text) => {
       if (challengeType === 'speakMatch') {
         setSmPartialTranscript(text);
+        // Real-time word tracking: update highlights as user speaks
+        const fullText = smTranscript ? `${smTranscript} ${text}` : text;
+        const { matchPercent, wordResults } = compareWords(smParagraph, fullText);
+        setSmMatchPercent(matchPercent);
+        setSmWordResults(wordResults);
       }
     },
     onFinalTranscript: (text) => {
       if (challengeType === 'speakMatch') {
         setSmTranscript(text);
-        // Evaluate match
+        // Evaluate match with final transcript
         const { matchPercent, wordResults } = compareWords(smParagraph, text);
         setSmMatchPercent(matchPercent);
         setSmWordResults(wordResults);
@@ -1199,7 +1204,16 @@ export const WakeUpChallenge = ({
                 smWordResults.map((wr, i) => (
                   <span 
                     key={i} 
-                    className={`${wr.matched ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold underline decoration-wavy'} mr-1`}
+                    className={`inline-block transition-all duration-300 mr-1 ${
+                      wr.matched 
+                        ? 'text-green-600 font-semibold scale-105' 
+                        : smIsListening 
+                          ? 'text-muted-foreground' 
+                          : 'text-red-500 font-semibold underline decoration-wavy'
+                    }`}
+                    style={wr.matched ? { 
+                      textShadow: '0 0 8px rgba(34, 197, 94, 0.3)',
+                    } : undefined}
                   >
                     {wr.word}
                   </span>
