@@ -54,6 +54,7 @@ interface WakeUpChallengeProps {
   onComplete: () => void;
   onFail?: () => void;
   speakMatchSettings?: SpeakMatchSettings;
+  registeredQrCode?: string;
 }
 
 // Math problem generator
@@ -190,7 +191,8 @@ export const WakeUpChallenge = ({
   difficulty, 
   onComplete, 
   onFail,
-  speakMatchSettings
+  speakMatchSettings,
+  registeredQrCode
 }: WakeUpChallengeProps) => {
   const { isDark } = useTheme();
   // State for different challenge types
@@ -231,6 +233,8 @@ export const WakeUpChallenge = ({
   const [scannerReady, setScannerReady] = useState(false);
   const [scannerError, setScannerError] = useState<string | null>(null);
   const [scannedCode, setScannedCode] = useState<string | null>(null);
+  const [qrWrongAttempts, setQrWrongAttempts] = useState(0);
+  const [qrWrongCode, setQrWrongCode] = useState<string | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scannerContainerRef = useRef<HTMLDivElement>(null);
   
@@ -408,14 +412,35 @@ export const WakeUpChallenge = ({
             qrbox: { width: 250, height: 250 },
           },
           (decodedText) => {
-            setScannedCode(decodedText);
-            setIsCorrect(true);
-            playScanSuccessSound();
-            html5QrCode.stop().catch(console.error);
-            setTimeout(() => {
-              playChallengeCompleteSound();
-              onComplete();
-            }, 500);
+            // For QR code challenge with a registered code, validate the scanned code
+            if (challengeType === 'qrcode' && registeredQrCode) {
+              if (decodedText === registeredQrCode) {
+                setScannedCode(decodedText);
+                setIsCorrect(true);
+                playScanSuccessSound();
+                html5QrCode.stop().catch(console.error);
+                setTimeout(() => {
+                  playChallengeCompleteSound();
+                  onComplete();
+                }, 500);
+              } else {
+                // Wrong QR code
+                setQrWrongCode(decodedText);
+                setQrWrongAttempts(prev => prev + 1);
+                playWrongSound();
+                // Brief pause before allowing next scan
+              }
+            } else {
+              // Barcode or QR without registered code - any code works
+              setScannedCode(decodedText);
+              setIsCorrect(true);
+              playScanSuccessSound();
+              html5QrCode.stop().catch(console.error);
+              setTimeout(() => {
+                playChallengeCompleteSound();
+                onComplete();
+              }, 500);
+            }
           },
           () => {
             // QR code not detected - ignore
@@ -438,7 +463,7 @@ export const WakeUpChallenge = ({
         scannerRef.current.stop().catch(console.error);
       }
     };
-  }, [challengeType, onComplete]);
+  }, [challengeType, onComplete, registeredQrCode]);
   
   // Step counter using accelerometer
   useEffect(() => {
@@ -790,7 +815,7 @@ export const WakeUpChallenge = ({
       case 'slider': return 'Match the Values';
       case 'captcha': return 'Read and Type';
       case 'barcode': return 'Scan Any Barcode';
-      case 'qrcode': return 'Scan Any QR Code';
+      case 'qrcode': return registeredQrCode ? 'Scan Your QR Code' : 'Scan Any QR Code';
       case 'steps': return 'Walk to Dismiss';
       case 'speakMatch': return smEscalated ? '🔥 Speak & Match (Harder!)' : 'Speak & Match';
       default: return 'Complete the Challenge';
@@ -1080,7 +1105,7 @@ export const WakeUpChallenge = ({
                 <CameraOff className="h-8 w-8 sm:h-12 sm:w-12 text-red-500" />
               </div>
               <p className="text-sm sm:text-base text-red-600 font-medium mb-2">Camera Error</p>
-              <p className="text-xs sm:text-sm text-gray-500 mb-4">{scannerError}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-4">{scannerError}</p>
               <Button 
                 onClick={() => window.location.reload()} 
                 className="bg-orange-500 hover:bg-orange-600"
@@ -1093,14 +1118,38 @@ export const WakeUpChallenge = ({
               <div className="inline-block p-4 sm:p-6 bg-green-100 rounded-full mb-4">
                 <CheckCircle className="h-8 w-8 sm:h-12 sm:w-12 text-green-500" />
               </div>
-              <p className="text-sm sm:text-base text-green-600 font-medium">Code Scanned!</p>
-              <p className="text-xs text-gray-500 mt-2 break-all px-4">{scannedCode.slice(0, 50)}...</p>
+              <p className="text-sm sm:text-base text-green-600 font-medium">
+                {registeredQrCode ? 'Correct QR Code!' : 'Code Scanned!'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-2 break-all px-4">{scannedCode.slice(0, 50)}...</p>
             </div>
           ) : (
             <>
+              {/* Wrong QR code feedback */}
+              {qrWrongCode && challengeType === 'qrcode' && registeredQrCode && (
+                <div className={`text-center p-3 rounded-xl ${
+                  isDark ? 'bg-red-900/40 border border-red-800/50' : 'bg-red-50 border border-red-200'
+                }`}>
+                  <XCircle className="h-6 w-6 text-red-500 mx-auto mb-1" />
+                  <p className="text-sm font-bold text-red-500">Wrong QR Code!</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Go find your registered QR code and scan it.
+                  </p>
+                  {qrWrongAttempts > 0 && (
+                    <p className="text-xs text-red-400 mt-1 font-semibold">
+                      {qrWrongAttempts} failed attempt{qrWrongAttempts !== 1 ? 's' : ''}
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="text-center">
-                <p className="text-xs sm:text-sm text-gray-500 mb-3">
-                  Point your camera at {challengeType === 'barcode' ? 'any barcode' : 'any QR code'}
+                <p className="text-xs sm:text-sm text-muted-foreground mb-3">
+                  {challengeType === 'barcode' 
+                    ? 'Point your camera at any barcode' 
+                    : registeredQrCode 
+                      ? '📍 Go scan the QR code you registered!'
+                      : 'Point your camera at any QR code'}
                 </p>
               </div>
               
@@ -1114,14 +1163,16 @@ export const WakeUpChallenge = ({
               {!scannerReady && (
                 <div className="text-center">
                   <div className="inline-block animate-spin h-6 w-6 border-2 border-orange-500 border-t-transparent rounded-full" />
-                  <p className="text-xs sm:text-sm text-gray-500 mt-2">Initializing camera...</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-2">Initializing camera...</p>
                 </div>
               )}
               
-              <p className="text-center text-xs text-gray-400">
+              <p className="text-center text-xs text-muted-foreground">
                 {challengeType === 'barcode' 
                   ? 'Find any product with a barcode (food, books, etc.)' 
-                  : 'Find any QR code to scan'}
+                  : registeredQrCode
+                    ? 'Only your registered QR code will dismiss this alarm'
+                    : 'Find any QR code to scan'}
               </p>
             </>
           )}

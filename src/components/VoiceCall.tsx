@@ -411,6 +411,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
             onComplete={handleChallengeComplete}
             onFail={handleChallengeFail}
             speakMatchSettings={settings.speakMatchSettings}
+            registeredQrCode={settings.registeredQrCode}
           />
         </div>
       </div>
