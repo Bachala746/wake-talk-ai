@@ -276,6 +276,7 @@ export const TwoWayVoiceCall = ({
           onComplete={handleChallengeComplete} 
           onFail={handleChallengeFail}
           speakMatchSettings={settings.speakMatchSettings}
+          registeredQrCode={settings.registeredQrCode}
         />
       </div>
     );

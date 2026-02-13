@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,9 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Clock, Phone, Settings, Sun, Moon, Trash2, Edit, Sparkles, Flame, Zap, Volume2, Mic, Bell, MessageSquare, Gamepad2 } from "lucide-react";
+import { Clock, Phone, Settings, Sun, Moon, Trash2, Edit, Sparkles, Flame, Zap, Volume2, Mic, Bell, MessageSquare, Gamepad2, QrCode, Camera, CameraOff, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import { Html5Qrcode } from "html5-qrcode";
 import { ElevenLabsQuotaPanel } from "./ElevenLabsQuotaPanel";
 import { useTheme } from "@/hooks/useTheme";
 import {
@@ -104,7 +105,21 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [smParagraphType, setSmParagraphType] = useState<SpeakMatchParagraphType>(defaultSpeakMatchSettings.paragraphType);
   const [smCustomText, setSmCustomText] = useState(defaultSpeakMatchSettings.customText);
 
-  // Rotate motivational quotes
+  // QR Code registration states
+  const [registeredQrCode, setRegisteredQrCode] = useState('');
+  const [qrScanMode, setQrScanMode] = useState(false);
+  const [qrScannerReady, setQrScannerReady] = useState(false);
+  const [qrScanError, setQrScanError] = useState<string | null>(null);
+  const qrScannerRef = useRef<Html5Qrcode | null>(null);
+
+  // QR Scanner cleanup
+  useEffect(() => {
+    return () => {
+      if (qrScannerRef.current) {
+        qrScannerRef.current.stop().catch(console.error);
+      }
+    };
+  }, []);
   useEffect(() => {
     const quoteTimer = setInterval(() => {
       setCurrentQuoteIndex(prev => (prev + 1) % motivationalQuotes.length);
@@ -196,6 +211,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       challengeDifficulty,
       elevenLabsAgentId: interactionMode === 'two-way' ? elevenLabsAgentId : '',
       speakMatchSettings: challengeType === 'speakMatch' ? speakMatchSettingsObj : undefined,
+      registeredQrCode: challengeType === 'qrcode' ? registeredQrCode : undefined,
     };
 
     if (editingAlarmId) {
@@ -267,6 +283,9 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setSmRetryLimit(smS.retryLimit);
     setSmParagraphType(smS.paragraphType);
     setSmCustomText(smS.customText);
+    setRegisteredQrCode(alarm.settings.registeredQrCode || '');
+    setQrScanMode(false);
+    setQrScanError(null);
     setIsDialogOpen(true);
   };
 
@@ -295,12 +314,63 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setSmRetryLimit(defaultSpeakMatchSettings.retryLimit);
     setSmParagraphType(defaultSpeakMatchSettings.paragraphType);
     setSmCustomText(defaultSpeakMatchSettings.customText);
+    setRegisteredQrCode('');
+    setQrScanMode(false);
+    setQrScanError(null);
     setIsDialogOpen(true);
   };
 
   const closeDialog = () => {
     setIsDialogOpen(false);
     setEditingAlarmId(null);
+    // Stop QR scanner if running
+    if (qrScannerRef.current) {
+      qrScannerRef.current.stop().catch(console.error);
+      qrScannerRef.current = null;
+    }
+    setQrScanMode(false);
+    setQrScanError(null);
+  };
+
+  const startQrRegistration = async () => {
+    setQrScanMode(true);
+    setQrScanError(null);
+    setQrScannerReady(false);
+    
+    // Wait for DOM element to render
+    setTimeout(async () => {
+      try {
+        const html5QrCode = new Html5Qrcode("qr-register-reader");
+        qrScannerRef.current = html5QrCode;
+        
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 200, height: 200 } },
+          (decodedText) => {
+            setRegisteredQrCode(decodedText);
+            setQrScanMode(false);
+            html5QrCode.stop().catch(console.error);
+            qrScannerRef.current = null;
+            toast.success("QR code registered successfully!");
+          },
+          () => {} // ignore scan failures
+        );
+        setQrScannerReady(true);
+      } catch (err) {
+        console.error("QR registration scanner error:", err);
+        setQrScanError(err instanceof Error ? err.message : "Failed to start camera");
+        setQrScanMode(false);
+      }
+    }, 100);
+  };
+  
+  const stopQrRegistration = () => {
+    if (qrScannerRef.current) {
+      qrScannerRef.current.stop().catch(console.error);
+      qrScannerRef.current = null;
+    }
+    setQrScanMode(false);
+    setQrScanError(null);
   };
 
   const getTimeUntilAlarm = (alarm: Alarm) => {
@@ -895,6 +965,87 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                   <p className="text-xs text-muted-foreground mt-2">
                     {challengeDifficulties.find(d => d.value === challengeDifficulty)?.description}
                   </p>
+                </div>
+              )}
+
+              {/* QR Code Registration */}
+              {challengeType === 'qrcode' && (
+                <div className="space-y-3 pt-2 border-t border-border">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📷 QR Code Registration</p>
+                  <p className="text-xs text-muted-foreground">
+                    Register a QR code that you'll need to scan to dismiss this alarm. Place it in another room!
+                  </p>
+                  
+                  {registeredQrCode ? (
+                    <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+                        <span className="text-sm font-semibold text-green-600">QR Code Registered</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground break-all mb-2">
+                        Code: {registeredQrCode.slice(0, 60)}{registeredQrCode.length > 60 ? '...' : ''}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setRegisteredQrCode('');
+                            toast.info("QR code removed");
+                          }}
+                        >
+                          <XCircle className="h-3.5 w-3.5 mr-1" />
+                          Remove
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm"
+                          onClick={startQrRegistration}
+                        >
+                          <QrCode className="h-3.5 w-3.5 mr-1" />
+                          Change
+                        </Button>
+                      </div>
+                    </div>
+                  ) : qrScanMode ? (
+                    <div className="space-y-3">
+                      <div 
+                        id="qr-register-reader" 
+                        className="w-full rounded-xl overflow-hidden bg-gray-900"
+                        style={{ minHeight: '220px' }}
+                      />
+                      {!qrScannerReady && (
+                        <div className="text-center">
+                          <div className="inline-block animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
+                          <p className="text-xs text-muted-foreground mt-1">Starting camera...</p>
+                        </div>
+                      )}
+                      <Button type="button" variant="outline" size="sm" onClick={stopQrRegistration} className="w-full">
+                        <CameraOff className="h-3.5 w-3.5 mr-1" />
+                        Cancel Scan
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {qrScanError && (
+                        <p className="text-xs text-red-500">{qrScanError}</p>
+                      )}
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={startQrRegistration}
+                        className="w-full py-4"
+                      >
+                        <Camera className="h-4 w-4 mr-2" />
+                        Scan QR Code to Register
+                      </Button>
+                      <p className="text-xs text-muted-foreground text-center">
+                        💡 Tip: Print a QR code and place it in your kitchen or bathroom
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 

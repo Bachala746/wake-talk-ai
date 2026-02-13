@@ -211,7 +211,7 @@ export const challengeTypes: { value: ChallengeType; label: string; description:
   { value: 'slider', label: 'Slider Puzzle', description: 'Drag sliders to target values', icon: '🎚️' },
   { value: 'captcha', label: 'Word Captcha', description: 'Read and type distorted text', icon: '🔤' },
   { value: 'barcode', label: 'Scan Barcode', description: 'Scan any barcode to dismiss', icon: '📊' },
-  { value: 'qrcode', label: 'Scan QR Code', description: 'Scan any QR code to dismiss', icon: '📷' },
+  { value: 'qrcode', label: 'Scan QR Code', description: 'Scan your registered QR code', icon: '📷' },
   { value: 'steps', label: 'Walk Steps', description: 'Walk required steps to dismiss', icon: '🚶' },
   { value: 'speakMatch', label: 'Speak & Match', description: 'Read text aloud to dismiss', icon: '🗣️' },
 ];
@@ -353,6 +353,8 @@ export interface AlarmSettings {
   elevenLabsAgentId?: string;
   // Speak & Match settings
   speakMatchSettings?: SpeakMatchSettings;
+  // Registered QR code for QR challenge
+  registeredQrCode?: string;
 }
 
 export const defaultAlarmSettings: AlarmSettings = {
