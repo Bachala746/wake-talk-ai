@@ -341,6 +341,16 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
     toast.error("Wrong answer! Try again!");
   };
 
+  const handleChallengeEscalate = (level: number) => {
+    // Increase ringtone volume based on escalation level
+    ringtoneVolumeRef.current = Math.min(0.1 + level * 0.25, 1.0);
+    toast.warning(
+      level >= 3 
+        ? "🔊 MAXIMUM VOLUME! Go find your QR code!" 
+        : `⚠️ Volume increased! (Level ${level})`
+    );
+  };
+
   const handleSnooze = () => {
     console.log("Snooze pressed");
     
@@ -410,6 +420,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
             difficulty={settings.challengeDifficulty}
             onComplete={handleChallengeComplete}
             onFail={handleChallengeFail}
+            onEscalate={handleChallengeEscalate}
             speakMatchSettings={settings.speakMatchSettings}
             registeredQrCode={settings.registeredQrCode}
           />

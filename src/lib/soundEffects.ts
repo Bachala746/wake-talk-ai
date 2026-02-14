@@ -138,3 +138,38 @@ export const playMilestoneSound = () => {
     console.warn('Sound effect failed:', e);
   }
 };
+
+// Escalation alarm - aggressive buzzing that gets louder with level (1-3)
+export const playEscalationAlarm = (level: number = 1) => {
+  try {
+    const ctx = getAudioContext();
+    const volume = Math.min(0.15 + level * 0.15, 0.6);
+    const duration = 0.4 + level * 0.2;
+    
+    // Low aggressive buzz
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.frequency.value = 100 + level * 30;
+    osc1.type = 'sawtooth';
+    gain1.gain.setValueAtTime(volume, ctx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+    osc1.start(ctx.currentTime);
+    osc1.stop(ctx.currentTime + duration);
+    
+    // High piercing tone layered on top
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.frequency.value = 800 + level * 200;
+    osc2.type = 'square';
+    gain2.gain.setValueAtTime(volume * 0.5, ctx.currentTime);
+    gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+    osc2.start(ctx.currentTime);
+    osc2.stop(ctx.currentTime + duration);
+  } catch (e) {
+    console.warn('Sound effect failed:', e);
+  }
+};
