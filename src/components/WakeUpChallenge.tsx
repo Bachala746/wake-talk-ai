@@ -1116,14 +1116,26 @@ export const WakeUpChallenge = ({
               <div className="inline-block p-4 sm:p-6 bg-red-100 rounded-full mb-4">
                 <CameraOff className="h-8 w-8 sm:h-12 sm:w-12 text-red-500" />
               </div>
-              <p className="text-sm sm:text-base text-red-600 font-medium mb-2">Camera Error</p>
-              <p className="text-xs sm:text-sm text-muted-foreground mb-4">{scannerError}</p>
-              <Button 
-                onClick={() => window.location.reload()} 
-                className="bg-orange-500 hover:bg-orange-600"
-              >
-                Retry
-              </Button>
+              <p className="text-sm sm:text-base text-red-600 font-medium mb-2">
+                📷 Camera Access Required
+              </p>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-2">
+                {scannerError}
+              </p>
+              <p className="text-xs text-red-500 mb-4 font-semibold animate-pulse">
+                ⚠️ Camera is required to complete this challenge. The alarm will keep ringing.
+              </p>
+              <div className="flex flex-col gap-2">
+                <Button 
+                  onClick={() => window.location.reload()} 
+                  className="bg-orange-500 hover:bg-orange-600"
+                >
+                  Retry Camera Access
+                </Button>
+                <p className="text-[10px] text-muted-foreground">
+                  If blocked, open browser settings → Site Settings → Camera → Allow
+                </p>
+              </div>
             </div>
           ) : scannedCode ? (
             <div className="text-center py-6 sm:py-8">

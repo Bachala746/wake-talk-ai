@@ -11,6 +11,7 @@ import { Clock, Phone, Settings, Sun, Moon, Trash2, Edit, Sparkles, Flame, Zap, 
 import { toast } from "sonner";
 import { Html5Qrcode } from "html5-qrcode";
 import { ElevenLabsQuotaPanel } from "./ElevenLabsQuotaPanel";
+import { PermissionCheck } from "./PermissionCheck";
 import { useTheme } from "@/hooks/useTheme";
 import {
   AlarmSettings,
@@ -184,6 +185,20 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setAlarms(prev => prev.map(a => 
       a.id === alarm.id ? { ...a, isActive: false } : a
     ));
+    // Request notification permission for visibility
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+    // Show notification if granted
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(`⏰ ${alarm.label}`, {
+          body: 'Your AI motivator is calling you!',
+          icon: '/favicon.ico',
+          requireInteraction: true,
+        });
+      } catch { /* ignore */ }
+    }
     toast.success(`Good morning! "${alarm.label}" - Your AI motivator is calling you!`);
     onStartCall(alarm.time, alarm.duration, alarm.settings);
   };
@@ -951,6 +966,14 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                   ))}
                 </div>
               </div>
+
+              {/* Permission Check */}
+              {challengeType !== 'none' && (
+                <PermissionCheck 
+                  challengeType={challengeType} 
+                  interactionMode={interactionMode}
+                />
+              )}
 
               {challengeType !== 'none' && challengeType !== 'speakMatch' && (
                 <div>
