@@ -45,7 +45,8 @@ import {
   playShakeSound,
   playScanSuccessSound,
   playMilestoneSound,
-  playPressureTickSound
+  playPressureTickSound,
+  playEscalationAlarm
 } from "@/lib/soundEffects";
 
 interface WakeUpChallengeProps {
@@ -53,6 +54,7 @@ interface WakeUpChallengeProps {
   difficulty: 'easy' | 'medium' | 'hard';
   onComplete: () => void;
   onFail?: () => void;
+  onEscalate?: (level: number) => void;
   speakMatchSettings?: SpeakMatchSettings;
   registeredQrCode?: string;
 }
@@ -191,6 +193,7 @@ export const WakeUpChallenge = ({
   difficulty, 
   onComplete, 
   onFail,
+  onEscalate,
   speakMatchSettings,
   registeredQrCode
 }: WakeUpChallengeProps) => {
@@ -426,8 +429,17 @@ export const WakeUpChallenge = ({
               } else {
                 // Wrong QR code
                 setQrWrongCode(decodedText);
-                setQrWrongAttempts(prev => prev + 1);
-                playWrongSound();
+                setQrWrongAttempts(prev => {
+                  const newAttempts = prev + 1;
+                  if (newAttempts >= 3) {
+                    const escalationLevel = Math.min(Math.floor((newAttempts - 2) / 2), 3);
+                    playEscalationAlarm(escalationLevel);
+                    if (onEscalate) onEscalate(escalationLevel);
+                  } else {
+                    playWrongSound();
+                  }
+                  return newAttempts;
+                });
                 // Brief pause before allowing next scan
               }
             } else {
@@ -1138,6 +1150,11 @@ export const WakeUpChallenge = ({
                   {qrWrongAttempts > 0 && (
                     <p className="text-xs text-red-400 mt-1 font-semibold">
                       {qrWrongAttempts} failed attempt{qrWrongAttempts !== 1 ? 's' : ''}
+                      {qrWrongAttempts >= 3 && (
+                        <span className="block text-red-500 mt-0.5 animate-pulse">
+                          ⚠️ Volume escalating! Find your QR code NOW!
+                        </span>
+                      )}
                     </p>
                   )}
                 </div>

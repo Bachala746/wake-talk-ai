@@ -225,6 +225,14 @@ export const TwoWayVoiceCall = ({
     toast.error("Wrong! Try again to dismiss the alarm!");
   }, []);
 
+  const handleChallengeEscalate = useCallback((level: number) => {
+    toast.warning(
+      level >= 3 
+        ? "🔊 MAXIMUM VOLUME! Go find your QR code!" 
+        : `⚠️ Volume increased! (Level ${level})`
+    );
+  }, []);
+
   // Initialize conversation
   useEffect(() => {
     setIsConnected(true);
@@ -275,6 +283,7 @@ export const TwoWayVoiceCall = ({
           difficulty={settings.challengeDifficulty} 
           onComplete={handleChallengeComplete} 
           onFail={handleChallengeFail}
+          onEscalate={handleChallengeEscalate}
           speakMatchSettings={settings.speakMatchSettings}
           registeredQrCode={settings.registeredQrCode}
         />

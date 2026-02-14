@@ -130,6 +130,14 @@ export const RealtimeTwoWayCall = ({
     toast.error("Wrong! Try again to dismiss the alarm!");
   }, []);
 
+  const handleChallengeEscalate = useCallback((level: number) => {
+    toast.warning(
+      level >= 3 
+        ? "🔊 MAXIMUM VOLUME! Go find your QR code!" 
+        : `⚠️ Volume increased! (Level ${level})`
+    );
+  }, []);
+
   if (showChallenge) {
     return (
       <div className={`min-h-screen flex items-center justify-center p-4 ${
@@ -142,6 +150,7 @@ export const RealtimeTwoWayCall = ({
           difficulty={settings.challengeDifficulty} 
           onComplete={handleChallengeComplete} 
           onFail={handleChallengeFail}
+          onEscalate={handleChallengeEscalate}
           speakMatchSettings={settings.speakMatchSettings}
           registeredQrCode={settings.registeredQrCode}
         />
