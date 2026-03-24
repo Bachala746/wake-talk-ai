@@ -46,7 +46,8 @@ import {
   playScanSuccessSound,
   playMilestoneSound,
   playPressureTickSound,
-  playEscalationAlarm
+  playEscalationAlarm,
+  playAggressiveVoiceMessage
 } from "@/lib/soundEffects";
 
 interface WakeUpChallengeProps {
@@ -434,6 +435,7 @@ export const WakeUpChallenge = ({
                   if (newAttempts >= 3) {
                     const escalationLevel = Math.min(Math.floor((newAttempts - 2) / 2), 3);
                     playEscalationAlarm(escalationLevel);
+                    playAggressiveVoiceMessage(newAttempts);
                     if (onEscalate) onEscalate(escalationLevel);
                   } else {
                     playWrongSound();
