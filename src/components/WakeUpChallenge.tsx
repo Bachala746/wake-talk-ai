@@ -1421,5 +1421,6 @@ export const WakeUpChallenge = ({
         </div>
       )}
     </Card>
+    </div>
   );
 };
