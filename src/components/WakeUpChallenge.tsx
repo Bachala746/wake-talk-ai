@@ -863,6 +863,15 @@ export const WakeUpChallenge = ({
           <p className="text-xs sm:text-sm text-muted-foreground capitalize">{difficulty} difficulty</p>
         </div>
       </div>
+
+      {/* Global escalation warning */}
+      {globalFailures >= 3 && (
+        <div className="mb-4 p-3 rounded-xl bg-destructive/10 border border-destructive/30 animate-pulse">
+          <p className="text-sm font-bold text-destructive text-center">
+            ⚠️ {globalFailures} failed attempts — Volume escalating! Complete the challenge NOW!
+          </p>
+        </div>
+      )}
       
       {/* Challenge Content */}
       {challengeType === 'math' && (
