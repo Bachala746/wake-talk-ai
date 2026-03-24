@@ -38,7 +38,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
   const elapsedTimeRef = useRef(0);
   const audioContextRef = useRef<AudioContext | null>(null);
   const ringtoneIntervalRef = useRef<number | null>(null);
-  const speechTimeoutRef = useRef<number | NodeJS.Timeout | null>(null);
+  const speechTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSpeechTimeRef = useRef(0);
   const isSpeechActiveRef = useRef(false);
   const intentionallyCanceledRef = useRef(false);
