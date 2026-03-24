@@ -46,7 +46,8 @@ import {
   playScanSuccessSound,
   playMilestoneSound,
   playPressureTickSound,
-  playEscalationAlarm
+  playEscalationAlarm,
+  playAggressiveVoiceMessage
 } from "@/lib/soundEffects";
 
 interface WakeUpChallengeProps {

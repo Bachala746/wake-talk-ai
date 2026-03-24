@@ -173,3 +173,44 @@ export const playEscalationAlarm = (level: number = 1) => {
     console.warn('Sound effect failed:', e);
   }
 };
+
+// Aggressive AI voice messages for QR code escalation
+const escalationMessages = [
+  "Get up NOW! Find your QR code!",
+  "You're still in bed? Get moving! Scan that code!",
+  "This alarm won't stop! Get up and find the QR code NOW!",
+  "Time is running out! Get on your feet and scan the code!",
+  "WAKE UP! Your QR code is waiting! Move it!",
+  "Every second you waste, this gets louder! Find the code!",
+  "No more excuses! Get up, walk over, and scan it!",
+  "I will NOT let you sleep! Find that QR code RIGHT NOW!",
+];
+
+export const playAggressiveVoiceMessage = (attemptCount: number): void => {
+  try {
+    const messageIndex = Math.min(attemptCount - 3, escalationMessages.length - 1);
+    const message = escalationMessages[Math.max(0, messageIndex)];
+    
+    // Use browser Speech Synthesis for instant aggressive voice
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.rate = 1.2 + Math.min((attemptCount - 3) * 0.1, 0.5); // Gets faster
+      utterance.pitch = 0.7; // Lower pitch = more aggressive
+      utterance.volume = Math.min(0.8 + (attemptCount - 3) * 0.05, 1.0); // Gets louder
+      
+      // Try to pick a deep/strong voice
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice = voices.find(v => 
+        v.name.includes('Male') || v.name.includes('Daniel') || v.name.includes('Google UK English Male')
+      ) || voices.find(v => v.lang.startsWith('en'));
+      if (preferredVoice) utterance.voice = preferredVoice;
+      
+      window.speechSynthesis.speak(utterance);
+    }
+  } catch (e) {
+    console.warn('Aggressive voice message failed:', e);
+  }
+};
