@@ -204,6 +204,23 @@ export const WakeUpChallenge = ({
   const [userAnswer, setUserAnswer] = useState("");
   const [attempts, setAttempts] = useState(0);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [globalFailures, setGlobalFailures] = useState(0);
+  
+  // Universal escalation handler for all challenge types
+  const handleWrongAttempt = useCallback(() => {
+    setGlobalFailures(prev => {
+      const newCount = prev + 1;
+      if (newCount >= 3) {
+        const escalationLevel = Math.min(Math.floor((newCount - 2) / 2), 3);
+        playEscalationAlarm(escalationLevel);
+        playAggressiveVoiceMessage(newCount);
+        if (onEscalate) onEscalate(escalationLevel);
+      } else {
+        playWrongSound();
+      }
+      return newCount;
+    });
+  }, [onEscalate]);
   
   // Shake challenge state
   const [shakeCount, setShakeCount] = useState(0);
@@ -430,18 +447,8 @@ export const WakeUpChallenge = ({
               } else {
                 // Wrong QR code
                 setQrWrongCode(decodedText);
-                setQrWrongAttempts(prev => {
-                  const newAttempts = prev + 1;
-                  if (newAttempts >= 3) {
-                    const escalationLevel = Math.min(Math.floor((newAttempts - 2) / 2), 3);
-                    playEscalationAlarm(escalationLevel);
-                    playAggressiveVoiceMessage(newAttempts);
-                    if (onEscalate) onEscalate(escalationLevel);
-                  } else {
-                    playWrongSound();
-                  }
-                  return newAttempts;
-                });
+                setQrWrongAttempts(prev => prev + 1);
+                handleWrongAttempt();
                 // Brief pause before allowing next scan
               }
             } else {
@@ -578,7 +585,7 @@ export const WakeUpChallenge = ({
       setTimeout(onComplete, 500);
     } else {
       setIsCorrect(false);
-      playWrongSound();
+      handleWrongAttempt();
       setAttempts(prev => prev + 1);
       setUserAnswer("");
       if (attempts >= 2) {
@@ -597,7 +604,7 @@ export const WakeUpChallenge = ({
     // Check if correct so far
     if (num !== memorySequence[userSequence.length]) {
       setIsCorrect(false);
-      playWrongSound();
+      handleWrongAttempt();
       setTimeout(() => {
         setUserSequence([]);
         setIsCorrect(null);
@@ -624,7 +631,7 @@ export const WakeUpChallenge = ({
       setTimeout(onComplete, 500);
     } else {
       setIsCorrect(false);
-      playWrongSound();
+      handleWrongAttempt();
       setTypedText("");
       setTimeout(() => setIsCorrect(null), 500);
     }
@@ -637,7 +644,7 @@ export const WakeUpChallenge = ({
     // Check if correct so far
     if (cellIndex !== patternData.pattern[userPattern.length]) {
       setIsCorrect(false);
-      playWrongSound();
+      handleWrongAttempt();
       setTimeout(() => {
         setUserPattern([]);
         setIsCorrect(null);
@@ -699,7 +706,7 @@ export const WakeUpChallenge = ({
       setTimeout(onComplete, 500);
     } else {
       setIsCorrect(false);
-      playWrongSound();
+      handleWrongAttempt();
       setCaptchaInput("");
       setCaptchaWord(generateCaptchaWord(difficulty));
       setTimeout(() => setIsCorrect(null), 500);
@@ -765,7 +772,7 @@ export const WakeUpChallenge = ({
         setTimeout(onComplete, 500);
       } else {
         setIsCorrect(false);
-        playWrongSound();
+        handleWrongAttempt();
         handleSmRetry();
       }
     }
@@ -798,7 +805,7 @@ export const WakeUpChallenge = ({
   
   const handleSmTimeUp = () => {
     setIsCorrect(false);
-    playWrongSound();
+    handleWrongAttempt();
     handleSmRetry();
   };
   
@@ -856,6 +863,15 @@ export const WakeUpChallenge = ({
           <p className="text-xs sm:text-sm text-muted-foreground capitalize">{difficulty} difficulty</p>
         </div>
       </div>
+
+      {/* Global escalation warning */}
+      {globalFailures >= 3 && (
+        <div className="mb-4 p-3 rounded-xl bg-destructive/10 border border-destructive/30 animate-pulse">
+          <p className="text-sm font-bold text-destructive text-center">
+            ⚠️ {globalFailures} failed attempts — Volume escalating! Complete the challenge NOW!
+          </p>
+        </div>
+      )}
       
       {/* Challenge Content */}
       {challengeType === 'math' && (
