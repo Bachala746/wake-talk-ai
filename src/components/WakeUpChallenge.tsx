@@ -654,7 +654,7 @@ export const WakeUpChallenge = ({
     // Check if correct so far
     if (cellIndex !== patternData.pattern[userPattern.length]) {
       setIsCorrect(false);
-      playWrongSound();
+      handleWrongAttempt();
       setTimeout(() => {
         setUserPattern([]);
         setIsCorrect(null);
