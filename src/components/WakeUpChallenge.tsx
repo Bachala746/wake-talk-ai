@@ -447,18 +447,8 @@ export const WakeUpChallenge = ({
               } else {
                 // Wrong QR code
                 setQrWrongCode(decodedText);
-                setQrWrongAttempts(prev => {
-                  const newAttempts = prev + 1;
-                  if (newAttempts >= 3) {
-                    const escalationLevel = Math.min(Math.floor((newAttempts - 2) / 2), 3);
-                    playEscalationAlarm(escalationLevel);
-                    playAggressiveVoiceMessage(newAttempts);
-                    if (onEscalate) onEscalate(escalationLevel);
-                  } else {
-                    playWrongSound();
-                  }
-                  return newAttempts;
-                });
+                setQrWrongAttempts(prev => prev + 1);
+                handleWrongAttempt();
                 // Brief pause before allowing next scan
               }
             } else {
