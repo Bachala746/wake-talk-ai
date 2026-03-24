@@ -205,6 +205,7 @@ export const WakeUpChallenge = ({
   const [attempts, setAttempts] = useState(0);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [globalFailures, setGlobalFailures] = useState(0);
+  const [redFlash, setRedFlash] = useState(false);
   
   // Universal escalation handler for all challenge types
   const handleWrongAttempt = useCallback(() => {
@@ -215,6 +216,9 @@ export const WakeUpChallenge = ({
         playEscalationAlarm(escalationLevel);
         playAggressiveVoiceMessage(newCount);
         if (onEscalate) onEscalate(escalationLevel);
+        // Trigger red flash
+        setRedFlash(true);
+        setTimeout(() => setRedFlash(false), 800);
       } else {
         playWrongSound();
       }
