@@ -851,7 +851,7 @@ export const WakeUpChallenge = ({
     <div className="relative max-w-md w-full mx-3 sm:mx-0">
       {/* Red screen flash overlay */}
       {redFlash && (
-        <div className="fixed inset-0 z-[9999] pointer-events-none animate-[redFlash_0.8s_ease-out_forwards] bg-red-600/60" />
+        <div className="fixed inset-0 z-[9999] pointer-events-none animate-red-flash bg-destructive/60" />
       )}
       {/* Persistent red vignette when escalated */}
       {globalFailures >= 3 && (
