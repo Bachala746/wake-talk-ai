@@ -114,13 +114,20 @@ export default {
 					'50%': {
 						boxShadow: '0 0 35px 10px hsl(var(--ring) / 0.6)'
 					}
+				},
+				'red-flash': {
+					'0%': { opacity: '0.7' },
+					'30%': { opacity: '0.3' },
+					'60%': { opacity: '0.5' },
+					'100%': { opacity: '0' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'float': 'float 3s ease-in-out infinite',
-				'glow-pulse': 'glow-pulse 2s ease-in-out infinite'
+				'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
+				'red-flash': 'red-flash 0.8s ease-out forwards'
 			}
 		}
 	},
