@@ -205,6 +205,7 @@ export const WakeUpChallenge = ({
   const [attempts, setAttempts] = useState(0);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [globalFailures, setGlobalFailures] = useState(0);
+  const [redFlash, setRedFlash] = useState(false);
   
   // Universal escalation handler for all challenge types
   const handleWrongAttempt = useCallback(() => {
@@ -215,6 +216,9 @@ export const WakeUpChallenge = ({
         playEscalationAlarm(escalationLevel);
         playAggressiveVoiceMessage(newCount);
         if (onEscalate) onEscalate(escalationLevel);
+        // Trigger red flash
+        setRedFlash(true);
+        setTimeout(() => setRedFlash(false), 800);
       } else {
         playWrongSound();
       }
@@ -844,7 +848,20 @@ export const WakeUpChallenge = ({
   };
 
   return (
-    <Card className={`p-4 sm:p-6 backdrop-blur-lg shadow-2xl border-0 rounded-2xl sm:rounded-3xl max-w-md w-full mx-3 sm:mx-0 ${
+    <div className="relative max-w-md w-full mx-3 sm:mx-0">
+      {/* Red screen flash overlay */}
+      {redFlash && (
+        <div className="fixed inset-0 z-[9999] pointer-events-none animate-red-flash bg-destructive/60" />
+      )}
+      {/* Persistent red vignette when escalated */}
+      {globalFailures >= 3 && (
+        <div className="fixed inset-0 z-[9998] pointer-events-none animate-pulse"
+          style={{
+            background: 'radial-gradient(ellipse at center, transparent 40%, rgba(220, 38, 38, 0.25) 100%)',
+          }}
+        />
+      )}
+    <Card className={`p-4 sm:p-6 backdrop-blur-lg shadow-2xl border-0 rounded-2xl sm:rounded-3xl w-full ${
       isDark ? 'bg-slate-800/95' : 'bg-white/95'
     }`}>
       {/* Header */}
@@ -1404,5 +1421,6 @@ export const WakeUpChallenge = ({
         </div>
       )}
     </Card>
+    </div>
   );
 };
