@@ -815,7 +815,7 @@ export const WakeUpChallenge = ({
   
   const handleSmTimeUp = () => {
     setIsCorrect(false);
-    playWrongSound();
+    handleWrongAttempt();
     handleSmRetry();
   };
   
