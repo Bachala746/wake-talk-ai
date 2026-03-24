@@ -204,6 +204,23 @@ export const WakeUpChallenge = ({
   const [userAnswer, setUserAnswer] = useState("");
   const [attempts, setAttempts] = useState(0);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [globalFailures, setGlobalFailures] = useState(0);
+  
+  // Universal escalation handler for all challenge types
+  const handleWrongAttempt = useCallback(() => {
+    setGlobalFailures(prev => {
+      const newCount = prev + 1;
+      if (newCount >= 3) {
+        const escalationLevel = Math.min(Math.floor((newCount - 2) / 2), 3);
+        playEscalationAlarm(escalationLevel);
+        playAggressiveVoiceMessage(newCount);
+        if (onEscalate) onEscalate(escalationLevel);
+      } else {
+        playWrongSound();
+      }
+      return newCount;
+    });
+  }, [onEscalate]);
   
   // Shake challenge state
   const [shakeCount, setShakeCount] = useState(0);
