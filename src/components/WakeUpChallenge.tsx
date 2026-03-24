@@ -595,7 +595,7 @@ export const WakeUpChallenge = ({
       setTimeout(onComplete, 500);
     } else {
       setIsCorrect(false);
-      playWrongSound();
+      handleWrongAttempt();
       setAttempts(prev => prev + 1);
       setUserAnswer("");
       if (attempts >= 2) {
