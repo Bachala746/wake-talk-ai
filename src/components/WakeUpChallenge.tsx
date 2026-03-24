@@ -782,7 +782,7 @@ export const WakeUpChallenge = ({
         setTimeout(onComplete, 500);
       } else {
         setIsCorrect(false);
-        playWrongSound();
+        handleWrongAttempt();
         handleSmRetry();
       }
     }
