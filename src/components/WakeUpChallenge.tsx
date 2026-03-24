@@ -614,7 +614,7 @@ export const WakeUpChallenge = ({
     // Check if correct so far
     if (num !== memorySequence[userSequence.length]) {
       setIsCorrect(false);
-      playWrongSound();
+      handleWrongAttempt();
       setTimeout(() => {
         setUserSequence([]);
         setIsCorrect(null);
