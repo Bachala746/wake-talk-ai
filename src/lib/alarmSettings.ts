@@ -338,6 +338,30 @@ export const defaultSpeakMatchSettings: SpeakMatchSettings = {
   customText: '',
 };
 
+// Object Verification types
+export interface StoredObject {
+  id: string;
+  label: string;
+  imageBase64: string; // compressed JPEG base64
+  createdAt: number;
+}
+
+export interface ObjectVerifySettings {
+  requiredCount: number; // how many objects to verify
+  selectedObjectIds: string[]; // which specific objects
+  strictMatch: boolean; // higher confidence threshold
+  sequential: boolean; // must verify in order
+  confidenceThreshold: number; // 0-100
+}
+
+export const defaultObjectVerifySettings: ObjectVerifySettings = {
+  requiredCount: 1,
+  selectedObjectIds: [],
+  strictMatch: false,
+  sequential: false,
+  confidenceThreshold: 85,
+};
+
 // Complete alarm settings interface
 export interface AlarmSettings {
   interactionMode: InteractionMode;
@@ -356,6 +380,8 @@ export interface AlarmSettings {
   speakMatchSettings?: SpeakMatchSettings;
   // Registered QR code for QR challenge
   registeredQrCode?: string;
+  // Object verification settings
+  objectVerifySettings?: ObjectVerifySettings;
 }
 
 export const defaultAlarmSettings: AlarmSettings = {
