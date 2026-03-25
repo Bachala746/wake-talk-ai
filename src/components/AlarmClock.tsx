@@ -385,8 +385,75 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       qrScannerRef.current.stop().catch(console.error);
       qrScannerRef.current = null;
     }
+    // Stop object camera if running
+    if (objStreamRef.current) {
+      objStreamRef.current.getTracks().forEach(t => t.stop());
+      objStreamRef.current = null;
+    }
+    setObjCaptureMode(false);
+    setObjCapturedImage(null);
     setQrScanMode(false);
     setQrScanError(null);
+  };
+
+  // Object capture functions
+  const startObjectCapture = async () => {
+    setObjCaptureMode(true);
+    setObjCapturedImage(null);
+    setObjLabel('');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      objStreamRef.current = stream;
+      if (objVideoRef.current) {
+        objVideoRef.current.srcObject = stream;
+        objVideoRef.current.play();
+      }
+    } catch (err) {
+      console.error('Camera error:', err);
+      toast.error('Failed to access camera');
+      setObjCaptureMode(false);
+    }
+  };
+
+  const captureObjectPhoto = () => {
+    if (!objVideoRef.current) return;
+    const imageData = captureImageFromVideo(objVideoRef.current);
+    setObjCapturedImage(imageData);
+    // Stop camera
+    if (objStreamRef.current) {
+      objStreamRef.current.getTracks().forEach(t => t.stop());
+      objStreamRef.current = null;
+    }
+  };
+
+  const saveObject = () => {
+    if (!objCapturedImage || !objLabel.trim()) {
+      toast.error('Please capture a photo and add a label');
+      return;
+    }
+    try {
+      const newObj = addStoredObject(objLabel.trim(), objCapturedImage);
+      setStoredObjects(getStoredObjects());
+      setObjCaptureMode(false);
+      setObjCapturedImage(null);
+      setObjLabel('');
+      toast.success(`"${newObj.label}" saved!`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save');
+    }
+  };
+
+  const deleteObject = (id: string) => {
+    removeStoredObject(id);
+    setStoredObjects(getStoredObjects());
+    setOvSelectedIds(prev => prev.filter(oid => oid !== id));
+    toast.info('Object removed');
+  };
+
+  const toggleObjectSelection = (id: string) => {
+    setOvSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(oid => oid !== id) : [...prev, id]
+    );
   };
 
   const startQrRegistration = async () => {
