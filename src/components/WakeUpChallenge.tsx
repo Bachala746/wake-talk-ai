@@ -957,6 +957,7 @@ export const WakeUpChallenge = ({
       case 'qrcode': return registeredQrCode ? 'Scan Your QR Code' : 'Scan Any QR Code';
       case 'steps': return 'Walk to Dismiss';
       case 'speakMatch': return smEscalated ? '🔥 Speak & Match (Harder!)' : 'Speak & Match';
+      case 'objectVerify': return `Verify Objects (${ovVerifiedIds.length}/${ovObjects.length})`;
       default: return 'Complete the Challenge';
     }
   };
