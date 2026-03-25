@@ -2,3 +2,6 @@ project_id = "huzixaytspwzdcdxtubs"
 
 [functions.text-to-speech]
 verify_jwt = false
+
+[functions.verify-object]
+verify_jwt = false
