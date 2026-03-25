@@ -33,8 +33,13 @@ import {
   speakMatchParagraphs, 
   speakMatchAccuracyLevels,
   SpeakMatchParagraphType,
-  SpeakMatchParagraphLength
+  SpeakMatchParagraphLength,
+  ObjectVerifySettings,
+  defaultObjectVerifySettings,
+  StoredObject,
 } from "@/lib/alarmSettings";
+import { getStoredObjects, captureImageFromVideo } from "@/lib/objectStore";
+import { supabase } from "@/integrations/supabase/client";
 import { Html5Qrcode } from "html5-qrcode";
 import { useElevenLabsScribe } from "@/hooks/useElevenLabsScribe";
 import { 
