@@ -297,6 +297,22 @@ export const WakeUpChallenge = ({
   const [smEscalated, setSmEscalated] = useState(false);
   const pressureTickRef = useRef<number | null>(null);
   
+  // Object Verification state
+  const ovSettings = objectVerifySettings || defaultObjectVerifySettings;
+  const [ovObjects] = useState<StoredObject[]>(() => {
+    const all = getStoredObjects();
+    return all.filter(o => ovSettings.selectedObjectIds.includes(o.id));
+  });
+  const [ovVerifiedIds, setOvVerifiedIds] = useState<string[]>([]);
+  const [ovCurrentIndex, setOvCurrentIndex] = useState(0);
+  const [ovVerifying, setOvVerifying] = useState(false);
+  const [ovResult, setOvResult] = useState<{ isMatch: boolean; confidence: number; reasoning: string } | null>(null);
+  const [ovRetryDelay, setOvRetryDelay] = useState(false);
+  const ovVideoRef = useRef<HTMLVideoElement | null>(null);
+  const ovStreamRef = useRef<MediaStream | null>(null);
+  const [ovCameraReady, setOvCameraReady] = useState(false);
+  const [ovCameraError, setOvCameraError] = useState<string | null>(null);
+  
   const scribe = useElevenLabsScribe({
     onPartialTranscript: (text) => {
       if (challengeType === 'speakMatch') {
