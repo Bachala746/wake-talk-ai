@@ -423,6 +423,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
             onEscalate={handleChallengeEscalate}
             speakMatchSettings={settings.speakMatchSettings}
             registeredQrCode={settings.registeredQrCode}
+            objectVerifySettings={settings.objectVerifySettings}
           />
         </div>
       </div>
