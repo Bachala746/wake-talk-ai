@@ -214,6 +214,7 @@ export const challengeTypes: { value: ChallengeType; label: string; description:
   { value: 'qrcode', label: 'Scan QR Code', description: 'Scan your registered QR code', icon: '📷' },
   { value: 'steps', label: 'Walk Steps', description: 'Walk required steps to dismiss', icon: '🚶' },
   { value: 'speakMatch', label: 'Speak & Match', description: 'Read text aloud to dismiss', icon: '🗣️' },
+  { value: 'objectVerify', label: 'Object Verify', description: 'Scan real-world objects', icon: '🔍' },
 ];
 
 // Speak & Match challenge settings
