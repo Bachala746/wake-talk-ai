@@ -27,6 +27,8 @@ import {
   SpeakMatchParagraphLength,
   SpeakMatchAccuracy,
   SpeakMatchParagraphType,
+  ObjectVerifySettings,
+  StoredObject,
   voiceStyles,
   greetingStyles,
   messageThemes,
@@ -37,12 +39,14 @@ import {
   interactionModes,
   defaultAlarmSettings,
   defaultSpeakMatchSettings,
+  defaultObjectVerifySettings,
   speakMatchParagraphLengths,
   speakMatchAccuracyLevels,
   speakMatchTimeLimits,
   speakMatchRetryLimits,
   speakMatchParagraphTypes,
 } from "@/lib/alarmSettings";
+import { getStoredObjects, addStoredObject, removeStoredObject, captureImageFromVideo } from "@/lib/objectStore";
 
 const motivationalQuotes = [
   { quote: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
