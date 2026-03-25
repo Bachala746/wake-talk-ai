@@ -63,6 +63,7 @@ interface WakeUpChallengeProps {
   onEscalate?: (level: number) => void;
   speakMatchSettings?: SpeakMatchSettings;
   registeredQrCode?: string;
+  objectVerifySettings?: ObjectVerifySettings;
 }
 
 // Math problem generator
