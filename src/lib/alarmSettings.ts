@@ -199,7 +199,7 @@ export const snoozeMessages: Record<SnoozeLevel, string[]> = {
 };
 
 // Wake-up challenge types
-export type ChallengeType = 'none' | 'math' | 'shake' | 'typing' | 'memory' | 'pattern' | 'slider' | 'captcha' | 'barcode' | 'qrcode' | 'steps' | 'speakMatch';
+export type ChallengeType = 'none' | 'math' | 'shake' | 'typing' | 'memory' | 'pattern' | 'slider' | 'captcha' | 'barcode' | 'qrcode' | 'steps' | 'speakMatch' | 'objectVerify';
 
 export const challengeTypes: { value: ChallengeType; label: string; description: string; icon: string }[] = [
   { value: 'none', label: 'None', description: 'No challenge required', icon: '😴' },
