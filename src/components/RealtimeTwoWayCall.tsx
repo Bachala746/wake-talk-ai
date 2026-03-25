@@ -153,6 +153,7 @@ export const RealtimeTwoWayCall = ({
           onEscalate={handleChallengeEscalate}
           speakMatchSettings={settings.speakMatchSettings}
           registeredQrCode={settings.registeredQrCode}
+          objectVerifySettings={settings.objectVerifySettings}
         />
       </div>
     );

@@ -199,7 +199,7 @@ export const snoozeMessages: Record<SnoozeLevel, string[]> = {
 };
 
 // Wake-up challenge types
-export type ChallengeType = 'none' | 'math' | 'shake' | 'typing' | 'memory' | 'pattern' | 'slider' | 'captcha' | 'barcode' | 'qrcode' | 'steps' | 'speakMatch';
+export type ChallengeType = 'none' | 'math' | 'shake' | 'typing' | 'memory' | 'pattern' | 'slider' | 'captcha' | 'barcode' | 'qrcode' | 'steps' | 'speakMatch' | 'objectVerify';
 
 export const challengeTypes: { value: ChallengeType; label: string; description: string; icon: string }[] = [
   { value: 'none', label: 'None', description: 'No challenge required', icon: '😴' },
@@ -214,6 +214,7 @@ export const challengeTypes: { value: ChallengeType; label: string; description:
   { value: 'qrcode', label: 'Scan QR Code', description: 'Scan your registered QR code', icon: '📷' },
   { value: 'steps', label: 'Walk Steps', description: 'Walk required steps to dismiss', icon: '🚶' },
   { value: 'speakMatch', label: 'Speak & Match', description: 'Read text aloud to dismiss', icon: '🗣️' },
+  { value: 'objectVerify', label: 'Object Verify', description: 'Scan real-world objects', icon: '🔍' },
 ];
 
 // Speak & Match challenge settings
@@ -337,6 +338,30 @@ export const defaultSpeakMatchSettings: SpeakMatchSettings = {
   customText: '',
 };
 
+// Object Verification types
+export interface StoredObject {
+  id: string;
+  label: string;
+  imageBase64: string; // compressed JPEG base64
+  createdAt: number;
+}
+
+export interface ObjectVerifySettings {
+  requiredCount: number; // how many objects to verify
+  selectedObjectIds: string[]; // which specific objects
+  strictMatch: boolean; // higher confidence threshold
+  sequential: boolean; // must verify in order
+  confidenceThreshold: number; // 0-100
+}
+
+export const defaultObjectVerifySettings: ObjectVerifySettings = {
+  requiredCount: 1,
+  selectedObjectIds: [],
+  strictMatch: false,
+  sequential: false,
+  confidenceThreshold: 85,
+};
+
 // Complete alarm settings interface
 export interface AlarmSettings {
   interactionMode: InteractionMode;
@@ -355,6 +380,8 @@ export interface AlarmSettings {
   speakMatchSettings?: SpeakMatchSettings;
   // Registered QR code for QR challenge
   registeredQrCode?: string;
+  // Object verification settings
+  objectVerifySettings?: ObjectVerifySettings;
 }
 
 export const defaultAlarmSettings: AlarmSettings = {

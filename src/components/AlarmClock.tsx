@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Clock, Phone, Settings, Sun, Moon, Trash2, Edit, Sparkles, Flame, Zap, Volume2, Mic, Bell, MessageSquare, Gamepad2, QrCode, Camera, CameraOff, CheckCircle, XCircle } from "lucide-react";
+import { Clock, Phone, Settings, Sun, Moon, Trash2, Edit, Sparkles, Flame, Zap, Volume2, Mic, Bell, MessageSquare, Gamepad2, QrCode, Camera, CameraOff, CheckCircle, XCircle, Search, Plus, Image } from "lucide-react";
 import { toast } from "sonner";
 import { Html5Qrcode } from "html5-qrcode";
 import { ElevenLabsQuotaPanel } from "./ElevenLabsQuotaPanel";
@@ -27,6 +27,8 @@ import {
   SpeakMatchParagraphLength,
   SpeakMatchAccuracy,
   SpeakMatchParagraphType,
+  ObjectVerifySettings,
+  StoredObject,
   voiceStyles,
   greetingStyles,
   messageThemes,
@@ -37,12 +39,14 @@ import {
   interactionModes,
   defaultAlarmSettings,
   defaultSpeakMatchSettings,
+  defaultObjectVerifySettings,
   speakMatchParagraphLengths,
   speakMatchAccuracyLevels,
   speakMatchTimeLimits,
   speakMatchRetryLimits,
   speakMatchParagraphTypes,
 } from "@/lib/alarmSettings";
+import { getStoredObjects, addStoredObject, removeStoredObject, captureImageFromVideo } from "@/lib/objectStore";
 
 const motivationalQuotes = [
   { quote: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
@@ -112,6 +116,18 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [qrScannerReady, setQrScannerReady] = useState(false);
   const [qrScanError, setQrScanError] = useState<string | null>(null);
   const qrScannerRef = useRef<Html5Qrcode | null>(null);
+
+  // Object verification states
+  const [storedObjects, setStoredObjects] = useState<StoredObject[]>(() => getStoredObjects());
+  const [objCaptureMode, setObjCaptureMode] = useState(false);
+  const [objLabel, setObjLabel] = useState('');
+  const [objCapturedImage, setObjCapturedImage] = useState<string | null>(null);
+  const objVideoRef = useRef<HTMLVideoElement | null>(null);
+  const objStreamRef = useRef<MediaStream | null>(null);
+  const [ovSelectedIds, setOvSelectedIds] = useState<string[]>([]);
+  const [ovStrictMatch, setOvStrictMatch] = useState(defaultObjectVerifySettings.strictMatch);
+  const [ovSequential, setOvSequential] = useState(defaultObjectVerifySettings.sequential);
+  const [ovConfidence, setOvConfidence] = useState(defaultObjectVerifySettings.confidenceThreshold);
 
   // QR Scanner cleanup
   useEffect(() => {
@@ -213,6 +229,14 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       customText: smCustomText,
     };
 
+    const objectVerifySettingsObj: ObjectVerifySettings = {
+      requiredCount: ovSelectedIds.length,
+      selectedObjectIds: ovSelectedIds,
+      strictMatch: ovStrictMatch,
+      sequential: ovSequential,
+      confidenceThreshold: ovConfidence,
+    };
+
     const settings: AlarmSettings = {
       interactionMode,
       voiceStyle,
@@ -227,6 +251,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       elevenLabsAgentId: interactionMode === 'two-way' ? elevenLabsAgentId : '',
       speakMatchSettings: challengeType === 'speakMatch' ? speakMatchSettingsObj : undefined,
       registeredQrCode: challengeType === 'qrcode' ? registeredQrCode : undefined,
+      objectVerifySettings: challengeType === 'objectVerify' ? objectVerifySettingsObj : undefined,
     };
 
     if (editingAlarmId) {
@@ -299,6 +324,15 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setSmParagraphType(smS.paragraphType);
     setSmCustomText(smS.customText);
     setRegisteredQrCode(alarm.settings.registeredQrCode || '');
+    // Load object verification settings
+    const ovS = alarm.settings.objectVerifySettings || defaultObjectVerifySettings;
+    setOvSelectedIds(ovS.selectedObjectIds);
+    setOvStrictMatch(ovS.strictMatch);
+    setOvSequential(ovS.sequential);
+    setOvConfidence(ovS.confidenceThreshold);
+    setObjCaptureMode(false);
+    setObjCapturedImage(null);
+    setObjLabel('');
     setQrScanMode(false);
     setQrScanError(null);
     setIsDialogOpen(true);
@@ -330,6 +364,14 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setSmParagraphType(defaultSpeakMatchSettings.paragraphType);
     setSmCustomText(defaultSpeakMatchSettings.customText);
     setRegisteredQrCode('');
+    // Reset object verification
+    setOvSelectedIds([]);
+    setOvStrictMatch(defaultObjectVerifySettings.strictMatch);
+    setOvSequential(defaultObjectVerifySettings.sequential);
+    setOvConfidence(defaultObjectVerifySettings.confidenceThreshold);
+    setObjCaptureMode(false);
+    setObjCapturedImage(null);
+    setObjLabel('');
     setQrScanMode(false);
     setQrScanError(null);
     setIsDialogOpen(true);
@@ -343,8 +385,75 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       qrScannerRef.current.stop().catch(console.error);
       qrScannerRef.current = null;
     }
+    // Stop object camera if running
+    if (objStreamRef.current) {
+      objStreamRef.current.getTracks().forEach(t => t.stop());
+      objStreamRef.current = null;
+    }
+    setObjCaptureMode(false);
+    setObjCapturedImage(null);
     setQrScanMode(false);
     setQrScanError(null);
+  };
+
+  // Object capture functions
+  const startObjectCapture = async () => {
+    setObjCaptureMode(true);
+    setObjCapturedImage(null);
+    setObjLabel('');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      objStreamRef.current = stream;
+      if (objVideoRef.current) {
+        objVideoRef.current.srcObject = stream;
+        objVideoRef.current.play();
+      }
+    } catch (err) {
+      console.error('Camera error:', err);
+      toast.error('Failed to access camera');
+      setObjCaptureMode(false);
+    }
+  };
+
+  const captureObjectPhoto = () => {
+    if (!objVideoRef.current) return;
+    const imageData = captureImageFromVideo(objVideoRef.current);
+    setObjCapturedImage(imageData);
+    // Stop camera
+    if (objStreamRef.current) {
+      objStreamRef.current.getTracks().forEach(t => t.stop());
+      objStreamRef.current = null;
+    }
+  };
+
+  const saveObject = () => {
+    if (!objCapturedImage || !objLabel.trim()) {
+      toast.error('Please capture a photo and add a label');
+      return;
+    }
+    try {
+      const newObj = addStoredObject(objLabel.trim(), objCapturedImage);
+      setStoredObjects(getStoredObjects());
+      setObjCaptureMode(false);
+      setObjCapturedImage(null);
+      setObjLabel('');
+      toast.success(`"${newObj.label}" saved!`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save');
+    }
+  };
+
+  const deleteObject = (id: string) => {
+    removeStoredObject(id);
+    setStoredObjects(getStoredObjects());
+    setOvSelectedIds(prev => prev.filter(oid => oid !== id));
+    toast.info('Object removed');
+  };
+
+  const toggleObjectSelection = (id: string) => {
+    setOvSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(oid => oid !== id) : [...prev, id]
+    );
   };
 
   const startQrRegistration = async () => {
@@ -1147,6 +1256,183 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                       />
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Object Verification Settings */}
+              {challengeType === 'objectVerify' && (
+                <div className="space-y-4 pt-2 border-t border-border">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">🔍 Object Verification Setup</p>
+                  
+                  {/* Stored Objects */}
+                  <div>
+                    <Label className="text-xs sm:text-sm font-medium mb-2 block">
+                      Your Objects ({storedObjects.length}/10)
+                    </Label>
+                    
+                    {storedObjects.length > 0 && (
+                      <div className="space-y-2 mb-3">
+                        {storedObjects.map((obj) => (
+                          <div key={obj.id} className={`flex items-center gap-2 p-2 rounded-lg border ${
+                            ovSelectedIds.includes(obj.id) 
+                              ? 'border-primary bg-primary/5' 
+                              : 'border-border'
+                          }`}>
+                            <img 
+                              src={obj.imageBase64} 
+                              alt={obj.label} 
+                              className="w-10 h-10 rounded object-cover shrink-0"
+                            />
+                            <span className="text-sm font-medium flex-1 truncate">{obj.label}</span>
+                            <Button
+                              type="button"
+                              variant={ovSelectedIds.includes(obj.id) ? "default" : "outline"}
+                              size="sm"
+                              className="shrink-0 h-7 text-xs"
+                              onClick={() => toggleObjectSelection(obj.id)}
+                            >
+                              {ovSelectedIds.includes(obj.id) ? '✓ Selected' : 'Select'}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="shrink-0 h-7 w-7 hover:bg-destructive/10"
+                              onClick={() => deleteObject(obj.id)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {ovSelectedIds.length > 0 && (
+                      <p className="text-xs text-primary font-semibold mb-2">
+                        {ovSelectedIds.length} object{ovSelectedIds.length !== 1 ? 's' : ''} selected for verification
+                      </p>
+                    )}
+                    
+                    {/* Capture new object */}
+                    {objCaptureMode ? (
+                      <div className="space-y-3 p-3 rounded-xl border border-border bg-muted/30">
+                        {objCapturedImage ? (
+                          <>
+                            <img src={objCapturedImage} alt="Captured" className="w-full rounded-lg" />
+                            <Input
+                              type="text"
+                              placeholder="Label (e.g., Toothbrush, Kitchen Sink)"
+                              value={objLabel}
+                              onChange={(e) => setObjLabel(e.target.value)}
+                              className="text-sm"
+                              autoFocus
+                            />
+                            <div className="flex gap-2">
+                              <Button type="button" size="sm" onClick={saveObject} className="flex-1">
+                                <Plus className="h-3.5 w-3.5 mr-1" />
+                                Save Object
+                              </Button>
+                              <Button type="button" variant="outline" size="sm" onClick={() => {
+                                setObjCapturedImage(null);
+                                startObjectCapture();
+                              }}>
+                                Retake
+                              </Button>
+                              <Button type="button" variant="outline" size="sm" onClick={() => {
+                                setObjCaptureMode(false);
+                                setObjCapturedImage(null);
+                                if (objStreamRef.current) {
+                                  objStreamRef.current.getTracks().forEach(t => t.stop());
+                                }
+                              }}>
+                                Cancel
+                              </Button>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <video
+                              ref={objVideoRef}
+                              autoPlay
+                              playsInline
+                              muted
+                              className="w-full rounded-lg bg-muted"
+                              style={{ minHeight: '180px' }}
+                            />
+                            <div className="flex gap-2">
+                              <Button type="button" size="sm" onClick={captureObjectPhoto} className="flex-1">
+                                <Camera className="h-3.5 w-3.5 mr-1" />
+                                Capture Photo
+                              </Button>
+                              <Button type="button" variant="outline" size="sm" onClick={() => {
+                                setObjCaptureMode(false);
+                                if (objStreamRef.current) {
+                                  objStreamRef.current.getTracks().forEach(t => t.stop());
+                                }
+                              }}>
+                                Cancel
+                              </Button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ) : storedObjects.length < 10 ? (
+                      <Button type="button" variant="outline" onClick={startObjectCapture} className="w-full py-4">
+                        <Camera className="h-4 w-4 mr-2" />
+                        Capture New Object
+                      </Button>
+                    ) : (
+                      <p className="text-xs text-muted-foreground text-center">Maximum 10 objects reached</p>
+                    )}
+                  </div>
+                  
+                  {/* Verification options */}
+                  {ovSelectedIds.length > 0 && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-muted/50">
+                        <div className="min-w-0 flex-1">
+                          <Label className="text-xs sm:text-sm font-medium">Strict Match</Label>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground">Higher confidence required (95%)</p>
+                        </div>
+                        <Switch checked={ovStrictMatch} onCheckedChange={(v) => {
+                          setOvStrictMatch(v);
+                          setOvConfidence(v ? 95 : 85);
+                        }} className="shrink-0" />
+                      </div>
+                      
+                      {ovSelectedIds.length > 1 && (
+                        <div className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-muted/50">
+                          <div className="min-w-0 flex-1">
+                            <Label className="text-xs sm:text-sm font-medium">Sequential Mode</Label>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground">Must verify objects in order</p>
+                          </div>
+                          <Switch checked={ovSequential} onCheckedChange={setOvSequential} className="shrink-0" />
+                        </div>
+                      )}
+
+                      <div>
+                        <Label className="text-xs sm:text-sm font-medium mb-2 block">
+                          Confidence: {ovConfidence}%
+                        </Label>
+                        <Slider
+                          value={[ovConfidence]}
+                          onValueChange={([v]) => setOvConfidence(v)}
+                          min={50}
+                          max={99}
+                          step={5}
+                          className="py-2"
+                        />
+                        <div className="flex justify-between text-[10px] text-muted-foreground">
+                          <span>Relaxed (50%)</span>
+                          <span>Strict (99%)</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <p className="text-xs text-muted-foreground text-center">
+                    💡 Place objects in different rooms to force yourself out of bed!
+                  </p>
                 </div>
               )}
             </TabsContent>

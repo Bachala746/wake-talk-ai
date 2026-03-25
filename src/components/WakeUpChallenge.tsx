@@ -24,7 +24,9 @@ import {
   CameraOff,
   Mic,
   MicOff,
-  Volume2
+  Volume2,
+  Search,
+  Loader2
 } from "lucide-react";
 import { 
   ChallengeType, 
@@ -33,8 +35,13 @@ import {
   speakMatchParagraphs, 
   speakMatchAccuracyLevels,
   SpeakMatchParagraphType,
-  SpeakMatchParagraphLength
+  SpeakMatchParagraphLength,
+  ObjectVerifySettings,
+  defaultObjectVerifySettings,
+  StoredObject,
 } from "@/lib/alarmSettings";
+import { getStoredObjects, captureImageFromVideo } from "@/lib/objectStore";
+import { supabase } from "@/integrations/supabase/client";
 import { Html5Qrcode } from "html5-qrcode";
 import { useElevenLabsScribe } from "@/hooks/useElevenLabsScribe";
 import { 
@@ -58,6 +65,7 @@ interface WakeUpChallengeProps {
   onEscalate?: (level: number) => void;
   speakMatchSettings?: SpeakMatchSettings;
   registeredQrCode?: string;
+  objectVerifySettings?: ObjectVerifySettings;
 }
 
 // Math problem generator
@@ -196,7 +204,8 @@ export const WakeUpChallenge = ({
   onFail,
   onEscalate,
   speakMatchSettings,
-  registeredQrCode
+  registeredQrCode,
+  objectVerifySettings,
 }: WakeUpChallengeProps) => {
   const { isDark } = useTheme();
   // State for different challenge types
@@ -289,6 +298,22 @@ export const WakeUpChallenge = ({
   const [smCompleted, setSmCompleted] = useState(false);
   const [smEscalated, setSmEscalated] = useState(false);
   const pressureTickRef = useRef<number | null>(null);
+  
+  // Object Verification state
+  const ovSettings = objectVerifySettings || defaultObjectVerifySettings;
+  const [ovObjects] = useState<StoredObject[]>(() => {
+    const all = getStoredObjects();
+    return all.filter(o => ovSettings.selectedObjectIds.includes(o.id));
+  });
+  const [ovVerifiedIds, setOvVerifiedIds] = useState<string[]>([]);
+  const [ovCurrentIndex, setOvCurrentIndex] = useState(0);
+  const [ovVerifying, setOvVerifying] = useState(false);
+  const [ovResult, setOvResult] = useState<{ isMatch: boolean; confidence: number; reasoning: string } | null>(null);
+  const [ovRetryDelay, setOvRetryDelay] = useState(false);
+  const ovVideoRef = useRef<HTMLVideoElement | null>(null);
+  const ovStreamRef = useRef<MediaStream | null>(null);
+  const [ovCameraReady, setOvCameraReady] = useState(false);
+  const [ovCameraError, setOvCameraError] = useState<string | null>(null);
   
   const scribe = useElevenLabsScribe({
     onPartialTranscript: (text) => {
@@ -551,6 +576,94 @@ export const WakeUpChallenge = ({
     };
   }, [challengeType, stepsRequired, onComplete]);
   
+  // Object Verification camera init
+  useEffect(() => {
+    if (challengeType !== 'objectVerify') return;
+    
+    const initCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        ovStreamRef.current = stream;
+        if (ovVideoRef.current) {
+          ovVideoRef.current.srcObject = stream;
+          ovVideoRef.current.play();
+        }
+        setOvCameraReady(true);
+      } catch (err) {
+        console.error('OV Camera error:', err);
+        setOvCameraError(err instanceof Error ? err.message : 'Failed to access camera');
+      }
+    };
+    
+    initCamera();
+    
+    return () => {
+      if (ovStreamRef.current) {
+        ovStreamRef.current.getTracks().forEach(t => t.stop());
+      }
+    };
+  }, [challengeType]);
+  
+  // Object Verification: capture and verify
+  const handleObjectVerify = async () => {
+    if (!ovVideoRef.current || ovVerifying) return;
+    
+    const currentObj = ovSettings.sequential 
+      ? ovObjects[ovCurrentIndex] 
+      : ovObjects.find(o => !ovVerifiedIds.includes(o.id));
+    
+    if (!currentObj) return;
+    
+    setOvVerifying(true);
+    setOvResult(null);
+    
+    const capturedImage = captureImageFromVideo(ovVideoRef.current, 480);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-object', {
+        body: {
+          referenceImage: currentObj.imageBase64,
+          capturedImage,
+          objectLabel: currentObj.label,
+        },
+      });
+      
+      if (error) throw error;
+      
+      const result = data as { isMatch: boolean; confidence: number; reasoning: string };
+      setOvResult(result);
+      
+      if (result.isMatch && result.confidence >= ovSettings.confidenceThreshold) {
+        // Success!
+        playScanSuccessSound();
+        const newVerified = [...ovVerifiedIds, currentObj.id];
+        setOvVerifiedIds(newVerified);
+        
+        if (newVerified.length >= ovObjects.length) {
+          // All objects verified!
+          setIsCorrect(true);
+          playChallengeCompleteSound();
+          setTimeout(onComplete, 500);
+        } else {
+          setOvCurrentIndex(prev => prev + 1);
+          playMilestoneSound();
+          // Clear result after brief display
+          setTimeout(() => setOvResult(null), 1500);
+        }
+      } else {
+        // Failed
+        handleWrongAttempt();
+        setOvRetryDelay(true);
+        setTimeout(() => setOvRetryDelay(false), 2500);
+      }
+    } catch (err) {
+      console.error('Verify error:', err);
+      setOvResult({ isMatch: false, confidence: 0, reasoning: 'Verification failed. Try again.' });
+    } finally {
+      setOvVerifying(false);
+    }
+  };
+
   // Manual step simulation for desktop
   const handleManualStep = () => {
     setStepCount(prev => {
@@ -826,6 +939,7 @@ export const WakeUpChallenge = ({
       case 'qrcode': return <QrCode className="h-6 w-6" />;
       case 'steps': return <Footprints className="h-6 w-6" />;
       case 'speakMatch': return <Mic className="h-6 w-6" />;
+      case 'objectVerify': return <Search className="h-6 w-6" />;
       default: return <Timer className="h-6 w-6" />;
     }
   };
@@ -843,6 +957,7 @@ export const WakeUpChallenge = ({
       case 'qrcode': return registeredQrCode ? 'Scan Your QR Code' : 'Scan Any QR Code';
       case 'steps': return 'Walk to Dismiss';
       case 'speakMatch': return smEscalated ? '🔥 Speak & Match (Harder!)' : 'Speak & Match';
+      case 'objectVerify': return `Verify Objects (${ovVerifiedIds.length}/${ovObjects.length})`;
       default: return 'Complete the Challenge';
     }
   };
@@ -1409,6 +1524,157 @@ export const WakeUpChallenge = ({
           <p className="text-center text-xs text-muted-foreground">
             Required accuracy: {speakMatchAccuracyLevels.find(l => l.value === smSettings.accuracy)?.label}
           </p>
+        </div>
+      )}
+      
+      {challengeType === 'objectVerify' && (
+        <div className="space-y-3 sm:space-y-4">
+          {ovCameraError ? (
+            <div className="text-center py-6 sm:py-8">
+              <div className="inline-block p-4 sm:p-6 bg-red-100 rounded-full mb-4">
+                <CameraOff className="h-8 w-8 sm:h-12 sm:w-12 text-red-500" />
+              </div>
+              <p className="text-sm sm:text-base text-red-600 font-medium mb-2">
+                📷 Camera Access Required
+              </p>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-2">{ovCameraError}</p>
+              <p className="text-xs text-red-500 mb-4 font-semibold animate-pulse">
+                ⚠️ Camera is required to verify objects. The alarm will keep ringing.
+              </p>
+              <Button onClick={() => window.location.reload()} className="bg-primary hover:bg-primary/90">
+                Retry Camera Access
+              </Button>
+            </div>
+          ) : (
+            <>
+              {/* Progress */}
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs sm:text-sm text-muted-foreground">Progress</span>
+                <span className="text-xs sm:text-sm font-bold text-foreground">
+                  {ovVerifiedIds.length} / {ovObjects.length} verified
+                </span>
+              </div>
+              <Progress value={(ovVerifiedIds.length / Math.max(ovObjects.length, 1)) * 100} className="h-2.5" />
+              
+              {/* Objects to verify */}
+              <div className="flex flex-wrap gap-2 justify-center">
+                {ovObjects.map((obj, i) => {
+                  const verified = ovVerifiedIds.includes(obj.id);
+                  const isCurrent = ovSettings.sequential 
+                    ? i === ovCurrentIndex 
+                    : !verified;
+                  return (
+                    <div key={obj.id} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border ${
+                      verified
+                        ? 'bg-green-100 border-green-300 text-green-700'
+                        : isCurrent
+                          ? 'bg-primary/10 border-primary/30 text-primary animate-pulse'
+                          : 'bg-muted border-border text-muted-foreground'
+                    }`}>
+                      {verified ? <CheckCircle className="h-3.5 w-3.5" /> : null}
+                      <img src={obj.imageBase64} alt={obj.label} className="w-5 h-5 rounded-sm object-cover" />
+                      {obj.label}
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Current target */}
+              {(() => {
+                const currentObj = ovSettings.sequential 
+                  ? ovObjects[ovCurrentIndex] 
+                  : ovObjects.find(o => !ovVerifiedIds.includes(o.id));
+                
+                if (!currentObj) return null;
+                
+                return (
+                  <div className={`text-center p-3 rounded-xl ${
+                    isDark ? 'bg-slate-700/50' : 'bg-gradient-to-br from-orange-50 to-amber-50'
+                  }`}>
+                    <p className="text-xs text-muted-foreground mb-2">Find and scan:</p>
+                    <div className="flex items-center justify-center gap-3">
+                      <img src={currentObj.imageBase64} alt={currentObj.label} className="w-16 h-16 rounded-lg object-cover border-2 border-primary/30" />
+                      <div className="text-left">
+                        <p className="text-lg font-bold text-foreground">{currentObj.label}</p>
+                        <p className="text-xs text-muted-foreground">Point camera at this object</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+              
+              {/* Camera feed */}
+              <div className="relative rounded-xl overflow-hidden bg-muted">
+                <video
+                  ref={ovVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full rounded-xl"
+                  style={{ minHeight: '200px' }}
+                />
+                {!ovCameraReady && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="inline-block animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
+                  </div>
+                )}
+              </div>
+              
+              {/* Verification result */}
+              {ovResult && (
+                <div className={`text-center p-3 rounded-xl ${
+                  ovResult.isMatch && ovResult.confidence >= ovSettings.confidenceThreshold
+                    ? 'bg-green-100 border border-green-300'
+                    : 'bg-red-100 border border-red-300'
+                }`}>
+                  {ovResult.isMatch && ovResult.confidence >= ovSettings.confidenceThreshold ? (
+                    <>
+                      <CheckCircle className="h-6 w-6 text-green-500 mx-auto mb-1" />
+                      <p className="text-sm font-bold text-green-700">Match! ({ovResult.confidence}%)</p>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="h-6 w-6 text-red-500 mx-auto mb-1" />
+                      <p className="text-sm font-bold text-red-700">
+                        {ovResult.confidence > 0 ? `Not a match (${ovResult.confidence}%)` : 'Verification failed'}
+                      </p>
+                      <p className="text-xs text-red-600 mt-1">{ovResult.reasoning}</p>
+                    </>
+                  )}
+                </div>
+              )}
+              
+              {/* Verify button */}
+              <Button 
+                onClick={handleObjectVerify}
+                disabled={ovVerifying || ovRetryDelay || ovVerifiedIds.length >= ovObjects.length}
+                className={`w-full py-5 text-sm sm:text-base ${
+                  isDark 
+                    ? 'bg-indigo-500 hover:bg-indigo-600 text-white' 
+                    : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                }`}
+              >
+                {ovVerifying ? (
+                  <>
+                    <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 animate-spin" />
+                    Verifying...
+                  </>
+                ) : ovRetryDelay ? (
+                  'Wait...'
+                ) : (
+                  <>
+                    <Camera className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                    Capture & Verify
+                  </>
+                )}
+              </Button>
+              
+              <p className="text-center text-xs text-muted-foreground">
+                Required confidence: {ovSettings.confidenceThreshold}%
+                {ovSettings.sequential && ' • Sequential mode'}
+              </p>
+            </>
+          )}
         </div>
       )}
       
