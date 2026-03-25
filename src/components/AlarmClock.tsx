@@ -229,6 +229,14 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       customText: smCustomText,
     };
 
+    const objectVerifySettingsObj: ObjectVerifySettings = {
+      requiredCount: ovSelectedIds.length,
+      selectedObjectIds: ovSelectedIds,
+      strictMatch: ovStrictMatch,
+      sequential: ovSequential,
+      confidenceThreshold: ovConfidence,
+    };
+
     const settings: AlarmSettings = {
       interactionMode,
       voiceStyle,
@@ -243,6 +251,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       elevenLabsAgentId: interactionMode === 'two-way' ? elevenLabsAgentId : '',
       speakMatchSettings: challengeType === 'speakMatch' ? speakMatchSettingsObj : undefined,
       registeredQrCode: challengeType === 'qrcode' ? registeredQrCode : undefined,
+      objectVerifySettings: challengeType === 'objectVerify' ? objectVerifySettingsObj : undefined,
     };
 
     if (editingAlarmId) {
