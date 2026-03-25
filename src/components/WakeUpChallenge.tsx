@@ -24,7 +24,9 @@ import {
   CameraOff,
   Mic,
   MicOff,
-  Volume2
+  Volume2,
+  Search,
+  Loader2
 } from "lucide-react";
 import { 
   ChallengeType, 
