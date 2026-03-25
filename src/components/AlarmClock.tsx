@@ -117,6 +117,18 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [qrScanError, setQrScanError] = useState<string | null>(null);
   const qrScannerRef = useRef<Html5Qrcode | null>(null);
 
+  // Object verification states
+  const [storedObjects, setStoredObjects] = useState<StoredObject[]>(() => getStoredObjects());
+  const [objCaptureMode, setObjCaptureMode] = useState(false);
+  const [objLabel, setObjLabel] = useState('');
+  const [objCapturedImage, setObjCapturedImage] = useState<string | null>(null);
+  const objVideoRef = useRef<HTMLVideoElement | null>(null);
+  const objStreamRef = useRef<MediaStream | null>(null);
+  const [ovSelectedIds, setOvSelectedIds] = useState<string[]>([]);
+  const [ovStrictMatch, setOvStrictMatch] = useState(defaultObjectVerifySettings.strictMatch);
+  const [ovSequential, setOvSequential] = useState(defaultObjectVerifySettings.sequential);
+  const [ovConfidence, setOvConfidence] = useState(defaultObjectVerifySettings.confidenceThreshold);
+
   // QR Scanner cleanup
   useEffect(() => {
     return () => {
