@@ -574,6 +574,94 @@ export const WakeUpChallenge = ({
     };
   }, [challengeType, stepsRequired, onComplete]);
   
+  // Object Verification camera init
+  useEffect(() => {
+    if (challengeType !== 'objectVerify') return;
+    
+    const initCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        ovStreamRef.current = stream;
+        if (ovVideoRef.current) {
+          ovVideoRef.current.srcObject = stream;
+          ovVideoRef.current.play();
+        }
+        setOvCameraReady(true);
+      } catch (err) {
+        console.error('OV Camera error:', err);
+        setOvCameraError(err instanceof Error ? err.message : 'Failed to access camera');
+      }
+    };
+    
+    initCamera();
+    
+    return () => {
+      if (ovStreamRef.current) {
+        ovStreamRef.current.getTracks().forEach(t => t.stop());
+      }
+    };
+  }, [challengeType]);
+  
+  // Object Verification: capture and verify
+  const handleObjectVerify = async () => {
+    if (!ovVideoRef.current || ovVerifying) return;
+    
+    const currentObj = ovSettings.sequential 
+      ? ovObjects[ovCurrentIndex] 
+      : ovObjects.find(o => !ovVerifiedIds.includes(o.id));
+    
+    if (!currentObj) return;
+    
+    setOvVerifying(true);
+    setOvResult(null);
+    
+    const capturedImage = captureImageFromVideo(ovVideoRef.current, 480);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-object', {
+        body: {
+          referenceImage: currentObj.imageBase64,
+          capturedImage,
+          objectLabel: currentObj.label,
+        },
+      });
+      
+      if (error) throw error;
+      
+      const result = data as { isMatch: boolean; confidence: number; reasoning: string };
+      setOvResult(result);
+      
+      if (result.isMatch && result.confidence >= ovSettings.confidenceThreshold) {
+        // Success!
+        playScanSuccessSound();
+        const newVerified = [...ovVerifiedIds, currentObj.id];
+        setOvVerifiedIds(newVerified);
+        
+        if (newVerified.length >= ovObjects.length) {
+          // All objects verified!
+          setIsCorrect(true);
+          playChallengeCompleteSound();
+          setTimeout(onComplete, 500);
+        } else {
+          setOvCurrentIndex(prev => prev + 1);
+          playMilestoneSound();
+          // Clear result after brief display
+          setTimeout(() => setOvResult(null), 1500);
+        }
+      } else {
+        // Failed
+        handleWrongAttempt();
+        setOvRetryDelay(true);
+        setTimeout(() => setOvRetryDelay(false), 2500);
+      }
+    } catch (err) {
+      console.error('Verify error:', err);
+      setOvResult({ isMatch: false, confidence: 0, reasoning: 'Verification failed. Try again.' });
+    } finally {
+      setOvVerifying(false);
+    }
+  };
+
   // Manual step simulation for desktop
   const handleManualStep = () => {
     setStepCount(prev => {
