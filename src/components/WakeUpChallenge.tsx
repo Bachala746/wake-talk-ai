@@ -937,6 +937,7 @@ export const WakeUpChallenge = ({
       case 'qrcode': return <QrCode className="h-6 w-6" />;
       case 'steps': return <Footprints className="h-6 w-6" />;
       case 'speakMatch': return <Mic className="h-6 w-6" />;
+      case 'objectVerify': return <Search className="h-6 w-6" />;
       default: return <Timer className="h-6 w-6" />;
     }
   };
