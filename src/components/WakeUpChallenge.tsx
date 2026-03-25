@@ -202,7 +202,8 @@ export const WakeUpChallenge = ({
   onFail,
   onEscalate,
   speakMatchSettings,
-  registeredQrCode
+  registeredQrCode,
+  objectVerifySettings,
 }: WakeUpChallengeProps) => {
   const { isDark } = useTheme();
   // State for different challenge types
