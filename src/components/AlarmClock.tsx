@@ -364,6 +364,14 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setSmParagraphType(defaultSpeakMatchSettings.paragraphType);
     setSmCustomText(defaultSpeakMatchSettings.customText);
     setRegisteredQrCode('');
+    // Reset object verification
+    setOvSelectedIds([]);
+    setOvStrictMatch(defaultObjectVerifySettings.strictMatch);
+    setOvSequential(defaultObjectVerifySettings.sequential);
+    setOvConfidence(defaultObjectVerifySettings.confidenceThreshold);
+    setObjCaptureMode(false);
+    setObjCapturedImage(null);
+    setObjLabel('');
     setQrScanMode(false);
     setQrScanError(null);
     setIsDialogOpen(true);
