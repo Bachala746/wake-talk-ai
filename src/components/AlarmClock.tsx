@@ -1415,10 +1415,16 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                         )}
                       </div>
                     ) : storedObjects.length < 10 ? (
-                      <Button type="button" variant="outline" onClick={startObjectCapture} className="w-full py-4">
-                        <Camera className="h-4 w-4 mr-2" />
-                        Capture New Object
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button type="button" variant="outline" onClick={startObjectCapture} className="flex-1 py-4">
+                          <Camera className="h-4 w-4 mr-2" />
+                          Camera
+                        </Button>
+                        <Button type="button" variant="outline" onClick={importFromGallery} className="flex-1 py-4">
+                          <Image className="h-4 w-4 mr-2" />
+                          Gallery
+                        </Button>
+                      </div>
                     ) : (
                       <p className="text-xs text-muted-foreground text-center">Maximum 10 objects reached</p>
                     )}
