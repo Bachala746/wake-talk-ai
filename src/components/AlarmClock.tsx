@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Clock, Phone, Settings, Sun, Moon, Trash2, Edit, Sparkles, Flame, Zap, Volume2, Mic, Bell, MessageSquare, Gamepad2, QrCode, Camera, CameraOff, CheckCircle, XCircle, Search, Plus, Image } from "lucide-react";
+import { Clock, Phone, Settings, Sun, Moon, Trash2, Edit, Sparkles, Flame, Zap, Volume2, Mic, Bell, MessageSquare, Gamepad2, QrCode, Camera, CameraOff, CheckCircle, XCircle, Search, Plus, Image, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { Html5Qrcode } from "html5-qrcode";
 import { ElevenLabsQuotaPanel } from "./ElevenLabsQuotaPanel";
@@ -755,6 +755,16 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           <div className="mb-6 sm:mb-8">
             <ElevenLabsQuotaPanel />
           </div>
+
+          {/* History Button */}
+          <Button
+            variant="outline"
+            className="w-full gap-2 mb-5"
+            onClick={() => window.location.href = '/history'}
+          >
+            <BarChart3 className="w-4 h-4" />
+            View Alarm History & Analytics
+          </Button>
 
           <div className="space-y-5">
           {/* Alarms List */}

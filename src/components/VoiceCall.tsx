@@ -21,7 +21,7 @@ interface VoiceCallProps {
   alarmTime: string;
   talkDuration: number;
   settings?: AlarmSettings;
-  onEndCall: () => void;
+  onEndCall: (snoozes?: number, challengeFails?: number, challengeSuccess?: boolean) => void;
 }
 
 export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSettings, onEndCall }: VoiceCallProps) => {
@@ -293,7 +293,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
     setIsPlaying(false);
     toast.success("Have an amazing day ahead! 🌟");
     setTimeout(() => {
-      onEndCall();
+      onEndCall(snoozedCount, 0, true);
     }, 2000);
   };
 
@@ -319,7 +319,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
     setIsConnected(false);
     setIsPlaying(false);
     toast.info("Call ended. Have a great day!");
-    onEndCall();
+    onEndCall(snoozedCount);
   };
 
   const handleChallengeComplete = () => {
@@ -334,7 +334,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
     setIsConnected(false);
     setIsPlaying(false);
     toast.success("Challenge completed! Have an amazing day! 🎉");
-    onEndCall();
+    onEndCall(snoozedCount, 0, true);
   };
 
   const handleChallengeFail = () => {

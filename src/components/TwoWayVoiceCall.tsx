@@ -16,7 +16,7 @@ interface TwoWayVoiceCallProps {
   alarmTime: string;
   talkDuration: number;
   settings?: AlarmSettings;
-  onEndCall: () => void;
+  onEndCall: (snoozes?: number, challengeFails?: number, challengeSuccess?: boolean) => void;
   isTestCall?: boolean;
 }
 
@@ -209,7 +209,7 @@ export const TwoWayVoiceCall = ({
     scribe.stopListening();
     setIsConnected(false);
     toast.success(isTestCall ? "Test call ended! 🎉" : "Have an amazing day! 🌟");
-    setTimeout(onEndCall, 1000);
+    setTimeout(() => onEndCall(0), 1000);
   }, [isTestCall, settings.challengeType, clearResponseTimeout, scribe, onEndCall]);
 
   // Handle challenge completion
@@ -217,7 +217,7 @@ export const TwoWayVoiceCall = ({
     setShowChallenge(false);
     setIsConnected(false);
     toast.success("Challenge completed! Have an amazing day! 🌟");
-    setTimeout(onEndCall, 1000);
+    setTimeout(() => onEndCall(0, 0, true), 1000);
   }, [onEndCall]);
 
   // Handle challenge failure
