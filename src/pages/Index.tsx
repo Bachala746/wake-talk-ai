@@ -3,10 +3,12 @@ import { AlarmClock } from "@/components/AlarmClock";
 import { VoiceCall } from "@/components/VoiceCall";
 import { TwoWayVoiceCall } from "@/components/TwoWayVoiceCall";
 import { RealtimeTwoWayCall } from "@/components/RealtimeTwoWayCall";
+import { WakeUpSuccessScreen } from "@/components/WakeUpSuccessScreen";
 import { AlarmSettings, defaultAlarmSettings } from "@/lib/alarmSettings";
 
 const Index = () => {
   const [isInCall, setIsInCall] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [callData, setCallData] = useState<{
     alarmTime: string;
     talkDuration: number;
@@ -21,6 +23,11 @@ const Index = () => {
 
   const handleEndCall = () => {
     setIsInCall(false);
+    setShowSuccess(true);
+  };
+
+  const handleDismissSuccess = () => {
+    setShowSuccess(false);
     setCallData(null);
   };
 
