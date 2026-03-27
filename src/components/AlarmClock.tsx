@@ -756,6 +756,16 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
             <ElevenLabsQuotaPanel />
           </div>
 
+          {/* History Button */}
+          <Button
+            variant="outline"
+            className="w-full gap-2 mb-5"
+            onClick={() => window.location.href = '/history'}
+          >
+            <BarChart3 className="w-4 h-4" />
+            View Alarm History & Analytics
+          </Button>
+
           <div className="space-y-5">
           {/* Alarms List */}
           <div className="space-y-3">
