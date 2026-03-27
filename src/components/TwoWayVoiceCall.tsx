@@ -209,7 +209,7 @@ export const TwoWayVoiceCall = ({
     scribe.stopListening();
     setIsConnected(false);
     toast.success(isTestCall ? "Test call ended! 🎉" : "Have an amazing day! 🌟");
-    setTimeout(onEndCall, 1000);
+    setTimeout(() => onEndCall(0), 1000);
   }, [isTestCall, settings.challengeType, clearResponseTimeout, scribe, onEndCall]);
 
   // Handle challenge completion
