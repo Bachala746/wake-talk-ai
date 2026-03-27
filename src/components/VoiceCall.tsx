@@ -334,7 +334,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
     setIsConnected(false);
     setIsPlaying(false);
     toast.success("Challenge completed! Have an amazing day! 🎉");
-    onEndCall();
+    onEndCall(snoozedCount, 0, true);
   };
 
   const handleChallengeFail = () => {

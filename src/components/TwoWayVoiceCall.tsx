@@ -217,7 +217,7 @@ export const TwoWayVoiceCall = ({
     setShowChallenge(false);
     setIsConnected(false);
     toast.success("Challenge completed! Have an amazing day! 🌟");
-    setTimeout(onEndCall, 1000);
+    setTimeout(() => onEndCall(0, 0, true), 1000);
   }, [onEndCall]);
 
   // Handle challenge failure
