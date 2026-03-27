@@ -293,7 +293,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
     setIsPlaying(false);
     toast.success("Have an amazing day ahead! 🌟");
     setTimeout(() => {
-      onEndCall();
+      onEndCall(snoozedCount, 0, true);
     }, 2000);
   };
 
