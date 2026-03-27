@@ -752,7 +752,9 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           </Card>
 
           {/* ElevenLabs Quota Panel */}
-          <ElevenLabsQuotaPanel />
+          <div className="mb-6 sm:mb-8">
+            <ElevenLabsQuotaPanel />
+          </div>
 
           <div className="space-y-5">
           {/* Alarms List */}
