@@ -319,7 +319,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
     setIsConnected(false);
     setIsPlaying(false);
     toast.info("Call ended. Have a great day!");
-    onEndCall();
+    onEndCall(snoozedCount);
   };
 
   const handleChallengeComplete = () => {
