@@ -117,7 +117,7 @@ export const RealtimeTwoWayCall = ({
     shouldContinueRef.current = false;
     conversation.endConversation();
     toast.success(isTestCall ? "Test call ended! 🎉" : "Have an amazing day! 🌟");
-    setTimeout(onEndCall, 1000);
+    setTimeout(() => onEndCall(0), 1000);
   }, [isTestCall, settings.challengeType, conversation, onEndCall]);
 
   const handleChallengeComplete = useCallback(() => {
