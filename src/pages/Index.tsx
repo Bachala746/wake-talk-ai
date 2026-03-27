@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { AlarmClock } from "@/components/AlarmClock";
 import { VoiceCall } from "@/components/VoiceCall";
 import { TwoWayVoiceCall } from "@/components/TwoWayVoiceCall";
 import { RealtimeTwoWayCall } from "@/components/RealtimeTwoWayCall";
 import { WakeUpSuccessScreen } from "@/components/WakeUpSuccessScreen";
 import { AlarmSettings, defaultAlarmSettings } from "@/lib/alarmSettings";
+import { addAlarmHistoryEntry } from "@/lib/alarmHistory";
 
 const Index = () => {
   const [isInCall, setIsInCall] = useState(false);
@@ -15,13 +16,41 @@ const Index = () => {
     settings: AlarmSettings;
     isTestCall?: boolean;
   } | null>(null);
+  const callStartRef = useRef<number>(0);
+  const snoozeCountRef = useRef(0);
+  const challengeFailsRef = useRef(0);
+  const challengeSucceededRef = useRef(false);
 
   const handleStartCall = (alarmTime: string, talkDuration: number, settings: AlarmSettings = defaultAlarmSettings, isTestCall: boolean = false) => {
     setCallData({ alarmTime, talkDuration, settings, isTestCall });
     setIsInCall(true);
+    callStartRef.current = Date.now();
+    snoozeCountRef.current = 0;
+    challengeFailsRef.current = 0;
+    challengeSucceededRef.current = false;
   };
 
-  const handleEndCall = () => {
+  const handleEndCall = (snoozes?: number, challengeFails?: number, challengeSuccess?: boolean) => {
+    if (snoozes !== undefined) snoozeCountRef.current = snoozes;
+    if (challengeFails !== undefined) challengeFailsRef.current = challengeFails;
+    if (challengeSuccess !== undefined) challengeSucceededRef.current = challengeSuccess;
+
+    const now = new Date();
+    const wakeUpTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+    if (callData && !callData.isTestCall) {
+      addAlarmHistoryEntry({
+        date: now.toISOString(),
+        wakeUpTime,
+        alarmTime: callData.alarmTime,
+        snoozeCount: snoozeCountRef.current,
+        challengeType: callData.settings.challengeType,
+        challengeSucceeded: challengeSucceededRef.current,
+        challengeFailures: challengeFailsRef.current,
+        durationSeconds: Math.round((Date.now() - callStartRef.current) / 1000),
+      });
+    }
+
     setIsInCall(false);
     setShowSuccess(true);
   };
