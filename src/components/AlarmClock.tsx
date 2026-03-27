@@ -426,6 +426,44 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     }
   };
 
+  const importFromGallery = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new window.Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxWidth = 320;
+          const scale = Math.min(1, maxWidth / img.width);
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext('2d')!;
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const imageData = canvas.toDataURL('image/jpeg', 0.7);
+          setObjCapturedImage(imageData);
+          setObjCaptureMode(true);
+          // Stop any active camera
+          if (objStreamRef.current) {
+            objStreamRef.current.getTracks().forEach(t => t.stop());
+            objStreamRef.current = null;
+          }
+        };
+        img.src = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
+
   const saveObject = () => {
     if (!objCapturedImage || !objLabel.trim()) {
       toast.error('Please capture a photo and add a label');
