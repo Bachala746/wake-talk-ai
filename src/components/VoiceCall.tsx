@@ -21,7 +21,7 @@ interface VoiceCallProps {
   alarmTime: string;
   talkDuration: number;
   settings?: AlarmSettings;
-  onEndCall: () => void;
+  onEndCall: (snoozes?: number, challengeFails?: number, challengeSuccess?: boolean) => void;
 }
 
 export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSettings, onEndCall }: VoiceCallProps) => {
