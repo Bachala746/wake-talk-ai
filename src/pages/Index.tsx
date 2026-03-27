@@ -69,6 +69,10 @@ const Index = () => {
     );
   }
 
+  if (showSuccess) {
+    return <WakeUpSuccessScreen onDismiss={handleDismissSuccess} />;
+  }
+
   return (
     <AlarmClock onStartCall={handleStartCall} />
   );
