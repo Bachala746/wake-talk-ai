@@ -667,7 +667,15 @@ export const WakeUpChallenge = ({
       setOvResult(result);
       
       if (result.isMatch && result.confidence >= ovSettings.confidenceThreshold) {
+        // Anti-cheat: Prevent duplicate counting of same object
+        if (verifiedObjectIdsRef.current.has(currentObj.id)) {
+          setOvResult({ isMatch: false, confidence: 0, reasoning: 'This object was already verified. Find the next one.' });
+          setOvVerifying(false);
+          return;
+        }
+        
         // Success!
+        verifiedObjectIdsRef.current.add(currentObj.id);
         playScanSuccessSound();
         const newVerified = [...ovVerifiedIds, currentObj.id];
         setOvVerifiedIds(newVerified);
