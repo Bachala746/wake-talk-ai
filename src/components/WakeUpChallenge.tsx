@@ -67,7 +67,25 @@ interface WakeUpChallengeProps {
   speakMatchSettings?: SpeakMatchSettings;
   registeredQrCode?: string;
   objectVerifySettings?: ObjectVerifySettings;
+  isAlarmActive?: boolean; // Anti-cheat: track if alarm is active
 }
+
+// AI voice encouragement messages
+const encouragementMessages = [
+  "You're doing great! Keep going!",
+  "Almost there, stay focused!",
+  "Only a little more to go!",
+  "You've got this! Don't give up!",
+  "Great progress! Finish strong!",
+];
+
+const getEncouragementMessage = (completed: number, total: number): string => {
+  const remaining = total - completed;
+  if (remaining === 1) return "Only one more left! You can do it!";
+  if (remaining === 2) return "Just two more to go! Almost done!";
+  if (completed === 1) return "Great start! Keep that momentum going!";
+  return encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
+};
 
 // Math problem generator
 const generateMathProblem = (difficulty: 'easy' | 'medium' | 'hard') => {
