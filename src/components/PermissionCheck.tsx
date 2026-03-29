@@ -34,7 +34,7 @@ export const PermissionCheck = ({ challengeType, interactionMode, compact = fals
     check();
   }, [challengeType, interactionMode]);
 
-  const handleRequest = async (perm: 'camera' | 'microphone' | 'notifications' | 'motion') => {
+  const handleRequest = async (perm: 'camera' | 'microphone' | 'notifications' | 'motion' | 'storage') => {
     setRequesting(perm);
     const result = await requestPermission(perm);
     setPermStatuses(prev => ({ ...prev, [perm]: result }));
