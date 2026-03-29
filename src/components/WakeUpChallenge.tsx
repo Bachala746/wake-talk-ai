@@ -1020,6 +1020,31 @@ export const WakeUpChallenge = ({
     <Card className={`p-4 sm:p-6 backdrop-blur-lg shadow-2xl border-0 rounded-2xl sm:rounded-3xl w-full ${
       isDark ? 'bg-slate-800/95' : 'bg-white/95'
     }`}>
+      {/* Anti-cheat: Camera denied critical block */}
+      {cameraDenied && isCameraMandatory(challengeType) && (
+        <div className="mb-4 p-4 rounded-xl bg-destructive/10 border-2 border-destructive/50">
+          <div className="flex items-center gap-2 mb-2">
+            <CameraOff className="h-5 w-5 text-destructive" />
+            <span className="text-sm font-bold text-destructive">⚠️ CAMERA ACCESS REQUIRED</span>
+          </div>
+          <p className="text-xs text-destructive/80 mb-3">
+            Camera permission is denied. This challenge cannot be completed without camera access. 
+            The alarm will keep ringing until you enable camera permissions.
+          </p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            variant="destructive"
+            size="sm"
+            className="w-full"
+          >
+            Open Settings & Retry
+          </Button>
+          <p className="text-[10px] text-muted-foreground mt-2 text-center">
+            Go to browser settings → Site Settings → Camera → Allow
+          </p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
         <div className={`p-2.5 sm:p-3 rounded-lg sm:rounded-xl shrink-0 ${
