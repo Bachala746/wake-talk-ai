@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useTheme } from "@/hooks/useTheme";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ import {
   StoredObject,
 } from "@/lib/alarmSettings";
 import { getStoredObjects, captureImageFromVideo } from "@/lib/objectStore";
+import { isCameraMandatory, checkPermission } from "@/lib/permissions";
 import { supabase } from "@/integrations/supabase/client";
 import { Html5Qrcode } from "html5-qrcode";
 import { useElevenLabsScribe } from "@/hooks/useElevenLabsScribe";
@@ -66,7 +67,25 @@ interface WakeUpChallengeProps {
   speakMatchSettings?: SpeakMatchSettings;
   registeredQrCode?: string;
   objectVerifySettings?: ObjectVerifySettings;
+  isAlarmActive?: boolean; // Anti-cheat: track if alarm is active
 }
+
+// AI voice encouragement messages
+const encouragementMessages = [
+  "You're doing great! Keep going!",
+  "Almost there, stay focused!",
+  "Only a little more to go!",
+  "You've got this! Don't give up!",
+  "Great progress! Finish strong!",
+];
+
+const getEncouragementMessage = (completed: number, total: number): string => {
+  const remaining = total - completed;
+  if (remaining === 1) return "Only one more left! You can do it!";
+  if (remaining === 2) return "Just two more to go! Almost done!";
+  if (completed === 1) return "Great start! Keep that momentum going!";
+  return encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
+};
 
 // Math problem generator
 const generateMathProblem = (difficulty: 'easy' | 'medium' | 'hard') => {
@@ -206,6 +225,7 @@ export const WakeUpChallenge = ({
   speakMatchSettings,
   registeredQrCode,
   objectVerifySettings,
+  isAlarmActive = true,
 }: WakeUpChallengeProps) => {
   const { isDark } = useTheme();
   // State for different challenge types
@@ -314,6 +334,19 @@ export const WakeUpChallenge = ({
   const ovStreamRef = useRef<MediaStream | null>(null);
   const [ovCameraReady, setOvCameraReady] = useState(false);
   const [ovCameraError, setOvCameraError] = useState<string | null>(null);
+  
+  // Anti-cheat: camera permission blocking for camera-mandatory challenges
+  const [cameraDenied, setCameraDenied] = useState(false);
+  const verifiedObjectIdsRef = useRef<Set<string>>(new Set()); // Prevent duplicate counting
+  
+  // Anti-cheat: Check camera permission on mount for camera-mandatory challenges
+  useEffect(() => {
+    if (isCameraMandatory(challengeType)) {
+      checkPermission('camera').then(status => {
+        setCameraDenied(status === 'denied');
+      });
+    }
+  }, [challengeType]);
   
   const scribe = useElevenLabsScribe({
     onPartialTranscript: (text) => {
@@ -634,7 +667,15 @@ export const WakeUpChallenge = ({
       setOvResult(result);
       
       if (result.isMatch && result.confidence >= ovSettings.confidenceThreshold) {
+        // Anti-cheat: Prevent duplicate counting of same object
+        if (verifiedObjectIdsRef.current.has(currentObj.id)) {
+          setOvResult({ isMatch: false, confidence: 0, reasoning: 'This object was already verified. Find the next one.' });
+          setOvVerifying(false);
+          return;
+        }
+        
         // Success!
+        verifiedObjectIdsRef.current.add(currentObj.id);
         playScanSuccessSound();
         const newVerified = [...ovVerifiedIds, currentObj.id];
         setOvVerifiedIds(newVerified);
@@ -979,6 +1020,31 @@ export const WakeUpChallenge = ({
     <Card className={`p-4 sm:p-6 backdrop-blur-lg shadow-2xl border-0 rounded-2xl sm:rounded-3xl w-full ${
       isDark ? 'bg-slate-800/95' : 'bg-white/95'
     }`}>
+      {/* Anti-cheat: Camera denied critical block */}
+      {cameraDenied && isCameraMandatory(challengeType) && (
+        <div className="mb-4 p-4 rounded-xl bg-destructive/10 border-2 border-destructive/50">
+          <div className="flex items-center gap-2 mb-2">
+            <CameraOff className="h-5 w-5 text-destructive" />
+            <span className="text-sm font-bold text-destructive">⚠️ CAMERA ACCESS REQUIRED</span>
+          </div>
+          <p className="text-xs text-destructive/80 mb-3">
+            Camera permission is denied. This challenge cannot be completed without camera access. 
+            The alarm will keep ringing until you enable camera permissions.
+          </p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            variant="destructive"
+            size="sm"
+            className="w-full"
+          >
+            Open Settings & Retry
+          </Button>
+          <p className="text-[10px] text-muted-foreground mt-2 text-center">
+            Go to browser settings → Site Settings → Camera → Allow
+          </p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
         <div className={`p-2.5 sm:p-3 rounded-lg sm:rounded-xl shrink-0 ${
@@ -1547,16 +1613,27 @@ export const WakeUpChallenge = ({
             </div>
           ) : (
             <>
-              {/* Progress */}
+              {/* Progress with completed/remaining count */}
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs sm:text-sm text-muted-foreground">Progress</span>
-                <span className="text-xs sm:text-sm font-bold text-foreground">
-                  {ovVerifiedIds.length} / {ovObjects.length} verified
+                <span className={`text-xs sm:text-sm font-bold ${
+                  ovVerifiedIds.length >= ovObjects.length ? 'text-green-600' : 'text-foreground'
+                }`}>
+                  {ovVerifiedIds.length}/{ovObjects.length} Completed
                 </span>
               </div>
               <Progress value={(ovVerifiedIds.length / Math.max(ovObjects.length, 1)) * 100} className="h-2.5" />
               
-              {/* Objects to verify */}
+              {/* AI Encouragement message */}
+              {ovVerifiedIds.length > 0 && ovVerifiedIds.length < ovObjects.length && (
+                <div className={`text-center py-2 px-3 rounded-lg text-xs font-medium ${
+                  isDark ? 'bg-indigo-900/30 text-indigo-300' : 'bg-amber-50 text-amber-700'
+                } animate-in fade-in`}>
+                  🎯 {getEncouragementMessage(ovVerifiedIds.length, ovObjects.length)}
+                </div>
+              )}
+              
+              {/* Objects to verify - green for completed, red for remaining */}
               <div className="flex flex-wrap gap-2 justify-center">
                 {ovObjects.map((obj, i) => {
                   const verified = ovVerifiedIds.includes(obj.id);
@@ -1564,14 +1641,14 @@ export const WakeUpChallenge = ({
                     ? i === ovCurrentIndex 
                     : !verified;
                   return (
-                    <div key={obj.id} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border ${
+                    <div key={obj.id} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-all duration-300 ${
                       verified
-                        ? 'bg-green-100 border-green-300 text-green-700'
+                        ? 'bg-green-100 border-green-400 text-green-700 shadow-sm shadow-green-200'
                         : isCurrent
-                          ? 'bg-primary/10 border-primary/30 text-primary animate-pulse'
-                          : 'bg-muted border-border text-muted-foreground'
+                          ? 'bg-red-50 border-red-300 text-red-600 animate-pulse ring-2 ring-red-200'
+                          : 'bg-red-50/50 border-red-200 text-red-400'
                     }`}>
-                      {verified ? <CheckCircle className="h-3.5 w-3.5" /> : null}
+                      {verified ? <CheckCircle className="h-3.5 w-3.5 text-green-500" /> : <XCircle className="h-3.5 w-3.5 text-red-400" />}
                       <img src={obj.imageBase64} alt={obj.label} className="w-5 h-5 rounded-sm object-cover" />
                       {obj.label}
                     </div>
@@ -1680,10 +1757,12 @@ export const WakeUpChallenge = ({
       
       {challengeType === 'none' && (
         <div className="text-center py-6 sm:py-8">
-          <p className="text-gray-500 mb-3 sm:mb-4 text-sm sm:text-base">No challenge required</p>
-          <Button onClick={onComplete} className="bg-orange-500 hover:bg-orange-600 px-6 sm:px-8">
-            Dismiss Alarm
-          </Button>
+          <p className="text-muted-foreground mb-3 sm:mb-4 text-sm sm:text-base">
+            Complete the voice session to dismiss alarm
+          </p>
+          <p className="text-xs text-muted-foreground">
+            🛡️ Manual dismissal is disabled for anti-cheat protection
+          </p>
         </div>
       )}
     </Card>
