@@ -41,6 +41,7 @@ import {
   StoredObject,
 } from "@/lib/alarmSettings";
 import { getStoredObjects, captureImageFromVideo } from "@/lib/objectStore";
+import { isCameraMandatory, checkPermission } from "@/lib/permissions";
 import { supabase } from "@/integrations/supabase/client";
 import { Html5Qrcode } from "html5-qrcode";
 import { useElevenLabsScribe } from "@/hooks/useElevenLabsScribe";
