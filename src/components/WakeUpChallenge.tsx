@@ -1721,10 +1721,12 @@ export const WakeUpChallenge = ({
       
       {challengeType === 'none' && (
         <div className="text-center py-6 sm:py-8">
-          <p className="text-gray-500 mb-3 sm:mb-4 text-sm sm:text-base">No challenge required</p>
-          <Button onClick={onComplete} className="bg-orange-500 hover:bg-orange-600 px-6 sm:px-8">
-            Dismiss Alarm
-          </Button>
+          <p className="text-muted-foreground mb-3 sm:mb-4 text-sm sm:text-base">
+            Complete the voice session to dismiss alarm
+          </p>
+          <p className="text-xs text-muted-foreground">
+            🛡️ Manual dismissal is disabled for anti-cheat protection
+          </p>
         </div>
       )}
     </Card>
