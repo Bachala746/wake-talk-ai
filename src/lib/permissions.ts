@@ -1,5 +1,6 @@
 // Permission utilities for challenge features
 
+export type PermissionType = 'camera' | 'microphone' | 'notifications' | 'motion' | 'storage';
 export type PermissionStatus = 'granted' | 'denied' | 'prompt' | 'unsupported';
 
 export interface PermissionResult {
@@ -7,10 +8,11 @@ export interface PermissionResult {
   microphone: PermissionStatus;
   notifications: PermissionStatus;
   motion: PermissionStatus;
+  storage: PermissionStatus;
 }
 
 // Check a single permission without triggering a prompt
-export const checkPermission = async (name: 'camera' | 'microphone' | 'notifications' | 'motion'): Promise<PermissionStatus> => {
+export const checkPermission = async (name: PermissionType): Promise<PermissionStatus> => {
   try {
     if (name === 'notifications') {
       if (!('Notification' in window)) return 'unsupported';
@@ -23,11 +25,17 @@ export const checkPermission = async (name: 'camera' | 'microphone' | 'notificat
     if (name === 'motion') {
       if (typeof DeviceMotionEvent === 'undefined') return 'unsupported';
       if (typeof (DeviceMotionEvent as any).requestPermission === 'function') {
-        // iOS - can't check without prompting, assume prompt
         return 'prompt';
       }
-      // Android/desktop - generally available without permission
       return 'granted';
+    }
+
+    if (name === 'storage') {
+      if (navigator.storage && navigator.storage.persist) {
+        const persisted = await navigator.storage.persisted();
+        return persisted ? 'granted' : 'prompt';
+      }
+      return 'unsupported';
     }
 
     // Camera and microphone - use Permissions API if available
@@ -39,7 +47,6 @@ export const checkPermission = async (name: 'camera' | 'microphone' | 'notificat
         if (result.state === 'denied') return 'denied';
         return 'prompt';
       } catch {
-        // Permissions API may not support camera/microphone on all browsers
         return 'prompt';
       }
     }
@@ -50,7 +57,7 @@ export const checkPermission = async (name: 'camera' | 'microphone' | 'notificat
 };
 
 // Request a specific permission (triggers browser prompt)
-export const requestPermission = async (name: 'camera' | 'microphone' | 'notifications' | 'motion'): Promise<PermissionStatus> => {
+export const requestPermission = async (name: PermissionType): Promise<PermissionStatus> => {
   try {
     if (name === 'camera') {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -79,6 +86,14 @@ export const requestPermission = async (name: 'camera' | 'microphone' | 'notific
       return 'granted';
     }
 
+    if (name === 'storage') {
+      if (navigator.storage && navigator.storage.persist) {
+        const granted = await navigator.storage.persist();
+        return granted ? 'granted' : 'denied';
+      }
+      return 'unsupported';
+    }
+
     return 'prompt';
   } catch {
     return 'denied';
@@ -86,11 +101,17 @@ export const requestPermission = async (name: 'camera' | 'microphone' | 'notific
 };
 
 // Get required permissions for a given challenge type
-export const getRequiredPermissions = (challengeType: string, interactionMode?: string): ('camera' | 'microphone' | 'notifications' | 'motion')[] => {
-  const perms: ('camera' | 'microphone' | 'notifications' | 'motion')[] = [];
+export const getRequiredPermissions = (challengeType: string, interactionMode?: string): PermissionType[] => {
+  const perms: PermissionType[] = [];
 
-  // Camera-based challenges
-  if (['qrcode', 'barcode'].includes(challengeType)) {
+  // Always require notifications for alarm functionality
+  perms.push('notifications');
+
+  // Persistent storage for alarm data
+  perms.push('storage');
+
+  // Camera-based challenges (mandatory)
+  if (['qrcode', 'barcode', 'objectVerify'].includes(challengeType)) {
     perms.push('camera');
   }
 
@@ -104,7 +125,7 @@ export const getRequiredPermissions = (challengeType: string, interactionMode?: 
     perms.push('microphone');
   }
 
-  // Motion-based challenges
+  // Motion-based challenges (optional accelerometer)
   if (['shake', 'steps'].includes(challengeType)) {
     perms.push('motion');
   }
@@ -138,12 +159,17 @@ export const checkRequiredPermissions = async (
   };
 };
 
+// Check if camera is mandatory for a challenge type
+export const isCameraMandatory = (challengeType: string): boolean => {
+  return ['qrcode', 'barcode', 'objectVerify'].includes(challengeType);
+};
+
 // Permission display labels
 export const permissionLabels: Record<string, { label: string; icon: string; description: string }> = {
   camera: {
     label: 'Camera',
     icon: '📷',
-    description: 'Required for scanning QR codes and barcodes',
+    description: 'Mandatory for scanning QR codes, barcodes, and verifying objects',
   },
   microphone: {
     label: 'Microphone',
@@ -153,11 +179,16 @@ export const permissionLabels: Record<string, { label: string; icon: string; des
   notifications: {
     label: 'Notifications',
     icon: '🔔',
-    description: 'Recommended for alarm alerts when app is in background',
+    description: 'Required for alarm alerts when app is in background',
   },
   motion: {
     label: 'Motion Sensors',
     icon: '📱',
-    description: 'Required for shake and step counting challenges',
+    description: 'Optional for shake and step counting challenges',
+  },
+  storage: {
+    label: 'Persistent Storage',
+    icon: '💾',
+    description: 'Required to keep alarm data saved across sessions',
   },
 };
