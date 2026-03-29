@@ -1613,16 +1613,27 @@ export const WakeUpChallenge = ({
             </div>
           ) : (
             <>
-              {/* Progress */}
+              {/* Progress with completed/remaining count */}
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs sm:text-sm text-muted-foreground">Progress</span>
-                <span className="text-xs sm:text-sm font-bold text-foreground">
-                  {ovVerifiedIds.length} / {ovObjects.length} verified
+                <span className={`text-xs sm:text-sm font-bold ${
+                  ovVerifiedIds.length >= ovObjects.length ? 'text-green-600' : 'text-foreground'
+                }`}>
+                  {ovVerifiedIds.length}/{ovObjects.length} Completed
                 </span>
               </div>
               <Progress value={(ovVerifiedIds.length / Math.max(ovObjects.length, 1)) * 100} className="h-2.5" />
               
-              {/* Objects to verify */}
+              {/* AI Encouragement message */}
+              {ovVerifiedIds.length > 0 && ovVerifiedIds.length < ovObjects.length && (
+                <div className={`text-center py-2 px-3 rounded-lg text-xs font-medium ${
+                  isDark ? 'bg-indigo-900/30 text-indigo-300' : 'bg-amber-50 text-amber-700'
+                } animate-in fade-in`}>
+                  🎯 {getEncouragementMessage(ovVerifiedIds.length, ovObjects.length)}
+                </div>
+              )}
+              
+              {/* Objects to verify - green for completed, red for remaining */}
               <div className="flex flex-wrap gap-2 justify-center">
                 {ovObjects.map((obj, i) => {
                   const verified = ovVerifiedIds.includes(obj.id);
@@ -1630,14 +1641,14 @@ export const WakeUpChallenge = ({
                     ? i === ovCurrentIndex 
                     : !verified;
                   return (
-                    <div key={obj.id} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border ${
+                    <div key={obj.id} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-all duration-300 ${
                       verified
-                        ? 'bg-green-100 border-green-300 text-green-700'
+                        ? 'bg-green-100 border-green-400 text-green-700 shadow-sm shadow-green-200'
                         : isCurrent
-                          ? 'bg-primary/10 border-primary/30 text-primary animate-pulse'
-                          : 'bg-muted border-border text-muted-foreground'
+                          ? 'bg-red-50 border-red-300 text-red-600 animate-pulse ring-2 ring-red-200'
+                          : 'bg-red-50/50 border-red-200 text-red-400'
                     }`}>
-                      {verified ? <CheckCircle className="h-3.5 w-3.5" /> : null}
+                      {verified ? <CheckCircle className="h-3.5 w-3.5 text-green-500" /> : <XCircle className="h-3.5 w-3.5 text-red-400" />}
                       <img src={obj.imageBase64} alt={obj.label} className="w-5 h-5 rounded-sm object-cover" />
                       {obj.label}
                     </div>
