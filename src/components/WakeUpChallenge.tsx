@@ -335,6 +335,19 @@ export const WakeUpChallenge = ({
   const [ovCameraReady, setOvCameraReady] = useState(false);
   const [ovCameraError, setOvCameraError] = useState<string | null>(null);
   
+  // Anti-cheat: camera permission blocking for camera-mandatory challenges
+  const [cameraDenied, setCameraDenied] = useState(false);
+  const verifiedObjectIdsRef = useRef<Set<string>>(new Set()); // Prevent duplicate counting
+  
+  // Anti-cheat: Check camera permission on mount for camera-mandatory challenges
+  useEffect(() => {
+    if (isCameraMandatory(challengeType)) {
+      checkPermission('camera').then(status => {
+        setCameraDenied(status === 'denied');
+      });
+    }
+  }, [challengeType]);
+  
   const scribe = useElevenLabsScribe({
     onPartialTranscript: (text) => {
       if (challengeType === 'speakMatch') {
