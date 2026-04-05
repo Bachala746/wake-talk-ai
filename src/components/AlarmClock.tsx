@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { CheatPenaltyIndicator } from "@/components/CheatPenaltyIndicator";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -574,6 +575,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Cheat Penalty Indicator */}
+      <div className="fixed top-14 left-0 right-0 z-40">
+        <CheatPenaltyIndicator />
+      </div>
       {/* Theme Toggle */}
       <button
         onClick={toggleTheme}
