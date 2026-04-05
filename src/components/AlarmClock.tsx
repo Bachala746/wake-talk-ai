@@ -216,6 +216,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       } catch { /* ignore */ }
     }
     toast.success(`Good morning! "${alarm.label}" - Your AI motivator is calling you!`);
+    toast.warning("⚠️ Do not uninstall or force-close the app during an active alarm. Doing so will result in penalties.", { duration: 6000 });
     onStartCall(alarm.time, alarm.duration, alarm.settings);
   };
 
