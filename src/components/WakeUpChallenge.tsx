@@ -340,6 +340,29 @@ export const WakeUpChallenge = ({
   const [cameraDenied, setCameraDenied] = useState(false);
   const verifiedObjectIdsRef = useRef<Set<string>>(new Set()); // Prevent duplicate counting
   
+  // Anti-cheat: time manipulation detection
+  const [timeCheatDetected, setTimeCheatDetected] = useState(false);
+  const [effectiveDifficulty, setEffectiveDifficulty] = useState(difficulty);
+
+  useEffect(() => {
+    if (!isAlarmActive) return;
+    const interval = setInterval(() => {
+      updateHeartbeat();
+      const check = detectTimeManipulation();
+      if (check.manipulated) {
+        setTimeCheatDetected(true);
+        applyCheatPenalty('time_manipulation_during_challenge');
+        setEffectiveDifficulty(prev => getEscalatedDifficulty(prev, 1));
+        playEscalationAlarm(2);
+        playAggressiveVoiceMessage(5);
+        setRedFlash(true);
+        setTimeout(() => setRedFlash(false), 800);
+        if (onEscalate) onEscalate(2);
+      }
+    }, 10_000);
+    return () => clearInterval(interval);
+  }, [isAlarmActive, onEscalate]);
+
   // Anti-cheat: Check camera permission on mount for camera-mandatory challenges
   useEffect(() => {
     if (isCameraMandatory(challengeType)) {
