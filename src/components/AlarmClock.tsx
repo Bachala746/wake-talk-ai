@@ -907,6 +907,20 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                           <span>{messageThemes.find(t => t.value === alarm.settings.messageTheme)?.icon}</span>
                           <span className="capitalize">{alarm.settings.messageTheme}</span>
                         </span>
+                        {alarm.settings.sequentialChallengeSettings?.enabled && (
+                          <span className={`px-1.5 py-0.5 rounded shrink-0 ${
+                            isDark ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-700'
+                          }`}>
+                            🎯 {alarm.settings.sequentialChallengeSettings.challenges.length} challenges
+                          </span>
+                        )}
+                        {!alarm.settings.sequentialChallengeSettings?.enabled && alarm.settings.challengeType !== 'none' && (
+                          <span className={`px-1.5 py-0.5 rounded shrink-0 ${
+                            isDark ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-700'
+                          }`}>
+                            {challengeTypes.find(c => c.value === alarm.settings.challengeType)?.icon} {challengeTypes.find(c => c.value === alarm.settings.challengeType)?.label}
+                          </span>
+                        )}
                       </div>
                       {alarm.isActive && (
                         <div className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary font-semibold mt-2 px-2 py-1 rounded-full">
