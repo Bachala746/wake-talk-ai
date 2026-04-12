@@ -136,7 +136,13 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [ovSequential, setOvSequential] = useState(defaultObjectVerifySettings.sequential);
   const [ovConfidence, setOvConfidence] = useState(defaultObjectVerifySettings.confidenceThreshold);
 
-  // QR Scanner cleanup
+  // Sequential multi-challenge states
+  const [multiChallengeEnabled, setMultiChallengeEnabled] = useState(false);
+  const [challengeSequence, setChallengeSequence] = useState<ChallengeSequenceItem[]>([]);
+  const [failureRetryBehavior, setFailureRetryBehavior] = useState<FailureRetryBehavior>('continue');
+  const [dynamicDifficulty, setDynamicDifficulty] = useState(false);
+  const [maxExtraChallenges, setMaxExtraChallenges] = useState(1);
+
   useEffect(() => {
     return () => {
       if (qrScannerRef.current) {
