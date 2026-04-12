@@ -251,6 +251,14 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       confidenceThreshold: ovConfidence,
     };
 
+    const sequentialChallengeSettingsObj: SequentialChallengeSettings = {
+      enabled: multiChallengeEnabled,
+      challenges: challengeSequence,
+      failureRetryBehavior,
+      dynamicDifficulty,
+      maxExtraChallenges,
+    };
+
     const settings: AlarmSettings = {
       interactionMode,
       voiceStyle,
@@ -260,12 +268,13 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       ringtoneStyle,
       snoozeLevel,
       gradualVolume,
-      challengeType,
-      challengeDifficulty,
+      challengeType: multiChallengeEnabled ? (challengeSequence[0]?.type || 'none') : challengeType,
+      challengeDifficulty: multiChallengeEnabled ? (challengeSequence[0]?.difficulty || 'easy') : challengeDifficulty,
       elevenLabsAgentId: interactionMode === 'two-way' ? elevenLabsAgentId : '',
       speakMatchSettings: challengeType === 'speakMatch' ? speakMatchSettingsObj : undefined,
       registeredQrCode: challengeType === 'qrcode' ? registeredQrCode : undefined,
       objectVerifySettings: challengeType === 'objectVerify' ? objectVerifySettingsObj : undefined,
+      sequentialChallengeSettings: multiChallengeEnabled ? sequentialChallengeSettingsObj : undefined,
     };
 
     if (editingAlarmId) {
