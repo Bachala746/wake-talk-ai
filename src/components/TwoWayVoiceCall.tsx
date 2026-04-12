@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AlarmSettings, defaultAlarmSettings } from "@/lib/alarmSettings";
 import { WakeUpChallenge } from "./WakeUpChallenge";
+import { SequentialChallengeRunner } from "./SequentialChallengeRunner";
 import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 import { useElevenLabsScribe } from "@/hooks/useElevenLabsScribe";
 import { AudioWaveform } from "./AudioWaveform";
@@ -278,16 +279,28 @@ export const TwoWayVoiceCall = ({
           ? 'bg-gradient-to-t from-indigo-900 via-slate-800 to-slate-900' 
           : 'bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300'
       }`}>
-        <WakeUpChallenge 
-          challengeType={settings.challengeType} 
-          difficulty={settings.challengeDifficulty} 
-          onComplete={handleChallengeComplete} 
-          onFail={handleChallengeFail}
-          onEscalate={handleChallengeEscalate}
-          speakMatchSettings={settings.speakMatchSettings}
-          registeredQrCode={settings.registeredQrCode}
-          objectVerifySettings={settings.objectVerifySettings}
-        />
+        {settings.sequentialChallengeSettings?.enabled ? (
+          <SequentialChallengeRunner
+            settings={settings.sequentialChallengeSettings}
+            globalSpeakMatchSettings={settings.speakMatchSettings}
+            globalRegisteredQrCode={settings.registeredQrCode}
+            globalObjectVerifySettings={settings.objectVerifySettings}
+            onAllComplete={handleChallengeComplete}
+            onFail={handleChallengeFail}
+            onEscalate={handleChallengeEscalate}
+          />
+        ) : (
+          <WakeUpChallenge 
+            challengeType={settings.challengeType} 
+            difficulty={settings.challengeDifficulty} 
+            onComplete={handleChallengeComplete} 
+            onFail={handleChallengeFail}
+            onEscalate={handleChallengeEscalate}
+            speakMatchSettings={settings.speakMatchSettings}
+            registeredQrCode={settings.registeredQrCode}
+            objectVerifySettings={settings.objectVerifySettings}
+          />
+        )}
       </div>
     );
   }

@@ -12,6 +12,7 @@ import {
   defaultAlarmSettings,
 } from "@/lib/alarmSettings";
 import { WakeUpChallenge } from "./WakeUpChallenge";
+import { SequentialChallengeRunner } from "./SequentialChallengeRunner";
 import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 import { AudioWaveform } from "./AudioWaveform";
 import { SpeakingAvatar } from "./SpeakingAvatar";
@@ -415,16 +416,28 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
           </div>
         </div>
         <div className="relative z-10">
-          <WakeUpChallenge
-            challengeType={settings.challengeType}
-            difficulty={settings.challengeDifficulty}
-            onComplete={handleChallengeComplete}
-            onFail={handleChallengeFail}
-            onEscalate={handleChallengeEscalate}
-            speakMatchSettings={settings.speakMatchSettings}
-            registeredQrCode={settings.registeredQrCode}
-            objectVerifySettings={settings.objectVerifySettings}
-          />
+          {settings.sequentialChallengeSettings?.enabled ? (
+            <SequentialChallengeRunner
+              settings={settings.sequentialChallengeSettings}
+              globalSpeakMatchSettings={settings.speakMatchSettings}
+              globalRegisteredQrCode={settings.registeredQrCode}
+              globalObjectVerifySettings={settings.objectVerifySettings}
+              onAllComplete={handleChallengeComplete}
+              onFail={handleChallengeFail}
+              onEscalate={handleChallengeEscalate}
+            />
+          ) : (
+            <WakeUpChallenge
+              challengeType={settings.challengeType}
+              difficulty={settings.challengeDifficulty}
+              onComplete={handleChallengeComplete}
+              onFail={handleChallengeFail}
+              onEscalate={handleChallengeEscalate}
+              speakMatchSettings={settings.speakMatchSettings}
+              registeredQrCode={settings.registeredQrCode}
+              objectVerifySettings={settings.objectVerifySettings}
+            />
+          )}
         </div>
       </div>
     );
