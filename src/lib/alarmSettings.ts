@@ -362,6 +362,41 @@ export const defaultObjectVerifySettings: ObjectVerifySettings = {
   confidenceThreshold: 85,
 };
 
+// Sequential challenge configuration
+export type FailureRetryBehavior = 'continue' | 'restart';
+
+export const failureRetryBehaviors: { value: FailureRetryBehavior; label: string; description: string }[] = [
+  { value: 'continue', label: 'Retry Same', description: 'Retry the failed challenge' },
+  { value: 'restart', label: 'Restart All', description: 'Restart from challenge 1' },
+];
+
+export interface ChallengeSequenceItem {
+  type: ChallengeType;
+  difficulty: ChallengeDifficulty;
+  // Per-challenge settings (optional, uses alarm defaults if not set)
+  speakMatchSettings?: SpeakMatchSettings;
+  registeredQrCode?: string;
+  objectVerifySettings?: ObjectVerifySettings;
+}
+
+export interface SequentialChallengeSettings {
+  enabled: boolean; // true = multi-challenge mode
+  challenges: ChallengeSequenceItem[];
+  failureRetryBehavior: FailureRetryBehavior;
+  dynamicDifficulty: boolean; // auto-increase difficulty for later challenges
+  maxExtraChallenges: number; // extra challenges added on repeated failures (0-3)
+}
+
+export const defaultSequentialChallengeSettings: SequentialChallengeSettings = {
+  enabled: false,
+  challenges: [],
+  failureRetryBehavior: 'continue',
+  dynamicDifficulty: false,
+  maxExtraChallenges: 1,
+};
+
+export const MAX_CHALLENGES_PER_ALARM = 7;
+
 // Complete alarm settings interface
 export interface AlarmSettings {
   interactionMode: InteractionMode;
@@ -382,6 +417,8 @@ export interface AlarmSettings {
   registeredQrCode?: string;
   // Object verification settings
   objectVerifySettings?: ObjectVerifySettings;
+  // Sequential multi-challenge settings
+  sequentialChallengeSettings?: SequentialChallengeSettings;
 }
 
 export const defaultAlarmSettings: AlarmSettings = {
