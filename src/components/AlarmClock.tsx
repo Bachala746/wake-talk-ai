@@ -582,7 +582,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       {/* Theme Toggle */}
       <button
         onClick={toggleTheme}
-        className="fixed top-4 right-4 z-50 p-2.5 rounded-full bg-card/80 backdrop-blur-sm border border-border shadow-lg hover:scale-110 transition-transform"
+        className="fixed top-4 right-4 z-50 p-2.5 rounded-full backdrop-blur-md border shadow-glass hover:scale-110 hover:rotate-12 transition-all duration-300"
+        style={{ background: 'var(--glass-background)', borderColor: 'var(--glass-border)' }}
         aria-label="Toggle theme"
       >
         {isDark ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-indigo-600" />}
@@ -610,27 +611,35 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
         
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className={`absolute top-20 left-1/4 w-64 h-64 rounded-full blur-3xl animate-pulse-soft ${
-            isDark ? 'bg-indigo-500/20' : 'bg-white/30'
+          <div className={`absolute top-20 left-1/4 w-72 h-72 rounded-full blur-3xl animate-pulse-soft ${
+            isDark ? 'bg-indigo-500/25' : 'bg-white/40'
           }`} />
-          <div className={`absolute bottom-40 right-1/4 w-80 h-80 rounded-full blur-3xl animate-pulse-soft ${
-            isDark ? 'bg-purple-500/20' : 'bg-yellow-200/40'
+          <div className={`absolute bottom-40 right-1/4 w-96 h-96 rounded-full blur-3xl animate-pulse-soft ${
+            isDark ? 'bg-purple-500/20' : 'bg-yellow-200/50'
           }`} style={{ animationDelay: '1s' }} />
+          <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl animate-pulse-soft ${
+            isDark ? 'bg-blue-600/10' : 'bg-orange-300/20'
+          }`} style={{ animationDelay: '2s' }} />
         </div>
 
         {/* Hero Content */}
         <div className="relative z-10 text-center max-w-3xl mx-auto px-2">
           {/* Icon */}
           <div className="mb-6 sm:mb-8 animate-float">
-            <div className={`inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl backdrop-blur-sm border shadow-lg animate-glow-pulse ${
-              isDark 
-                ? 'bg-indigo-500/30 border-indigo-400/30' 
-                : 'bg-white/40 border-white/50'
-            }`}>
-              {isDark 
-                ? <Moon className="h-8 w-8 sm:h-10 sm:w-10 text-indigo-300" />
-                : <Sun className="h-8 w-8 sm:h-10 sm:w-10 text-orange-600" />
-              }
+            <div className="relative">
+              <div className={`absolute inset-0 rounded-2xl blur-xl animate-glow-pulse ${
+                isDark ? 'bg-indigo-500/40' : 'bg-orange-400/30'
+              }`} />
+              <div className={`relative inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl backdrop-blur-md border shadow-glass ${
+                isDark 
+                  ? 'bg-indigo-500/20 border-indigo-400/30' 
+                  : 'bg-white/50 border-white/60'
+              }`}>
+                {isDark 
+                  ? <Moon className="h-8 w-8 sm:h-10 sm:w-10 text-indigo-300 drop-shadow-lg" />
+                  : <Sun className="h-8 w-8 sm:h-10 sm:w-10 text-orange-600 drop-shadow-lg" />
+                }
+              </div>
             </div>
           </div>
 
@@ -738,20 +747,26 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           </div>
 
           {/* Current Time Display */}
-          <Card className={`p-4 sm:p-6 mb-6 sm:mb-8 backdrop-blur-sm border shadow-lg ${
+          <Card className={`relative overflow-hidden p-4 sm:p-6 mb-6 sm:mb-8 backdrop-blur-md border shadow-glass rounded-2xl group hover:shadow-xl transition-shadow duration-500 ${
             isDark 
-              ? 'bg-slate-800/80 border-slate-700/50' 
-              : 'bg-white/90 border-white/50'
+              ? 'bg-slate-800/60 border-slate-600/30' 
+              : 'bg-white/70 border-white/60'
           }`}>
-            <div className="text-center">
+            {/* Subtle shimmer overlay */}
+            <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 ${
+              isDark ? 'bg-gradient-to-r from-transparent via-indigo-500/5 to-transparent' : 'bg-gradient-to-r from-transparent via-orange-300/10 to-transparent'
+            }`} />
+            <div className="relative text-center">
               <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                <div className="bg-gradient-warm p-2 sm:p-2.5 rounded-xl shadow-md shrink-0">
+                <div className="bg-gradient-warm p-2 sm:p-2.5 rounded-xl shadow-md shrink-0 animate-pulse-soft">
                   <GreetingIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
                 <span className="text-lg sm:text-xl font-semibold text-foreground">{greeting.text}</span>
               </div>
-              <div className="text-3xl sm:text-4xl font-bold text-foreground mb-1">{formatTime(currentTime)}</div>
-              <div className="text-muted-foreground text-xs sm:text-sm">
+              <div className={`text-4xl sm:text-5xl font-bold mb-1 tracking-tight ${
+                isDark ? 'text-foreground' : 'text-foreground'
+              }`} style={{ fontVariantNumeric: 'tabular-nums' }}>{formatTime(currentTime)}</div>
+              <div className="text-muted-foreground text-xs sm:text-sm mt-1">
                 {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
               </div>
             </div>
@@ -765,7 +780,11 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           {/* History Button */}
           <Button
             variant="outline"
-            className="w-full gap-2 mb-5"
+            className={`w-full gap-2 mb-5 rounded-2xl py-4 backdrop-blur-sm border transition-all duration-300 hover:-translate-y-0.5 ${
+              isDark 
+                ? 'bg-slate-800/40 border-slate-600/30 hover:bg-slate-700/50' 
+                : 'bg-white/50 border-white/60 hover:bg-white/70'
+            }`}
             onClick={() => window.location.href = '/history'}
           >
             <BarChart3 className="w-4 h-4" />
@@ -776,9 +795,16 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           {/* Alarms List */}
           <div className="space-y-3">
             {alarms.length === 0 ? (
-              <div className="text-center py-10 px-4">
-                <div className="bg-gradient-warm w-20 h-20 rounded-3xl mx-auto mb-4 flex items-center justify-center shadow-lg animate-float">
-                  <Clock className="h-10 w-10 text-white" />
+              <div className={`text-center py-10 px-4 rounded-2xl backdrop-blur-md border shadow-glass ${
+                isDark ? 'bg-slate-800/30 border-slate-600/20' : 'bg-white/40 border-white/50'
+              }`}>
+                <div className="relative mx-auto mb-4 w-20 h-20">
+                  <div className={`absolute inset-0 rounded-3xl blur-xl animate-pulse-soft ${
+                    isDark ? 'bg-indigo-500/30' : 'bg-orange-400/30'
+                  }`} />
+                  <div className="relative bg-gradient-warm w-20 h-20 rounded-3xl flex items-center justify-center shadow-glass animate-float">
+                    <Clock className="h-10 w-10 text-white" />
+                  </div>
                 </div>
                 <p className="text-xl font-bold text-foreground mb-2">Ready to start your day right?</p>
                 <p className="text-muted-foreground">Add your first AI-powered motivational alarm!</p>
@@ -787,11 +813,11 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
               alarms.map((alarm, index) => (
                 <Card 
                   key={alarm.id} 
-                  className={`p-3 sm:p-4 backdrop-blur-sm border shadow-md hover:shadow-lg transition-all duration-300 ${
+                  className={`relative overflow-hidden p-3 sm:p-4 backdrop-blur-md border shadow-glass rounded-2xl hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 ${
                     isDark 
-                      ? 'bg-slate-800/60 border-slate-700/50' 
-                      : 'bg-white/60 border-white/50'
-                  }`}
+                      ? 'bg-slate-800/50 border-slate-600/30' 
+                      : 'bg-white/60 border-white/60'
+                  } ${alarm.isActive ? 'ring-1 ring-primary/20' : ''}`}
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div className="flex flex-col gap-3">
@@ -865,10 +891,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           <div className="flex flex-col gap-2 sm:gap-3 pt-2">
             <Button 
               onClick={openNewDialog}
-              className="w-full bg-gradient-warm hover:opacity-90 text-white py-5 sm:py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
+              className="w-full bg-gradient-warm hover:opacity-90 text-white py-5 sm:py-6 rounded-2xl shadow-glass hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 text-sm sm:text-base"
               size="lg"
             >
-              <Clock className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 shrink-0" />
+              <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 shrink-0" />
               <span>Add Alarm</span>
             </Button>
             
@@ -876,10 +902,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
               <Button 
                 onClick={() => onStartCall("now", 5, defaultAlarmSettings, true)}
                 variant="outline"
-                className={`flex-1 py-4 sm:py-5 rounded-xl border-2 transition-all duration-300 text-xs sm:text-sm min-w-0 ${
+                className={`flex-1 py-4 sm:py-5 rounded-2xl backdrop-blur-sm border-2 transition-all duration-300 text-xs sm:text-sm min-w-0 hover:-translate-y-0.5 ${
                   isDark 
-                    ? 'border-indigo-500/30 hover:border-indigo-400 hover:bg-indigo-500/10' 
-                    : 'border-primary/30 hover:border-primary hover:bg-primary/5'
+                    ? 'border-indigo-500/30 hover:border-indigo-400 hover:bg-indigo-500/10 bg-indigo-500/5' 
+                    : 'border-primary/20 hover:border-primary hover:bg-primary/5 bg-white/40'
                 }`}
                 size="lg"
               >
@@ -890,10 +916,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
               <Button 
                 onClick={() => onStartCall("now", 5, { ...defaultAlarmSettings, interactionMode: 'two-way' }, true)}
                 variant="outline"
-                className={`flex-1 py-4 sm:py-5 rounded-xl border-2 transition-all duration-300 text-xs sm:text-sm min-w-0 ${
+                className={`flex-1 py-4 sm:py-5 rounded-2xl backdrop-blur-sm border-2 transition-all duration-300 text-xs sm:text-sm min-w-0 hover:-translate-y-0.5 ${
                   isDark 
-                    ? 'border-blue-500/30 hover:border-blue-400 hover:bg-blue-500/10' 
-                    : 'border-blue-300 hover:border-blue-500 hover:bg-blue-50'
+                    ? 'border-blue-500/30 hover:border-blue-400 hover:bg-blue-500/10 bg-blue-500/5' 
+                    : 'border-blue-300/50 hover:border-blue-500 hover:bg-blue-50 bg-white/40'
                 }`}
                 size="lg"
               >
