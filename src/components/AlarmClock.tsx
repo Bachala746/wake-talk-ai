@@ -358,10 +358,14 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setObjLabel('');
     setQrScanMode(false);
     setQrScanError(null);
+    // Load sequential challenge settings
+    const seqS = alarm.settings.sequentialChallengeSettings || defaultSequentialChallengeSettings;
+    setMultiChallengeEnabled(seqS.enabled);
+    setChallengeSequence(seqS.challenges);
+    setFailureRetryBehavior(seqS.failureRetryBehavior);
+    setDynamicDifficulty(seqS.dynamicDifficulty);
+    setMaxExtraChallenges(seqS.maxExtraChallenges);
     setIsDialogOpen(true);
-  };
-
-  const openNewDialog = () => {
     setEditingAlarmId(null);
     setAlarmTime("07:00");
     setAlarmLabel("Wake up");
