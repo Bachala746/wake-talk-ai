@@ -404,6 +404,12 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setObjLabel('');
     setQrScanMode(false);
     setQrScanError(null);
+    // Reset sequential challenge settings
+    setMultiChallengeEnabled(false);
+    setChallengeSequence([]);
+    setFailureRetryBehavior('continue');
+    setDynamicDifficulty(false);
+    setMaxExtraChallenges(1);
     setIsDialogOpen(true);
   };
 
