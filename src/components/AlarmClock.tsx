@@ -1171,26 +1171,191 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
             </TabsContent>
 
             <TabsContent value="challenge" className="space-y-4">
-              <div>
-                <Label className="text-xs sm:text-sm font-medium mb-2 sm:mb-3 block flex items-center gap-2">
-                  <Gamepad2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                  Wake-up Challenge
-                </Label>
-                <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 sm:mb-3">
-                  Must complete this challenge to dismiss the alarm
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  {challengeTypes.map((type) => (
-                    <Button key={type.value} type="button" variant={challengeType === type.value ? "default" : "outline"} onClick={() => setChallengeType(type.value)} className="flex items-center gap-1.5 sm:gap-2 justify-start h-auto py-2.5 sm:py-3 px-2 sm:px-3 min-w-0">
-                      <span className="text-base sm:text-lg shrink-0">{type.icon}</span>
-                      <div className="text-left min-w-0 flex-1">
-                        <div className="font-semibold text-xs sm:text-sm truncate">{type.label}</div>
-                        <div className="text-[10px] sm:text-xs opacity-70 truncate">{type.description}</div>
-                      </div>
-                    </Button>
-                  ))}
+              {/* Multi-challenge toggle */}
+              <div className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-muted/50">
+                <div className="min-w-0 flex-1">
+                  <Label className="text-xs sm:text-sm font-medium flex items-center gap-2">
+                    <Gamepad2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                    Sequential Challenges
+                  </Label>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
+                    Require multiple challenges to dismiss
+                  </p>
                 </div>
+                <Switch checked={multiChallengeEnabled} onCheckedChange={setMultiChallengeEnabled} className="shrink-0" />
               </div>
+
+              {multiChallengeEnabled ? (
+                /* ===== MULTI-CHALLENGE MODE ===== */
+                <div className="space-y-4">
+                  {/* Selected challenges list */}
+                  <div>
+                    <Label className="text-xs sm:text-sm font-medium mb-2 block">
+                      Challenge Sequence ({challengeSequence.length}/{MAX_CHALLENGES_PER_ALARM})
+                    </Label>
+                    {challengeSequence.length === 0 && (
+                      <p className="text-xs text-muted-foreground text-center py-4 border border-dashed rounded-lg">
+                        Add challenges below to build your sequence
+                      </p>
+                    )}
+                    <div className="space-y-2">
+                      {challengeSequence.map((item, idx) => {
+                        const info = challengeTypes.find(c => c.value === item.type);
+                        return (
+                          <div key={idx} className="flex items-center gap-2 p-2 rounded-lg border bg-card">
+                            <span className="text-sm font-bold text-muted-foreground w-5 text-center">{idx + 1}</span>
+                            <span className="text-base shrink-0">{info?.icon}</span>
+                            <div className="flex-1 min-w-0">
+                              <span className="text-xs sm:text-sm font-medium truncate block">{info?.label}</span>
+                            </div>
+                            <select
+                              value={item.difficulty}
+                              onChange={(e) => {
+                                const updated = [...challengeSequence];
+                                updated[idx] = { ...updated[idx], difficulty: e.target.value as ChallengeDifficulty };
+                                setChallengeSequence(updated);
+                              }}
+                              className="text-xs border rounded px-1.5 py-1 bg-background"
+                            >
+                              {challengeDifficulties.map(d => (
+                                <option key={d.value} value={d.value}>{d.label}</option>
+                              ))}
+                            </select>
+                            <div className="flex items-center gap-0.5">
+                              <Button
+                                type="button" variant="ghost" size="icon"
+                                className="h-7 w-7"
+                                disabled={idx === 0}
+                                onClick={() => {
+                                  const updated = [...challengeSequence];
+                                  [updated[idx - 1], updated[idx]] = [updated[idx], updated[idx - 1]];
+                                  setChallengeSequence(updated);
+                                }}
+                              >
+                                <ArrowUp className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                type="button" variant="ghost" size="icon"
+                                className="h-7 w-7"
+                                disabled={idx === challengeSequence.length - 1}
+                                onClick={() => {
+                                  const updated = [...challengeSequence];
+                                  [updated[idx], updated[idx + 1]] = [updated[idx + 1], updated[idx]];
+                                  setChallengeSequence(updated);
+                                }}
+                              >
+                                <ArrowDown className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                type="button" variant="ghost" size="icon"
+                                className="h-7 w-7 hover:bg-destructive/10"
+                                onClick={() => setChallengeSequence(prev => prev.filter((_, i) => i !== idx))}
+                              >
+                                <XCircle className="h-3 w-3 text-destructive" />
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Add challenge buttons */}
+                  {challengeSequence.length < MAX_CHALLENGES_PER_ALARM && (
+                    <div>
+                      <Label className="text-xs sm:text-sm font-medium mb-2 block">Add Challenge</Label>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {challengeTypes.filter(t => t.value !== 'none').map((type) => (
+                          <Button
+                            key={type.value}
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setChallengeSequence(prev => [...prev, { type: type.value, difficulty: challengeDifficulty }]);
+                            }}
+                            className="flex items-center gap-1.5 justify-start h-auto py-2 px-2 min-w-0 text-xs"
+                          >
+                            <span className="shrink-0">{type.icon}</span>
+                            <span className="truncate">{type.label}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sequential settings */}
+                  {challengeSequence.length > 0 && (
+                    <div className="space-y-3 pt-2 border-t border-border">
+                      <div>
+                        <Label className="text-xs sm:text-sm font-medium mb-2 block">On Failure</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {failureRetryBehaviors.map(b => (
+                            <Button
+                              key={b.value}
+                              type="button"
+                              variant={failureRetryBehavior === b.value ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setFailureRetryBehavior(b.value)}
+                            >
+                              <div className="text-center">
+                                <div className="text-xs font-semibold">{b.label}</div>
+                                <div className="text-[10px] opacity-70">{b.description}</div>
+                              </div>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-muted/50">
+                        <div className="min-w-0 flex-1">
+                          <Label className="text-xs sm:text-sm font-medium">Dynamic Difficulty</Label>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground">Later challenges get harder automatically</p>
+                        </div>
+                        <Switch checked={dynamicDifficulty} onCheckedChange={setDynamicDifficulty} className="shrink-0" />
+                      </div>
+
+                      <div>
+                        <Label className="text-xs sm:text-sm font-medium mb-2 block">
+                          Extra Challenges on Failure: {maxExtraChallenges}
+                        </Label>
+                        <Slider
+                          value={[maxExtraChallenges]}
+                          onValueChange={([v]) => setMaxExtraChallenges(v)}
+                          min={0} max={3} step={1}
+                          className="py-2"
+                        />
+                        <div className="flex justify-between text-[10px] text-muted-foreground">
+                          <span>None</span>
+                          <span>+3 extra</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* ===== SINGLE CHALLENGE MODE (original) ===== */
+                <div>
+                  <Label className="text-xs sm:text-sm font-medium mb-2 sm:mb-3 block flex items-center gap-2">
+                    <Gamepad2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                    Wake-up Challenge
+                  </Label>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 sm:mb-3">
+                    Must complete this challenge to dismiss the alarm
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {challengeTypes.map((type) => (
+                      <Button key={type.value} type="button" variant={challengeType === type.value ? "default" : "outline"} onClick={() => setChallengeType(type.value)} className="flex items-center gap-1.5 sm:gap-2 justify-start h-auto py-2.5 sm:py-3 px-2 sm:px-3 min-w-0">
+                        <span className="text-base sm:text-lg shrink-0">{type.icon}</span>
+                        <div className="text-left min-w-0 flex-1">
+                          <div className="font-semibold text-xs sm:text-sm truncate">{type.label}</div>
+                          <div className="text-[10px] sm:text-xs opacity-70 truncate">{type.description}</div>
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Permission Check */}
               {challengeType !== 'none' && (
