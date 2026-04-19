@@ -1348,6 +1348,22 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                           <span>+3 extra</span>
                         </div>
                       </div>
+
+                      {/* Voice Encouragement Toggle */}
+                      <div className="flex items-center justify-between py-2 border-t border-border/50">
+                        <div className="flex items-center gap-2">
+                          <Volume2 className="h-4 w-4 text-primary" />
+                          <div>
+                            <Label className="text-xs sm:text-sm font-medium cursor-pointer">AI Voice Encouragement</Label>
+                            <p className="text-[10px] text-muted-foreground">Hear encouraging messages between challenges</p>
+                          </div>
+                        </div>
+                        <Switch 
+                          checked={voiceEncouragementEnabled} 
+                          onCheckedChange={setVoiceEncouragementEnabled} 
+                          className="shrink-0" 
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
