@@ -88,6 +88,62 @@ export const SequentialChallengeRunner = ({
   const [totalFailures, setTotalFailures] = useState(0);
   const [extraChallengesAdded, setExtraChallengesAdded] = useState(0);
   const [showTransition, setShowTransition] = useState(false);
+  const [encouragementMessage, setEncouragementMessage] = useState<string>("");
+
+  // Generate AI voice encouragement message based on progress
+  const generateEncouragementMessage = useCallback((completedCount: number, totalCount: number): string => {
+    const remaining = totalCount - completedCount;
+    
+    if (remaining === 0) {
+      return "Amazing work! You've completed all challenges! Time to wake up and conquer your day!";
+    }
+    
+    const messages = {
+      // High energy messages for the beginning
+      early: [
+        "Great start! You've got this!",
+        "Excellent work! Keep that momentum going!",
+        "Awesome! You're waking up strong!",
+        "Fantastic! The day is yours for the taking!"
+      ],
+      // Mid-challenge messages
+      mid: [
+        `Great job! ${remaining} more challenge${remaining > 1 ? 's' : ''} to go!`,
+        `Well done! Only ${remaining} left! You're doing amazing!`,
+        `Excellent! ${remaining} more to conquer your morning!`,
+        `Keep it up! Just ${remaining} challenge${remaining > 1 ? 's' : ''} remaining!`
+      ],
+      // Final push messages
+      final: [
+        "Almost there! One final challenge to wake up completely!",
+        "You're so close! Last one - give it your all!",
+        "One more challenge and you're fully awake! You can do this!",
+        "Final stretch! Complete this and embrace your morning!"
+      ],
+      // Multiple failures - encouragement to keep trying
+      comeback: [
+        "Don't give up! You've got this!",
+        "Keep pushing! Every attempt makes you stronger!",
+        "Stay determined! You're closer than you think!",
+        "Believe in yourself! Success is just ahead!"
+      ]
+    };
+    
+    // Select category based on progress
+    let category: keyof typeof messages = 'mid';
+    if (totalFailures > 2) {
+      category = 'comeback';
+    } else if (completedCount === 0) {
+      category = 'early';
+    } else if (remaining === 1) {
+      category = 'final';
+    } else if (completedCount <= Math.ceil(totalCount * 0.3)) {
+      category = 'early';
+    }
+    
+    const categoryMessages = messages[category];
+    return categoryMessages[Math.floor(Math.random() * categoryMessages.length)];
+  }, [totalFailures]);
 
   // Load persisted progress on mount
   useEffect(() => {
