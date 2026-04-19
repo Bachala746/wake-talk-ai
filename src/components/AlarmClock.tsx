@@ -257,6 +257,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       failureRetryBehavior,
       dynamicDifficulty,
       maxExtraChallenges,
+      voiceEncouragementEnabled: true,
     };
 
     const settings: AlarmSettings = {
