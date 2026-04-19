@@ -385,6 +385,7 @@ export interface SequentialChallengeSettings {
   failureRetryBehavior: FailureRetryBehavior;
   dynamicDifficulty: boolean; // auto-increase difficulty for later challenges
   maxExtraChallenges: number; // extra challenges added on repeated failures (0-3)
+  voiceEncouragementEnabled: boolean; // AI voice encouragement between challenges
 }
 
 export const defaultSequentialChallengeSettings: SequentialChallengeSettings = {
@@ -393,6 +394,7 @@ export const defaultSequentialChallengeSettings: SequentialChallengeSettings = {
   failureRetryBehavior: 'continue',
   dynamicDifficulty: false,
   maxExtraChallenges: 1,
+  voiceEncouragementEnabled: true, // Enabled by default
 };
 
 export const MAX_CHALLENGES_PER_ALARM = 7;

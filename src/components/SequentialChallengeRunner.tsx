@@ -13,6 +13,7 @@ import {
   defaultObjectVerifySettings,
 } from "@/lib/alarmSettings";
 import { playChallengeCompleteSound, playMilestoneSound, playEscalationAlarm, playAggressiveVoiceMessage } from "@/lib/soundEffects";
+import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 
 const STORAGE_KEY = "sequential_challenge_progress";
 
@@ -87,6 +88,62 @@ export const SequentialChallengeRunner = ({
   const [totalFailures, setTotalFailures] = useState(0);
   const [extraChallengesAdded, setExtraChallengesAdded] = useState(0);
   const [showTransition, setShowTransition] = useState(false);
+  const [encouragementMessage, setEncouragementMessage] = useState<string>("");
+
+  // Generate AI voice encouragement message based on progress
+  const generateEncouragementMessage = useCallback((completedCount: number, totalCount: number): string => {
+    const remaining = totalCount - completedCount;
+    
+    if (remaining === 0) {
+      return "Amazing work! You've completed all challenges! Time to wake up and conquer your day!";
+    }
+    
+    const messages = {
+      // High energy messages for the beginning
+      early: [
+        "Great start! You've got this!",
+        "Excellent work! Keep that momentum going!",
+        "Awesome! You're waking up strong!",
+        "Fantastic! The day is yours for the taking!"
+      ],
+      // Mid-challenge messages
+      mid: [
+        `Great job! ${remaining} more challenge${remaining > 1 ? 's' : ''} to go!`,
+        `Well done! Only ${remaining} left! You're doing amazing!`,
+        `Excellent! ${remaining} more to conquer your morning!`,
+        `Keep it up! Just ${remaining} challenge${remaining > 1 ? 's' : ''} remaining!`
+      ],
+      // Final push messages
+      final: [
+        "Almost there! One final challenge to wake up completely!",
+        "You're so close! Last one - give it your all!",
+        "One more challenge and you're fully awake! You can do this!",
+        "Final stretch! Complete this and embrace your morning!"
+      ],
+      // Multiple failures - encouragement to keep trying
+      comeback: [
+        "Don't give up! You've got this!",
+        "Keep pushing! Every attempt makes you stronger!",
+        "Stay determined! You're closer than you think!",
+        "Believe in yourself! Success is just ahead!"
+      ]
+    };
+    
+    // Select category based on progress
+    let category: keyof typeof messages = 'mid';
+    if (totalFailures > 2) {
+      category = 'comeback';
+    } else if (completedCount === 0) {
+      category = 'early';
+    } else if (remaining === 1) {
+      category = 'final';
+    } else if (completedCount <= Math.ceil(totalCount * 0.3)) {
+      category = 'early';
+    }
+    
+    const categoryMessages = messages[category];
+    return categoryMessages[Math.floor(Math.random() * categoryMessages.length)];
+  }, [totalFailures]);
 
   // Load persisted progress on mount
   useEffect(() => {
@@ -97,6 +154,11 @@ export const SequentialChallengeRunner = ({
       setTotalFailures(saved.totalFailures);
       setExtraChallengesAdded(saved.extraChallengesAdded);
     }
+    
+    // Cleanup speech on unmount
+    return () => {
+      cancelSpeech();
+    };
   }, []);
 
   // Persist progress on change
@@ -129,18 +191,37 @@ export const SequentialChallengeRunner = ({
     if (currentIndex < challenges.length - 1) {
       // More challenges remaining
       playMilestoneSound();
+      
+      // Generate and speak encouragement message (if enabled)
+      if (settings.voiceEncouragementEnabled !== false) {
+        const message = generateEncouragementMessage(newCompleted.length, challenges.length);
+        setEncouragementMessage(message);
+        
+        // Play AI voice encouragement
+        speakWithElevenLabs(message, 'gentle', 
+          () => console.log('Playing encouragement:', message),
+          () => console.log('Encouragement finished')
+        );
+      }
+      
       setShowTransition(true);
       setTimeout(() => {
         setShowTransition(false);
+        setEncouragementMessage("");
         setCurrentIndex(currentIndex + 1);
-      }, 1500);
+      }, settings.voiceEncouragementEnabled !== false ? 2500 : 1500); // Longer when voice plays
     } else {
-      // All done!
+      // All done! Play final victory message (if enabled)
+      if (settings.voiceEncouragementEnabled !== false) {
+        const victoryMessage = "Congratulations! You've completed all challenges and are fully awake. Have an amazing day!";
+        speakWithElevenLabs(victoryMessage, 'gentle');
+      }
+      
       playChallengeCompleteSound();
       clearProgress();
       onAllComplete();
     }
-  }, [currentIndex, completedIndices, challenges.length, onAllComplete]);
+  }, [currentIndex, completedIndices, challenges.length, onAllComplete, generateEncouragementMessage, settings.voiceEncouragementEnabled]);
 
   const handleChallengeFail = useCallback(() => {
     const newFailures = totalFailures + 1;
@@ -203,6 +284,26 @@ export const SequentialChallengeRunner = ({
               <CheckCircle className="h-8 w-8 text-green-500" />
             </div>
             <h3 className="text-xl font-bold text-foreground">Challenge Complete!</h3>
+            
+            {/* AI Voice Encouragement Message */}
+            {encouragementMessage && (
+              <div className={`p-4 rounded-xl ${
+                isDark ? 'bg-primary/10 border border-primary/20' : 'bg-primary/5 border border-primary/10'
+              }`}>
+                <p className="text-sm text-muted-foreground italic">
+                  "{encouragementMessage}"
+                </p>
+                <div className="flex items-center justify-center gap-1 mt-2">
+                  <span className="text-xs text-primary font-medium">AI Voice</span>
+                  <div className="flex gap-0.5">
+                    <span className="w-1 h-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1 h-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1 h-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <p className="text-muted-foreground text-sm">
               {completedIndices.length} of {challenges.length} completed
             </p>
