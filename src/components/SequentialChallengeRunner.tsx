@@ -192,32 +192,36 @@ export const SequentialChallengeRunner = ({
       // More challenges remaining
       playMilestoneSound();
       
-      // Generate and speak encouragement message
-      const message = generateEncouragementMessage(newCompleted.length, challenges.length);
-      setEncouragementMessage(message);
-      
-      // Play AI voice encouragement
-      speakWithElevenLabs(message, 'gentle', 
-        () => console.log('Playing encouragement:', message),
-        () => console.log('Encouragement finished')
-      );
+      // Generate and speak encouragement message (if enabled)
+      if (settings.voiceEncouragementEnabled !== false) {
+        const message = generateEncouragementMessage(newCompleted.length, challenges.length);
+        setEncouragementMessage(message);
+        
+        // Play AI voice encouragement
+        speakWithElevenLabs(message, 'gentle', 
+          () => console.log('Playing encouragement:', message),
+          () => console.log('Encouragement finished')
+        );
+      }
       
       setShowTransition(true);
       setTimeout(() => {
         setShowTransition(false);
         setEncouragementMessage("");
         setCurrentIndex(currentIndex + 1);
-      }, 2500); // Slightly longer to allow voice to play
+      }, settings.voiceEncouragementEnabled !== false ? 2500 : 1500); // Longer when voice plays
     } else {
-      // All done! Play final victory message
-      const victoryMessage = "Congratulations! You've completed all challenges and are fully awake. Have an amazing day!";
-      speakWithElevenLabs(victoryMessage, 'gentle');
+      // All done! Play final victory message (if enabled)
+      if (settings.voiceEncouragementEnabled !== false) {
+        const victoryMessage = "Congratulations! You've completed all challenges and are fully awake. Have an amazing day!";
+        speakWithElevenLabs(victoryMessage, 'gentle');
+      }
       
       playChallengeCompleteSound();
       clearProgress();
       onAllComplete();
     }
-  }, [currentIndex, completedIndices, challenges.length, onAllComplete, generateEncouragementMessage]);
+  }, [currentIndex, completedIndices, challenges.length, onAllComplete, generateEncouragementMessage, settings.voiceEncouragementEnabled]);
 
   const handleChallengeFail = useCallback(() => {
     const newFailures = totalFailures + 1;
