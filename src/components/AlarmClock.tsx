@@ -142,6 +142,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [failureRetryBehavior, setFailureRetryBehavior] = useState<FailureRetryBehavior>('continue');
   const [dynamicDifficulty, setDynamicDifficulty] = useState(false);
   const [maxExtraChallenges, setMaxExtraChallenges] = useState(1);
+  const [voiceEncouragementEnabled, setVoiceEncouragementEnabled] = useState(true);
 
   useEffect(() => {
     return () => {
@@ -257,7 +258,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       failureRetryBehavior,
       dynamicDifficulty,
       maxExtraChallenges,
-      voiceEncouragementEnabled: true,
+      voiceEncouragementEnabled,
     };
 
     const settings: AlarmSettings = {
@@ -366,6 +367,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setFailureRetryBehavior(seqS.failureRetryBehavior);
     setDynamicDifficulty(seqS.dynamicDifficulty);
     setMaxExtraChallenges(seqS.maxExtraChallenges);
+    setVoiceEncouragementEnabled(seqS.voiceEncouragementEnabled ?? true);
     setIsDialogOpen(true);
   };
 
@@ -411,6 +413,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setFailureRetryBehavior('continue');
     setDynamicDifficulty(false);
     setMaxExtraChallenges(1);
+    setVoiceEncouragementEnabled(true);
     setIsDialogOpen(true);
   };
 
