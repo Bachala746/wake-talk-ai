@@ -13,6 +13,7 @@ import {
   defaultObjectVerifySettings,
 } from "@/lib/alarmSettings";
 import { playChallengeCompleteSound, playMilestoneSound, playEscalationAlarm, playAggressiveVoiceMessage } from "@/lib/soundEffects";
+import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 
 const STORAGE_KEY = "sequential_challenge_progress";
 
