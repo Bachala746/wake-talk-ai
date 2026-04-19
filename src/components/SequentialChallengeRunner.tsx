@@ -275,6 +275,26 @@ export const SequentialChallengeRunner = ({
               <CheckCircle className="h-8 w-8 text-green-500" />
             </div>
             <h3 className="text-xl font-bold text-foreground">Challenge Complete!</h3>
+            
+            {/* AI Voice Encouragement Message */}
+            {encouragementMessage && (
+              <div className={`p-4 rounded-xl ${
+                isDark ? 'bg-primary/10 border border-primary/20' : 'bg-primary/5 border border-primary/10'
+              }`}>
+                <p className="text-sm text-muted-foreground italic">
+                  "{encouragementMessage}"
+                </p>
+                <div className="flex items-center justify-center gap-1 mt-2">
+                  <span className="text-xs text-primary font-medium">AI Voice</span>
+                  <div className="flex gap-0.5">
+                    <span className="w-1 h-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1 h-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1 h-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <p className="text-muted-foreground text-sm">
               {completedIndices.length} of {challenges.length} completed
             </p>
