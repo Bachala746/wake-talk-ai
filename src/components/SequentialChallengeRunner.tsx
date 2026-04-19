@@ -154,6 +154,11 @@ export const SequentialChallengeRunner = ({
       setTotalFailures(saved.totalFailures);
       setExtraChallengesAdded(saved.extraChallengesAdded);
     }
+    
+    // Cleanup speech on unmount
+    return () => {
+      cancelSpeech();
+    };
   }, []);
 
   // Persist progress on change
