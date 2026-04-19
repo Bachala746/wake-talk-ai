@@ -260,17 +260,33 @@ export const TwoWayVoiceCall = ({
     };
   }, []);
 
-  // Manual mic button handler
-  const handleMicClick = useCallback(() => {
+  // Manual mic button handler — properly async to preserve user-gesture context for getUserMedia
+  const handleMicClick = useCallback(async () => {
+    console.log('[TwoWayVoiceCall] Speak button clicked. isListening:', scribe.isListening);
     if (scribe.isListening) {
       scribe.stopListening();
       clearResponseTimeout();
       setWaitingForResponse(false);
       isWaitingRef.current = false;
-    } else {
-      startWaitingForResponse();
+      return;
     }
-  }, [scribe, clearResponseTimeout, startWaitingForResponse]);
+
+    // Cancel any pending AI speech / motivational timer so the mic can take over immediately
+    cancelSpeech();
+    clearResponseTimeout();
+    isWaitingRef.current = true;
+    setWaitingForResponse(true);
+
+    // Call startListening DIRECTLY (no intermediate sync wrapper) so the user gesture
+    // is preserved through the await chain into getUserMedia.
+    const started = await scribe.startListening();
+    if (!started) {
+      console.error('[TwoWayVoiceCall] startListening returned false');
+      isWaitingRef.current = false;
+      setWaitingForResponse(false);
+      toast.error('Could not start the microphone. Please check permissions and try again.');
+    }
+  }, [scribe, clearResponseTimeout]);
 
   if (showChallenge) {
     return (
