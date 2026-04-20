@@ -150,24 +150,26 @@ export const speakWithElevenLabs = async (
       
       return new Promise((resolve, reject) => {
         audio.onended = () => {
+          if (activeAudioElement === audio) activeAudioElement = null;
           cleanupAudioAnalyzer();
           onVolumeChange?.(0);
           onEnd?.();
           resolve(audio);
         };
-        
+
         audio.onerror = (e) => {
           console.error('Audio playback error:', e);
+          if (activeAudioElement === audio) activeAudioElement = null;
           cleanupAudioAnalyzer();
           onVolumeChange?.(0);
           onEnd?.();
           reject(new Error('Audio playback failed'));
         };
-        
+
         audio.play().catch((e) => {
           console.error('Audio play failed:', e);
+          if (activeAudioElement === audio) activeAudioElement = null;
           cleanupAudioAnalyzer();
-          // Fallback to browser TTS
           fallbackToBrowserTTS(text, voiceStyle, onEnd);
           resolve(null);
         });
