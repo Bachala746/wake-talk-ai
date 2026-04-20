@@ -246,58 +246,34 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
       };
       
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-        console.error('Web Speech recognition error:', event.error, event.message);
-        
-        // Don't show error toast for aborted/no-speech (these are normal)
+        console.warn('Web Speech recognition error:', event.error);
+
+        // Aborted/no-speech are normal — DO NOT auto-restart (causes infinite loops with stop()).
+        // The caller controls when to listen again.
         if (event.error === 'aborted' || event.error === 'no-speech') {
-          if (!isStoppedManuallyRef.current) {
-            // Try to restart if it was an unexpected stop
-            console.log('Attempting to restart recognition...');
-            setTimeout(() => {
-              if (!isStoppedManuallyRef.current && recognitionRef.current === null) {
-                startWebSpeechFallback();
-              }
-            }, 100);
-          }
           return;
         }
-        
+
         if (event.error === 'not-allowed') {
           toast.error('Microphone access denied. Please enable it in browser settings.');
           onError?.(new Error('Microphone permission denied'));
         } else if (event.error === 'network') {
           toast.error('Network error. Please check your connection.');
           onError?.(new Error('Network error'));
-        } else {
-          // For other errors, show generic message but don't block retry
-          console.warn('Speech recognition error:', event.error);
         }
-        
+
         setIsListening(false);
         setIsConnected(false);
       };
-      
+
       recognition.onend = () => {
-        console.log('Web Speech recognition ended, stopped manually:', isStoppedManuallyRef.current);
-        
-        // If we didn't manually stop, try to restart (Chrome sometimes stops unexpectedly)
-        if (!isStoppedManuallyRef.current && recognitionRef.current) {
-          console.log('Recognition ended unexpectedly, restarting...');
-          try {
-            recognition.start();
-            return;
-          } catch (e) {
-            console.log('Could not restart recognition:', e);
-          }
-        }
-        
+        console.log('Web Speech recognition ended (manual:', isStoppedManuallyRef.current, ')');
+        recognitionRef.current = null;
         setIsConnected(false);
         setIsListening(false);
-        
-        // Only call onEnd if we have content or it was manually stopped
-        if (accumulatedTranscriptRef.current || isStoppedManuallyRef.current) {
-          onEnd?.();
-        }
+
+        // Always call onEnd so the parent can react (e.g. submit transcript)
+        onEnd?.();
       };
       
       recognition.start();
@@ -320,6 +296,13 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
   // Only attempt ElevenLabs Scribe in the background if Web Speech is unavailable.
   const startListening = useCallback(async (): Promise<boolean> => {
     console.log('[Scribe] startListening() called');
+
+    // Guard: already listening — ignore duplicate calls (prevents aborted-error loop)
+    if (recognitionRef.current || wsRef.current) {
+      console.log('[Scribe] Already listening, ignoring duplicate start');
+      return true;
+    }
+
     isStoppedManuallyRef.current = false;
 
     // Check explicit permission state (helps surface "denied" before getUserMedia throws)

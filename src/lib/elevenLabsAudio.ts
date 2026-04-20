@@ -26,6 +26,9 @@ let activeAudioContext: AudioContext | null = null;
 let activeAnalyser: AnalyserNode | null = null;
 let volumeCallbackInterval: number | null = null;
 
+// Track active ElevenLabs audio element so cancelSpeech can stop it (not just browser TTS)
+let activeAudioElement: HTMLAudioElement | null = null;
+
 export const getAudioVolumeLevel = (): number => {
   if (!activeAnalyser) return 0;
   
@@ -117,9 +120,10 @@ export const speakWithElevenLabs = async (
     // Use ElevenLabs audio if available
     if (!data.useBrowserTTS && data.audioContent) {
       console.log('Playing ElevenLabs audio');
-      
+
       const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
       const audio = new Audio(audioUrl);
+      activeAudioElement = audio;
       
       // Set up Web Audio API for volume analysis
       if (onVolumeChange) {
@@ -236,4 +240,15 @@ export const cancelSpeech = () => {
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
+  // Stop ElevenLabs MP3 playback so the mic can take over instantly
+  if (activeAudioElement) {
+    try {
+      activeAudioElement.pause();
+      activeAudioElement.currentTime = 0;
+    } catch (e) {
+      // ignore
+    }
+    activeAudioElement = null;
+  }
+  cleanupAudioAnalyzer();
 };
