@@ -293,7 +293,8 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
   }, [onStart, onEnd, onPartialTranscript, onFinalTranscript, onError, autoSubmitAfterSilence, stopListening]);
 
   // Start listening - prefer Web Speech API (instant, reliable in Chrome).
-  // Only attempt ElevenLabs Scribe in the background if Web Speech is unavailable.
+  // CRITICAL: For Web Speech API we must call recognition.start() SYNCHRONOUSLY
+  // inside the user-gesture callback chain — no awaits before .start().
   const startListening = useCallback(async (): Promise<boolean> => {
     console.log('[Scribe] startListening() called');
 
@@ -303,40 +304,45 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
       return true;
     }
 
-    isStoppedManuallyRef.current = false;
-
-    // Check explicit permission state (helps surface "denied" before getUserMedia throws)
-    try {
-      if (navigator.permissions) {
-        const status = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-        console.log('[Scribe] Microphone permission state:', status.state);
-        if (status.state === 'denied') {
-          toast.error('Microphone is blocked. Click the lock icon in the address bar to allow it.');
-          onError?.(new Error('Microphone permission denied'));
-          return false;
-        }
-      }
-    } catch (e) {
-      // permissions.query may not support 'microphone' in all browsers — non-fatal
-      console.warn('[Scribe] permissions.query unsupported:', e);
+    // Secure-context check (Web Speech API requires HTTPS or localhost)
+    if (typeof window !== 'undefined' && window.isSecureContext === false) {
+      toast.error('Microphone requires HTTPS. Please use a secure connection.');
+      onError?.(new Error('Insecure context'));
+      return false;
     }
 
-    // Acquire mic stream NOW (synchronously after the user gesture chain).
-    // Critical: do NOT await anything else before getUserMedia or the gesture is lost.
+    isStoppedManuallyRef.current = false;
+
+    // FAST PATH: Web Speech API available (Chrome/Edge) — start synchronously.
+    // The browser will handle its own mic permission prompt; we don't need
+    // getUserMedia first. Doing getUserMedia here would break the gesture chain.
+    const SpeechRecognitionClass = getSpeechRecognition();
+    if (SpeechRecognitionClass) {
+      console.log('[Scribe] Using Web Speech API (preferred, sync start)');
+      const ok = startWebSpeechFallback();
+      // Fire-and-forget permission check for UI state (does not block start)
+      if (navigator.permissions) {
+        navigator.permissions
+          .query({ name: 'microphone' as PermissionName })
+          .then((status) => {
+            console.log('[Scribe] Microphone permission state:', status.state);
+            setPermissionGranted(status.state === 'granted');
+            if (status.state === 'denied') {
+              toast.error('Microphone is blocked. Click the lock icon in the address bar to allow it.');
+            }
+          })
+          .catch(() => {});
+      }
+      return ok;
+    }
+
+    // SLOW PATH: Web Speech not available (Safari/Firefox) — need getUserMedia + Scribe WS.
+    console.log('[Scribe] Web Speech unavailable, falling back to ElevenLabs Scribe...');
     if (!mediaStreamRef.current) {
       const hasPermission = await requestPermission();
       if (!hasPermission) return false;
     }
 
-    // Prefer Web Speech API — works instantly in Chrome and avoids edge-function latency.
-    const SpeechRecognitionClass = getSpeechRecognition();
-    if (SpeechRecognitionClass) {
-      console.log('[Scribe] Using Web Speech API (preferred)');
-      return startWebSpeechFallback();
-    }
-
-    // Web Speech not available (Safari/Firefox) — try ElevenLabs Scribe with short timeout
-    console.log('[Scribe] Web Speech unavailable, trying ElevenLabs Scribe...');
     try {
       const { data, error } = await supabase.functions.invoke('elevenlabs-scribe-token');
 
