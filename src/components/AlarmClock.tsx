@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Html5Qrcode } from "html5-qrcode";
 import { ElevenLabsQuotaPanel } from "./ElevenLabsQuotaPanel";
 import { PermissionCheck } from "./PermissionCheck";
+import { MicrophoneTest } from "./MicrophoneTest";
 import { useTheme } from "@/hooks/useTheme";
 import {
   AlarmSettings,
@@ -89,6 +90,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAlarmId, setEditingAlarmId] = useState<string | null>(null);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+  const [micTestOpen, setMicTestOpen] = useState(false);
   
   // Form states
   const [alarmTime, setAlarmTime] = useState("07:00");
@@ -979,10 +981,26 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                 <span className="truncate">Two-Way Test</span>
               </Button>
             </div>
+
+            <Button
+              onClick={() => setMicTestOpen(true)}
+              variant="outline"
+              className={`w-full py-4 sm:py-5 rounded-2xl backdrop-blur-sm border-2 transition-all duration-300 text-xs sm:text-sm hover:-translate-y-0.5 ${
+                isDark
+                  ? 'border-emerald-500/30 hover:border-emerald-400 hover:bg-emerald-500/10 bg-emerald-500/5'
+                  : 'border-emerald-300/50 hover:border-emerald-500 hover:bg-emerald-50 bg-white/40'
+              }`}
+              size="lg"
+            >
+              <Mic className={`h-4 w-4 mr-1.5 shrink-0 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+              <span className="truncate">Microphone Test</span>
+            </Button>
           </div>
           </div>
         </div>
       </section>
+
+      <MicrophoneTest open={micTestOpen} onOpenChange={setMicTestOpen} />
 
       <Dialog open={isDialogOpen} onOpenChange={closeDialog}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto mx-2 w-[calc(100%-1rem)] rounded-2xl">
