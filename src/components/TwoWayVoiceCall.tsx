@@ -95,13 +95,16 @@ export const TwoWayVoiceCall = ({
     const userMessage = transcript.trim();
     const newHistory: Message[] = [...conversationHistory, { role: 'user', content: userMessage }];
     setConversationHistory(newHistory);
-    
+
+    // Send only the last 4 messages for context — reduces payload + AI latency.
+    const recentHistory = conversationHistory.slice(-4);
+
     try {
       const { data } = await supabase.functions.invoke('conversation-ai', {
-        body: { 
-          userMessage, 
-          conversationHistory, 
-          theme: settings.messageTheme, 
+        body: {
+          userMessage,
+          conversationHistory: recentHistory,
+          theme: settings.messageTheme,
           isTestCall,
           context: 'two-way-alarm'
         }
@@ -127,14 +130,15 @@ export const TwoWayVoiceCall = ({
 
   // Initialize scribe for speech recognition - faster silence detection
   const scribe = useElevenLabsScribe({
-    autoSubmitAfterSilence: 1500, // Faster silence detection for quicker response
-    onFinalTranscript: (text) => { 
-      pendingTranscriptRef.current = text; 
+    autoSubmitAfterSilence: 1000, // Snappier auto-submit after user stops talking
+    onFinalTranscript: (text) => {
+      pendingTranscriptRef.current = text;
     },
     onEnd: () => {
-      if (pendingTranscriptRef.current.trim() && !isProcessing) {
-        processUserResponse(pendingTranscriptRef.current);
+      const text = pendingTranscriptRef.current.trim();
+      if (text && !isProcessing) {
         pendingTranscriptRef.current = "";
+        processUserResponse(text);
       }
     },
     onError: () => toast.error("Speech recognition error. Tap mic to retry."),

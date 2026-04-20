@@ -26,6 +26,9 @@ let activeAudioContext: AudioContext | null = null;
 let activeAnalyser: AnalyserNode | null = null;
 let volumeCallbackInterval: number | null = null;
 
+// Track active ElevenLabs audio element so cancelSpeech can stop it (not just browser TTS)
+let activeAudioElement: HTMLAudioElement | null = null;
+
 export const getAudioVolumeLevel = (): number => {
   if (!activeAnalyser) return 0;
   
@@ -117,9 +120,10 @@ export const speakWithElevenLabs = async (
     // Use ElevenLabs audio if available
     if (!data.useBrowserTTS && data.audioContent) {
       console.log('Playing ElevenLabs audio');
-      
+
       const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
       const audio = new Audio(audioUrl);
+      activeAudioElement = audio;
       
       // Set up Web Audio API for volume analysis
       if (onVolumeChange) {
@@ -146,24 +150,26 @@ export const speakWithElevenLabs = async (
       
       return new Promise((resolve, reject) => {
         audio.onended = () => {
+          if (activeAudioElement === audio) activeAudioElement = null;
           cleanupAudioAnalyzer();
           onVolumeChange?.(0);
           onEnd?.();
           resolve(audio);
         };
-        
+
         audio.onerror = (e) => {
           console.error('Audio playback error:', e);
+          if (activeAudioElement === audio) activeAudioElement = null;
           cleanupAudioAnalyzer();
           onVolumeChange?.(0);
           onEnd?.();
           reject(new Error('Audio playback failed'));
         };
-        
+
         audio.play().catch((e) => {
           console.error('Audio play failed:', e);
+          if (activeAudioElement === audio) activeAudioElement = null;
           cleanupAudioAnalyzer();
-          // Fallback to browser TTS
           fallbackToBrowserTTS(text, voiceStyle, onEnd);
           resolve(null);
         });
@@ -236,4 +242,15 @@ export const cancelSpeech = () => {
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
+  // Stop ElevenLabs MP3 playback so the mic can take over instantly
+  if (activeAudioElement) {
+    try {
+      activeAudioElement.pause();
+      activeAudioElement.currentTime = 0;
+    } catch (e) {
+      // ignore
+    }
+    activeAudioElement = null;
+  }
+  cleanupAudioAnalyzer();
 };
