@@ -254,12 +254,17 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
           return;
         }
 
-        if (event.error === 'not-allowed') {
-          toast.error('Microphone access denied. Please enable it in browser settings.');
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          toast.error('Microphone access denied. Please click the lock icon in the address bar and allow the microphone, then try again.');
           onError?.(new Error('Microphone permission denied'));
         } else if (event.error === 'network') {
-          toast.error('Network error. Please check your connection.');
-          onError?.(new Error('Network error'));
+          // Chrome's Web Speech API requires reaching Google's servers — in some
+          // iframe/preview environments this fails. Tell the user clearly.
+          toast.error("Speech service couldn't reach the network. Try opening the app in a new tab (not the in-app preview), or use Chrome with no VPN/proxy blocking google.com.");
+          onError?.(new Error('Speech recognition network error'));
+        } else {
+          toast.error(`Speech recognition error: ${event.error}`);
+          onError?.(new Error(event.error));
         }
 
         setIsListening(false);
