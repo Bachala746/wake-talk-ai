@@ -92,6 +92,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [editingAlarmId, setEditingAlarmId] = useState<string | null>(null);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [micTestOpen, setMicTestOpen] = useState(false);
+  const [preCheckAlarm, setPreCheckAlarm] = useState<Alarm | null>(null);
+  const triggeredPreChecksRef = useRef<Set<string>>(new Set());
   
   // Form states
   const [alarmTime, setAlarmTime] = useState("07:00");
