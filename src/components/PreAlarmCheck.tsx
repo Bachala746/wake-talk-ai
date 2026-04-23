@@ -10,7 +10,7 @@ import {
   PermissionStatus,
 } from "@/lib/permissions";
 import { AlarmSettings } from "@/lib/alarmSettings";
-import { playToneBeep } from "@/lib/soundEffects";
+import { playCorrectTapSound } from "@/lib/soundEffects";
 
 type CheckState = "pending" | "running" | "ok" | "fail";
 
