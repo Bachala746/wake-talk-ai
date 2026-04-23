@@ -14,6 +14,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import { ElevenLabsQuotaPanel } from "./ElevenLabsQuotaPanel";
 import { PermissionCheck } from "./PermissionCheck";
 import { MicrophoneTest } from "./MicrophoneTest";
+import { PreAlarmCheck } from "./PreAlarmCheck";
 import { useTheme } from "@/hooks/useTheme";
 import {
   AlarmSettings,
@@ -91,6 +92,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [editingAlarmId, setEditingAlarmId] = useState<string | null>(null);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [micTestOpen, setMicTestOpen] = useState(false);
+  const [preCheckAlarm, setPreCheckAlarm] = useState<Alarm | null>(null);
+  const triggeredPreChecksRef = useRef<Set<string>>(new Set());
   
   // Form states
   const [alarmTime, setAlarmTime] = useState("07:00");
@@ -206,12 +209,25 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       
       const timeDiff = alarmDate.getTime() - now.getTime();
       
+      // Pre-alarm check window: 2 minutes before, fire once per occurrence
+      const preCheckKey = `${alarm.id}@${alarmDate.toDateString()}-${alarm.time}`;
+      if (
+        timeDiff <= 2 * 60 * 1000 &&
+        timeDiff > 60 * 1000 &&
+        !triggeredPreChecksRef.current.has(preCheckKey) &&
+        !preCheckAlarm
+      ) {
+        triggeredPreChecksRef.current.add(preCheckKey);
+        setPreCheckAlarm(alarm);
+        toast.info(`⏰ "${alarm.label}" rings in 2 min — let's verify your mic & speakers.`, { duration: 5000 });
+      }
+
       // Trigger alarm if within 1 second window
       if (timeDiff <= 1000 && timeDiff > -1000) {
         handleAlarmTrigger(alarm);
       }
     });
-  }, [currentTime, alarms]);
+  }, [currentTime, alarms, preCheckAlarm]);
 
   const handleAlarmTrigger = (alarm: Alarm) => {
     setAlarms(prev => prev.map(a => 
@@ -1001,6 +1017,16 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       </section>
 
       <MicrophoneTest open={micTestOpen} onOpenChange={setMicTestOpen} />
+
+      {preCheckAlarm && (
+        <PreAlarmCheck
+          open={!!preCheckAlarm}
+          alarmTime={preCheckAlarm.time}
+          alarmLabel={preCheckAlarm.label}
+          settings={preCheckAlarm.settings}
+          onClose={() => setPreCheckAlarm(null)}
+        />
+      )}
 
       <Dialog open={isDialogOpen} onOpenChange={closeDialog}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto mx-2 w-[calc(100%-1rem)] rounded-2xl">
