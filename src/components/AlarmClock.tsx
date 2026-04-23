@@ -14,6 +14,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import { ElevenLabsQuotaPanel } from "./ElevenLabsQuotaPanel";
 import { PermissionCheck } from "./PermissionCheck";
 import { MicrophoneTest } from "./MicrophoneTest";
+import { PreAlarmCheck } from "./PreAlarmCheck";
 import { useTheme } from "@/hooks/useTheme";
 import {
   AlarmSettings,
