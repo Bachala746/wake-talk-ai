@@ -205,9 +205,11 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
       recognition.maxAlternatives = 1;
       
       recognition.onstart = () => {
-        console.log('Web Speech recognition started');
+        console.log('[Mic] Web Speech recognition started');
         setIsConnected(true);
         setIsListening(true);
+        setStatusMessage('🎤 Listening...');
+        setErrorMessage('');
         onStart?.();
       };
       
@@ -226,6 +228,7 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
         
         if (interim) {
           setPartialTranscript(interim);
+          setStatusMessage('🎤 Listening...');
           onPartialTranscript?.(interim);
         }
         
@@ -238,47 +241,63 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
           accumulatedTranscriptRef.current += (accumulatedTranscriptRef.current ? ' ' : '') + final.trim();
           setFinalTranscript(accumulatedTranscriptRef.current);
           setPartialTranscript('');
+          setStatusMessage('✓ Got it');
           onFinalTranscript?.(accumulatedTranscriptRef.current);
           
           // Set auto-submit timer after receiving final transcript
           silenceTimerRef.current = window.setTimeout(() => {
-            console.log('Auto-submitting after silence (Web Speech)...');
+            console.log('[Mic] Auto-submitting after silence (Web Speech)...');
             stopListening();
           }, autoSubmitAfterSilence);
         }
       };
       
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-        console.warn('Web Speech recognition error:', event.error);
+        console.warn('[Mic] Web Speech recognition error:', event.error);
 
         // Aborted/no-speech are normal — DO NOT auto-restart (causes infinite loops with stop()).
-        // The caller controls when to listen again.
-        if (event.error === 'aborted' || event.error === 'no-speech') {
+        if (event.error === 'aborted') {
+          return;
+        }
+        if (event.error === 'no-speech') {
+          setErrorMessage("We didn't hear anything. Try again.");
+          setStatusMessage('');
           return;
         }
 
         if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-          toast.error('Microphone access denied. Please click the lock icon in the address bar and allow the microphone, then try again.');
+          const msg = 'Microphone blocked. Click the lock icon in the address bar and allow the microphone.';
+          setErrorMessage(msg);
+          toast.error(msg);
           onError?.(new Error('Microphone permission denied'));
         } else if (event.error === 'network') {
-          // Chrome's Web Speech API requires reaching Google's servers — in some
-          // iframe/preview environments this fails. Tell the user clearly.
-          toast.error("Speech service couldn't reach the network. Try opening the app in a new tab (not the in-app preview), or use Chrome with no VPN/proxy blocking google.com.");
+          const msg = "Speech service can't reach the network. Open the app in a new tab (not the in-app preview).";
+          setErrorMessage(msg);
+          toast.error(msg);
           onError?.(new Error('Speech recognition network error'));
+        } else if (event.error === 'audio-capture') {
+          const msg = 'No microphone detected, or it is in use by another app.';
+          setErrorMessage(msg);
+          toast.error(msg);
+          onError?.(new Error('Audio capture failed'));
         } else {
-          toast.error(`Speech recognition error: ${event.error}`);
+          const msg = `Speech recognition error: ${event.error}`;
+          setErrorMessage(msg);
+          toast.error(msg);
           onError?.(new Error(event.error));
         }
 
         setIsListening(false);
         setIsConnected(false);
+        setStatusMessage('');
       };
 
       recognition.onend = () => {
-        console.log('Web Speech recognition ended (manual:', isStoppedManuallyRef.current, ')');
+        console.log('[Mic] Web Speech recognition ended (manual:', isStoppedManuallyRef.current, ')');
         recognitionRef.current = null;
         setIsConnected(false);
         setIsListening(false);
+        setStatusMessage('');
 
         // Always call onEnd so the parent can react (e.g. submit transcript)
         onEnd?.();
