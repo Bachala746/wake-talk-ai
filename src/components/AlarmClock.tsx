@@ -1018,6 +1018,16 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
 
       <MicrophoneTest open={micTestOpen} onOpenChange={setMicTestOpen} />
 
+      {preCheckAlarm && (
+        <PreAlarmCheck
+          open={!!preCheckAlarm}
+          alarmTime={preCheckAlarm.time}
+          alarmLabel={preCheckAlarm.label}
+          settings={preCheckAlarm.settings}
+          onClose={() => setPreCheckAlarm(null)}
+        />
+      )}
+
       <Dialog open={isDialogOpen} onOpenChange={closeDialog}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto mx-2 w-[calc(100%-1rem)] rounded-2xl">
           <DialogHeader>
