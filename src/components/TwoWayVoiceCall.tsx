@@ -457,7 +457,7 @@ export const TwoWayVoiceCall = ({
           <div className="flex gap-3 pt-2">
             <Button 
               onClick={handleMicClick} 
-              disabled={isSpeaking || isProcessing} 
+              disabled={isSpeaking || isProcessing || !scribe.isSupported} 
               className={`flex-1 py-6 rounded-xl transition-all ${
                 scribe.isListening 
                   ? 'bg-blue-500 hover:bg-blue-600 animate-pulse' 
