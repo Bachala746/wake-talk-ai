@@ -398,6 +398,29 @@ export const TwoWayVoiceCall = ({
             </div>
           </div>
 
+          {/* Browser-support / error banner */}
+          {!scribe.isSupported && (
+            <div className={`rounded-xl p-3 border flex items-start gap-2 ${
+              isDark ? 'bg-red-900/20 border-red-700/40' : 'bg-red-50 border-red-200'
+            }`}>
+              <AlertCircle className={`w-5 h-5 shrink-0 mt-0.5 ${isDark ? 'text-red-400' : 'text-red-500'}`} />
+              <p className={`text-xs text-left ${isDark ? 'text-red-300' : 'text-red-700'}`}>
+                Your browser doesn't support speech recognition. Please use Google Chrome on desktop.
+              </p>
+            </div>
+          )}
+
+          {scribe.errorMessage && (
+            <div className={`rounded-xl p-3 border flex items-start gap-2 ${
+              isDark ? 'bg-red-900/20 border-red-700/40' : 'bg-red-50 border-red-200'
+            }`}>
+              <AlertCircle className={`w-5 h-5 shrink-0 mt-0.5 ${isDark ? 'text-red-400' : 'text-red-500'}`} />
+              <p className={`text-xs text-left ${isDark ? 'text-red-300' : 'text-red-700'}`}>
+                {scribe.errorMessage}
+              </p>
+            </div>
+          )}
+
           {/* User transcript display */}
           {(scribe.isListening || scribe.transcript) && (
             <div className={`rounded-xl p-4 transition-all duration-300 ${
@@ -409,9 +432,16 @@ export const TwoWayVoiceCall = ({
                 <Mic className={`w-5 h-5 mt-0.5 shrink-0 transition-colors ${
                   scribe.isListening ? (isDark ? 'text-blue-400 animate-pulse' : 'text-blue-500 animate-pulse') : (isDark ? 'text-blue-500' : 'text-blue-400')
                 }`} />
-                <p className={`text-sm text-left ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
-                  {scribe.transcript || "Listening... say something!"}
-                </p>
+                <div className="flex-1 text-left">
+                  {scribe.isListening && !scribe.transcript && (
+                    <p className={`text-xs font-semibold mb-1 ${isDark ? 'text-blue-300' : 'text-blue-600'}`}>
+                      🎤 Listening...
+                    </p>
+                  )}
+                  <p className={`text-sm ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                    {scribe.transcript || "Say something — I'm listening!"}
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -427,7 +457,7 @@ export const TwoWayVoiceCall = ({
           <div className="flex gap-3 pt-2">
             <Button 
               onClick={handleMicClick} 
-              disabled={isSpeaking || isProcessing} 
+              disabled={isSpeaking || isProcessing || !scribe.isSupported} 
               className={`flex-1 py-6 rounded-xl transition-all ${
                 scribe.isListening 
                   ? 'bg-blue-500 hover:bg-blue-600 animate-pulse' 
