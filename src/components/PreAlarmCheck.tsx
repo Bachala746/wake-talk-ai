@@ -155,7 +155,7 @@ export const PreAlarmCheck = ({
   const runAudioCheck = useCallback(async () => {
     setAudioState("running");
     try {
-      await playToneBeep(880, 0.5, 0.25);
+      playCorrectTapSound();
       // Wait for user confirmation via buttons
     } catch (err) {
       console.error("[PreAlarmCheck] Audio error:", err);
