@@ -339,6 +339,8 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
     }
 
     isStoppedManuallyRef.current = false;
+    setErrorMessage('');
+    setStatusMessage('Starting microphone...');
 
     // FAST PATH: Web Speech API available (Chrome/Edge) — start synchronously.
     // The browser will handle its own mic permission prompt; we don't need
@@ -347,6 +349,10 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
     if (SpeechRecognitionClass) {
       console.log('[Scribe] Using Web Speech API (preferred, sync start)');
       const ok = startWebSpeechFallback();
+      if (!ok) {
+        setStatusMessage('');
+        setErrorMessage('Could not start the microphone. Please try again.');
+      }
       // Fire-and-forget permission check for UI state (does not block start)
       if (navigator.permissions) {
         navigator.permissions
@@ -355,7 +361,9 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
             console.log('[Scribe] Microphone permission state:', status.state);
             setPermissionGranted(status.state === 'granted');
             if (status.state === 'denied') {
-              toast.error('Microphone is blocked. Click the lock icon in the address bar to allow it.');
+              const msg = 'Microphone is blocked. Click the lock icon in the address bar to allow it.';
+              setErrorMessage(msg);
+              toast.error(msg);
             }
           })
           .catch(() => {});
