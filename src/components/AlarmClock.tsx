@@ -209,12 +209,25 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       
       const timeDiff = alarmDate.getTime() - now.getTime();
       
+      // Pre-alarm check window: 2 minutes before, fire once per occurrence
+      const preCheckKey = `${alarm.id}@${alarmDate.toDateString()}-${alarm.time}`;
+      if (
+        timeDiff <= 2 * 60 * 1000 &&
+        timeDiff > 60 * 1000 &&
+        !triggeredPreChecksRef.current.has(preCheckKey) &&
+        !preCheckAlarm
+      ) {
+        triggeredPreChecksRef.current.add(preCheckKey);
+        setPreCheckAlarm(alarm);
+        toast.info(`⏰ "${alarm.label}" rings in 2 min — let's verify your mic & speakers.`, { duration: 5000 });
+      }
+
       // Trigger alarm if within 1 second window
       if (timeDiff <= 1000 && timeDiff > -1000) {
         handleAlarmTrigger(alarm);
       }
     });
-  }, [currentTime, alarms]);
+  }, [currentTime, alarms, preCheckAlarm]);
 
   const handleAlarmTrigger = (alarm: Alarm) => {
     setAlarms(prev => prev.map(a => 
