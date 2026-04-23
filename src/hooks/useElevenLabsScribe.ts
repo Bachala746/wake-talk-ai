@@ -71,6 +71,9 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
   const [finalTranscript, setFinalTranscript] = useState('');
   const [permissionGranted, setPermissionGranted] = useState<boolean | null>(null);
   const [usingFallback, setUsingFallback] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string>(''); // visible UI feedback
+  const [errorMessage, setErrorMessage] = useState<string>('');   // visible UI error
+  const [isSupported] = useState<boolean>(() => getSpeechRecognition() !== null || (typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia));
   
   const wsRef = useRef<WebSocket | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
