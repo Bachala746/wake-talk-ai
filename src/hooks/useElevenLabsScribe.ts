@@ -107,12 +107,12 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
   const requestPermission = useCallback(async (): Promise<boolean> => {
     try {
       console.log('Requesting microphone permission...');
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-        } 
+        }
       });
       mediaStreamRef.current = stream;
       setPermissionGranted(true);
@@ -121,7 +121,7 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
     } catch (error: any) {
       console.error('Microphone permission error:', error);
       setPermissionGranted(false);
-      
+
       if (error.name === 'NotAllowedError') {
         toast.error('Microphone access denied. Please enable it in browser settings.');
       } else if (error.name === 'NotFoundError') {
@@ -129,11 +129,11 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
       } else {
         toast.error('Could not access microphone.');
       }
-      
-      onError?.(error);
+
+      cbRef.current.onError?.(error);
       return false;
     }
-  }, [onError]);
+  }, []);
 
   // Stop Web Speech API fallback
   const stopWebSpeechFallback = useCallback(() => {
