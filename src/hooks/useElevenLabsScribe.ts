@@ -280,7 +280,7 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
     cbRef.current.onEnd?.();
 
     return transcript;
-  }, [stopWebSpeechFallback]);
+  }, [stopWebSpeechFallback, stopVolumeMeter]);
 
   // Mirror finalTranscript into a ref so stopListening (stable) can read latest value
   const finalTranscriptRef = useRef('');
