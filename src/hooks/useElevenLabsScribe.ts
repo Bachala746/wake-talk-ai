@@ -681,6 +681,13 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach(track => track.stop());
       }
+      // Volume meter teardown
+      if (meterRafRef.current) cancelAnimationFrame(meterRafRef.current);
+      if (meterSourceRef.current) { try { meterSourceRef.current.disconnect(); } catch {} }
+      if (meterContextRef.current) meterContextRef.current.close().catch(() => {});
+      if (meterStreamRef.current) {
+        meterStreamRef.current.getTracks().forEach((t) => t.stop());
+      }
     };
   }, []);
 
@@ -694,6 +701,7 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
     isSupported,
     statusMessage,
     errorMessage,
+    volumeLevel,
     startListening,
     stopListening,
     requestPermission,
