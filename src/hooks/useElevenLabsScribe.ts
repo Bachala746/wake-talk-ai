@@ -274,6 +274,7 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
     setIsConnected(false);
     setIsListening(false);
     setStatusMessage('');
+    stopVolumeMeter();
 
     const transcript = accumulatedTranscriptRef.current || finalTranscriptRef.current;
     cbRef.current.onEnd?.();
