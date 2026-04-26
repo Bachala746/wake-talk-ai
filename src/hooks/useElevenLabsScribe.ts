@@ -500,34 +500,33 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
       case 'partial_transcript':
         const partial = message.text || '';
         setPartialTranscript(partial);
-        onPartialTranscript?.(partial);
+        cbRef.current.onPartialTranscript?.(partial);
         break;
-        
+
       case 'committed_transcript':
       case 'committed_transcript_with_timestamps':
         const final = message.text || '';
         accumulatedTranscriptRef.current += (accumulatedTranscriptRef.current ? ' ' : '') + final;
         setFinalTranscript(accumulatedTranscriptRef.current);
         setPartialTranscript('');
-        onFinalTranscript?.(accumulatedTranscriptRef.current);
-        
-        // Set auto-submit timer after receiving final transcript
+        cbRef.current.onFinalTranscript?.(accumulatedTranscriptRef.current);
+
         silenceTimerRef.current = window.setTimeout(() => {
           console.log('Auto-submitting after silence...');
           stopListening();
-        }, autoSubmitAfterSilence);
+        }, autoSubmitMsRef.current);
         break;
-        
+
       case 'session_started':
         console.log('Scribe session started');
         break;
-        
+
       case 'error':
         console.error('Scribe error:', message);
-        onError?.(new Error(message.message || 'Scribe error'));
+        cbRef.current.onError?.(new Error(message.message || 'Scribe error'));
         break;
     }
-  }, [onPartialTranscript, onFinalTranscript, onError, autoSubmitAfterSilence, stopListening]);
+  }, [stopListening]);
 
   // Start sending audio to WebSocket
   const startAudioStream = useCallback((ws: WebSocket) => {
