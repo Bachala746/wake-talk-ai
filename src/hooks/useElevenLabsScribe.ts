@@ -360,16 +360,15 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
   const startListening = useCallback(async (): Promise<boolean> => {
     console.log('[Scribe] startListening() called');
 
-    // Guard: already listening — ignore duplicate calls (prevents aborted-error loop)
-    if (recognitionRef.current || wsRef.current) {
-      console.log('[Scribe] Already listening, ignoring duplicate start');
+    // Guard: already listening or starting — ignore duplicate calls
+    if (recognitionRef.current || wsRef.current || isStartingRef.current) {
+      console.log('[Scribe] Already listening/starting, ignoring duplicate start');
       return true;
     }
 
-    // Secure-context check (Web Speech API requires HTTPS or localhost)
     if (typeof window !== 'undefined' && window.isSecureContext === false) {
       toast.error('Microphone requires HTTPS. Please use a secure connection.');
-      onError?.(new Error('Insecure context'));
+      cbRef.current.onError?.(new Error('Insecure context'));
       return false;
     }
 
@@ -377,9 +376,6 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
     setErrorMessage('');
     setStatusMessage('Starting microphone...');
 
-    // FAST PATH: Web Speech API available (Chrome/Edge) — start synchronously.
-    // The browser will handle its own mic permission prompt; we don't need
-    // getUserMedia first. Doing getUserMedia here would break the gesture chain.
     const SpeechRecognitionClass = getSpeechRecognition();
     if (SpeechRecognitionClass) {
       console.log('[Scribe] Using Web Speech API (preferred, sync start)');
@@ -388,7 +384,6 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
         setStatusMessage('');
         setErrorMessage('Could not start the microphone. Please try again.');
       }
-      // Fire-and-forget permission check for UI state (does not block start)
       if (navigator.permissions) {
         navigator.permissions
           .query({ name: 'microphone' as PermissionName })
@@ -406,11 +401,11 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
       return ok;
     }
 
-    // SLOW PATH: Web Speech not available (Safari/Firefox) — need getUserMedia + Scribe WS.
     console.log('[Scribe] Web Speech unavailable, falling back to ElevenLabs Scribe...');
+    isStartingRef.current = true;
     if (!mediaStreamRef.current) {
       const hasPermission = await requestPermission();
-      if (!hasPermission) return false;
+      if (!hasPermission) { isStartingRef.current = false; return false; }
     }
 
     try {
@@ -419,7 +414,8 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
       if (error || !data?.token) {
         console.error('[Scribe] No Scribe token available:', error);
         toast.error('Speech recognition unavailable in this browser. Try Chrome.');
-        onError?.(new Error('No speech recognition available'));
+        cbRef.current.onError?.(new Error('No speech recognition available'));
+        isStartingRef.current = false;
         return false;
       }
 
@@ -437,6 +433,7 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
         const timeout = setTimeout(() => {
           console.error('[Scribe] WebSocket connection timeout');
           ws.close();
+          isStartingRef.current = false;
           toast.error('Could not connect to speech service. Please try again.');
           resolve(false);
         }, 3000);
@@ -444,9 +441,10 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
         ws.onopen = () => {
           clearTimeout(timeout);
           console.log('[Scribe] WebSocket connected');
+          isStartingRef.current = false;
           setIsConnected(true);
           setIsListening(true);
-          onStart?.();
+          cbRef.current.onStart?.();
           ws.send(JSON.stringify({
             type: 'config',
             model_id: 'scribe_v2_realtime',
@@ -468,23 +466,26 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
         ws.onerror = () => {
           clearTimeout(timeout);
           console.error('[Scribe] WebSocket error');
+          isStartingRef.current = false;
           toast.error('Speech service error. Please try again.');
           resolve(false);
         };
 
         ws.onclose = (event) => {
           console.log('[Scribe] WebSocket closed:', event.code);
+          isStartingRef.current = false;
           setIsConnected(false);
           setIsListening(false);
         };
       });
     } catch (error: any) {
       console.error('[Scribe] startListening failed:', error);
+      isStartingRef.current = false;
       toast.error('Could not start speech recognition.');
-      onError?.(error);
+      cbRef.current.onError?.(error);
       return false;
     }
-  }, [requestPermission, onStart, onError, startWebSpeechFallback]);
+  }, [requestPermission, startWebSpeechFallback]);
 
   // Handle Scribe messages
   const handleScribeMessage = useCallback((message: any) => {
