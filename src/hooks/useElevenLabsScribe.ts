@@ -575,20 +575,28 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
       console.log('Audio stream started');
     } catch (error) {
       console.error('Failed to start audio stream:', error);
-      onError?.(error as Error);
+      cbRef.current.onError?.(error as Error);
     }
-  }, [onError]);
+  }, []);
 
-  // Cleanup on unmount
+  // Cleanup on unmount only (empty deps — never re-runs during normal renders)
   useEffect(() => {
     return () => {
       isStoppedManuallyRef.current = true;
-      stopListening();
+      // Inline cleanup to avoid stopListening identity in deps
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      if (recognitionRef.current) {
+        try { recognitionRef.current.abort(); } catch {}
+        recognitionRef.current = null;
+      }
+      if (processorRef.current) { try { processorRef.current.disconnect(); } catch {} }
+      if (audioContextRef.current) audioContextRef.current.close().catch(() => {});
+      if (wsRef.current) { try { wsRef.current.close(); } catch {} }
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach(track => track.stop());
       }
     };
-  }, [stopListening]);
+  }, []);
 
   return {
     isConnected,
