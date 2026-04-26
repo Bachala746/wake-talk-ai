@@ -11,6 +11,7 @@ import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 import { useElevenLabsScribe } from "@/hooks/useElevenLabsScribe";
 import { AudioWaveform } from "./AudioWaveform";
 import { SpeakingAvatar } from "./SpeakingAvatar";
+import { ListeningIndicator } from "./ListeningIndicator";
 import { useTheme } from "@/hooks/useTheme";
 
 interface TwoWayVoiceCallProps {
@@ -422,6 +423,9 @@ export const TwoWayVoiceCall = ({
               </p>
             </div>
           )}
+
+          {/* Big pulsing mic + sound bars — appears instantly on listening */}
+          <ListeningIndicator active={scribe.isListening} isDark={isDark} />
 
           {/* User transcript display */}
           {(scribe.isListening || scribe.transcript) && (
