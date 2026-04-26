@@ -145,14 +145,15 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Error in text-to-speech function:', error)
-    
+    const message = error instanceof Error ? error.message : String(error)
+    console.error('Error in text-to-speech function:', message)
+
     // Fallback to browser TTS on any error
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         useBrowserTTS: true,
         text: '',
-        error: error.message 
+        error: message,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
