@@ -11,6 +11,7 @@ import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 import { useElevenLabsScribe } from "@/hooks/useElevenLabsScribe";
 import { AudioWaveform } from "./AudioWaveform";
 import { SpeakingAvatar } from "./SpeakingAvatar";
+import { ListeningIndicator } from "./ListeningIndicator";
 import { useTheme } from "@/hooks/useTheme";
 
 interface TwoWayVoiceCallProps {
