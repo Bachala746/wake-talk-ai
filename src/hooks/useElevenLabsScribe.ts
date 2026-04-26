@@ -83,7 +83,8 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
   const accumulatedTranscriptRef = useRef('');
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const isStoppedManuallyRef = useRef(false);
-  
+  const isStartingRef = useRef(false); // prevents double-start race
+
   const {
     onPartialTranscript,
     onFinalTranscript,
@@ -92,6 +93,15 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
     onEnd,
     autoSubmitAfterSilence = 1500,
   } = options;
+
+  // Stabilize callbacks via refs so the hook's exported functions never change identity
+  const cbRef = useRef({ onPartialTranscript, onFinalTranscript, onError, onStart, onEnd });
+  useEffect(() => {
+    cbRef.current = { onPartialTranscript, onFinalTranscript, onError, onStart, onEnd };
+  }, [onPartialTranscript, onFinalTranscript, onError, onStart, onEnd]);
+
+  const autoSubmitMsRef = useRef(autoSubmitAfterSilence);
+  useEffect(() => { autoSubmitMsRef.current = autoSubmitAfterSilence; }, [autoSubmitAfterSilence]);
 
   // Request microphone permission
   const requestPermission = useCallback(async (): Promise<boolean> => {
