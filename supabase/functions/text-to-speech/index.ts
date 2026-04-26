@@ -58,22 +58,6 @@ serve(async (req) => {
       throw new Error('Text is required')
     }
 
-    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY') || Deno.env.get('ELEVENLABS_API_KEY_1')
-    
-    if (!ELEVENLABS_API_KEY) {
-      console.log('ElevenLabs API key not found, falling back to browser TTS')
-      return new Response(
-        JSON.stringify({ 
-          useBrowserTTS: true,
-          text: text,
-          voiceStyle: voiceStyle
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      )
-    }
-
     // Check subscription usage for quota warnings
     let quotaInfo: { characterCount: number; characterLimit: number; percentUsed: number } | null = null
     try {
