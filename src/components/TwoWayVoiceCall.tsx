@@ -425,7 +425,11 @@ export const TwoWayVoiceCall = ({
           )}
 
           {/* Big pulsing mic + sound bars — appears instantly on listening */}
-          <ListeningIndicator active={scribe.isListening} isDark={isDark} />
+          <ListeningIndicator
+            active={scribe.isListening}
+            isDark={isDark}
+            volumeLevel={scribe.volumeLevel}
+          />
 
           {/* User transcript display */}
           {(scribe.isListening || scribe.transcript) && (
