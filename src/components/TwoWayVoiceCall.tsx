@@ -348,14 +348,16 @@ export const TwoWayVoiceCall = ({
           </div>
 
           <h2 className="text-xl font-bold text-foreground">{isTestCall ? '🧪 Two-Way Test' : '💬 AI Conversation'}</h2>
-          <p className="text-sm text-muted-foreground">
-            {isSpeaking 
-              ? '🔊 AI Speaking...' 
-              : scribe.isListening 
-                ? '🎤 Listening to you...' 
-                : isProcessing 
-                  ? '🤔 Processing...' 
-                  : '⏳ Waiting...'}
+          <p className="text-sm text-muted-foreground font-medium">
+            {isSpeaking
+              ? '🔊 AI Speaking...'
+              : isProcessing
+                ? '🤔 Processing...'
+                : scribe.isListening
+                  ? '🎤 Listening — speak now!'
+                  : waitingForResponse
+                    ? '⏳ Tap Speak to talk'
+                    : '⏳ Waiting...'}
           </p>
 
           {/* Audio Waveform Visualization */}
