@@ -529,6 +529,7 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
           isStartingRef.current = false;
           setIsConnected(true);
           setIsListening(true);
+          startVolumeMeter();
           cbRef.current.onStart?.();
           ws.send(JSON.stringify({
             type: 'config',
