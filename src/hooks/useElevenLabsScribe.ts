@@ -73,8 +73,9 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
   const [usingFallback, setUsingFallback] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string>(''); // visible UI feedback
   const [errorMessage, setErrorMessage] = useState<string>('');   // visible UI error
+  const [volumeLevel, setVolumeLevel] = useState(0);              // 0..1 live mic volume
   const [isSupported] = useState<boolean>(() => getSpeechRecognition() !== null || (typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia));
-  
+
   const wsRef = useRef<WebSocket | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -84,6 +85,13 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const isStoppedManuallyRef = useRef(false);
   const isStartingRef = useRef(false); // prevents double-start race
+
+  // Volume metering (independent of recognition path — works for both Web Speech & Scribe)
+  const meterStreamRef = useRef<MediaStream | null>(null);
+  const meterContextRef = useRef<AudioContext | null>(null);
+  const meterAnalyserRef = useRef<AnalyserNode | null>(null);
+  const meterSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const meterRafRef = useRef<number | null>(null);
 
   const {
     onPartialTranscript,
