@@ -140,7 +140,7 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
     isStoppedManuallyRef.current = true;
     if (recognitionRef.current) {
       try {
-        recognitionRef.current.stop();
+        recognitionRef.current.abort();
       } catch (e) {
         // Ignore errors when stopping
       }
@@ -148,85 +148,107 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
     }
   }, []);
 
-  // Stop recording and cleanup
+  // Stop recording and cleanup. Idempotent — safe to call any number of times.
   const stopListening = useCallback(() => {
+    // No-op if nothing is active. Prevents the "Stopping listening..." spam in logs.
+    if (
+      !recognitionRef.current &&
+      !wsRef.current &&
+      !processorRef.current &&
+      !audioContextRef.current &&
+      !silenceTimerRef.current &&
+      !isStartingRef.current
+    ) {
+      return '';
+    }
+
     console.log('Stopping listening...');
     isStoppedManuallyRef.current = true;
-    
+    isStartingRef.current = false;
+
     if (silenceTimerRef.current) {
       clearTimeout(silenceTimerRef.current);
       silenceTimerRef.current = null;
     }
-    
-    // Stop Web Speech fallback if active
+
     stopWebSpeechFallback();
-    
+
     if (processorRef.current) {
-      processorRef.current.disconnect();
+      try { processorRef.current.disconnect(); } catch {}
       processorRef.current = null;
     }
-    
+
     if (audioContextRef.current) {
       audioContextRef.current.close().catch(() => {});
       audioContextRef.current = null;
     }
-    
+
     if (wsRef.current) {
-      wsRef.current.close();
+      try { wsRef.current.close(); } catch {}
       wsRef.current = null;
     }
-    
+
     setIsConnected(false);
     setIsListening(false);
-    
-    // Return accumulated transcript
-    const transcript = accumulatedTranscriptRef.current || finalTranscript;
-    onEnd?.();
-    
-    return transcript;
-  }, [finalTranscript, onEnd, stopWebSpeechFallback]);
+    setStatusMessage('');
 
-  // Start Web Speech API fallback
+    const transcript = accumulatedTranscriptRef.current || finalTranscriptRef.current;
+    cbRef.current.onEnd?.();
+
+    return transcript;
+  }, [stopWebSpeechFallback]);
+
+  // Mirror finalTranscript into a ref so stopListening (stable) can read latest value
+  const finalTranscriptRef = useRef('');
+  useEffect(() => { finalTranscriptRef.current = finalTranscript; }, [finalTranscript]);
+
+  // Start Web Speech API fallback (stable identity — reads callbacks via cbRef)
   const startWebSpeechFallback = useCallback((): boolean => {
     const SpeechRecognitionClass = getSpeechRecognition();
-    
+
     if (!SpeechRecognitionClass) {
       console.error('Web Speech API not supported in this browser');
       toast.error('Speech recognition not supported in this browser. Try Chrome.');
       return false;
     }
-    
+
+    // Already running — don't double-start
+    if (recognitionRef.current) {
+      console.log('[Mic] Recognition already running, skipping start');
+      return true;
+    }
+
     console.log('Starting Web Speech API fallback...');
     setUsingFallback(true);
     isStoppedManuallyRef.current = false;
-    
-    // Reset state
+
     setPartialTranscript('');
     setFinalTranscript('');
     accumulatedTranscriptRef.current = '';
-    
+
     try {
       const recognition = new SpeechRecognitionClass();
       recognitionRef.current = recognition;
-      
+
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
       recognition.maxAlternatives = 1;
-      
+
       recognition.onstart = () => {
         console.log('[Mic] Web Speech recognition started');
+        isStartingRef.current = false;
         setIsConnected(true);
         setIsListening(true);
         setStatusMessage('🎤 Listening...');
         setErrorMessage('');
-        onStart?.();
+        cbRef.current.onStart?.();
       };
-      
+
       recognition.onresult = (event: SpeechRecognitionEvent) => {
         let interim = '';
         let final = '';
-        
+
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
@@ -235,37 +257,34 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
             interim += transcript;
           }
         }
-        
+
         if (interim) {
           setPartialTranscript(interim);
           setStatusMessage('🎤 Listening...');
-          onPartialTranscript?.(interim);
+          cbRef.current.onPartialTranscript?.(interim);
         }
-        
+
         if (final) {
-          // Clear any existing silence timer
-          if (silenceTimerRef.current) {
-            clearTimeout(silenceTimerRef.current);
-          }
-          
+          if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+
           accumulatedTranscriptRef.current += (accumulatedTranscriptRef.current ? ' ' : '') + final.trim();
           setFinalTranscript(accumulatedTranscriptRef.current);
           setPartialTranscript('');
           setStatusMessage('✓ Got it');
-          onFinalTranscript?.(accumulatedTranscriptRef.current);
-          
-          // Set auto-submit timer after receiving final transcript
+          cbRef.current.onFinalTranscript?.(accumulatedTranscriptRef.current);
+
           silenceTimerRef.current = window.setTimeout(() => {
             console.log('[Mic] Auto-submitting after silence (Web Speech)...');
             stopListening();
-          }, autoSubmitAfterSilence);
+          }, autoSubmitMsRef.current);
         }
       };
-      
+
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.warn('[Mic] Web Speech recognition error:', event.error);
+        isStartingRef.current = false;
 
-        // Aborted/no-speech are normal — DO NOT auto-restart (causes infinite loops with stop()).
+        // Aborted is benign (we called .abort() ourselves) — just clean up state.
         if (event.error === 'aborted') {
           return;
         }
@@ -279,22 +298,22 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
           const msg = 'Microphone blocked. Click the lock icon in the address bar and allow the microphone.';
           setErrorMessage(msg);
           toast.error(msg);
-          onError?.(new Error('Microphone permission denied'));
+          cbRef.current.onError?.(new Error('Microphone permission denied'));
         } else if (event.error === 'network') {
           const msg = "Speech service can't reach the network. Open the app in a new tab (not the in-app preview).";
           setErrorMessage(msg);
           toast.error(msg);
-          onError?.(new Error('Speech recognition network error'));
+          cbRef.current.onError?.(new Error('Speech recognition network error'));
         } else if (event.error === 'audio-capture') {
           const msg = 'No microphone detected, or it is in use by another app.';
           setErrorMessage(msg);
           toast.error(msg);
-          onError?.(new Error('Audio capture failed'));
+          cbRef.current.onError?.(new Error('Audio capture failed'));
         } else {
           const msg = `Speech recognition error: ${event.error}`;
           setErrorMessage(msg);
           toast.error(msg);
-          onError?.(new Error(event.error));
+          cbRef.current.onError?.(new Error(event.error));
         }
 
         setIsListening(false);
@@ -304,44 +323,36 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
 
       recognition.onend = () => {
         console.log('[Mic] Web Speech recognition ended (manual:', isStoppedManuallyRef.current, ')');
-        const wasManual = isStoppedManuallyRef.current;
         recognitionRef.current = null;
+        isStartingRef.current = false;
 
-        // Auto-restart if it ended unexpectedly (no manual stop, no error, still wanted)
-        // This keeps the mic alive between phrases on long sessions.
-        if (!wasManual && !accumulatedTranscriptRef.current) {
-          try {
-            console.log('[Mic] Auto-restarting recognition after unexpected end');
-            const restarted = startWebSpeechFallback();
-            if (restarted) return;
-          } catch (e) {
-            console.warn('[Mic] Auto-restart failed:', e);
-          }
-        }
+        // No auto-restart: parent decides when to listen again. Auto-restart was
+        // causing infinite loops where stop() and restart() raced each other.
 
         setIsConnected(false);
         setIsListening(false);
         setStatusMessage('');
 
-        // Always call onEnd so the parent can react (e.g. submit transcript)
-        onEnd?.();
+        cbRef.current.onEnd?.();
       };
-      
+
+      isStartingRef.current = true;
       recognition.start();
       return true;
     } catch (error: any) {
       console.error('Failed to start Web Speech:', error);
-      
+      isStartingRef.current = false;
+      recognitionRef.current = null;
+
       if (error.message?.includes('already started')) {
-        // Already running, that's fine
         return true;
       }
-      
+
       toast.error('Could not start speech recognition. Try tapping the mic again.');
-      onError?.(error);
+      cbRef.current.onError?.(error);
       return false;
     }
-  }, [onStart, onEnd, onPartialTranscript, onFinalTranscript, onError, autoSubmitAfterSilence, stopListening]);
+  }, [stopListening]);
 
   // Start listening - prefer Web Speech API (instant, reliable in Chrome).
   // CRITICAL: For Web Speech API we must call recognition.start() SYNCHRONOUSLY
