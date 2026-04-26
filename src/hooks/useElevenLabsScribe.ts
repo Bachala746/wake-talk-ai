@@ -143,7 +143,82 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
     }
   }, []);
 
-  // Stop Web Speech API fallback
+  // ---- Volume meter (real-time mic level sampling) ----
+  const stopVolumeMeter = useCallback(() => {
+    if (meterRafRef.current) {
+      cancelAnimationFrame(meterRafRef.current);
+      meterRafRef.current = null;
+    }
+    if (meterSourceRef.current) {
+      try { meterSourceRef.current.disconnect(); } catch {}
+      meterSourceRef.current = null;
+    }
+    meterAnalyserRef.current = null;
+    if (meterContextRef.current) {
+      meterContextRef.current.close().catch(() => {});
+      meterContextRef.current = null;
+    }
+    if (meterStreamRef.current) {
+      meterStreamRef.current.getTracks().forEach((t) => t.stop());
+      meterStreamRef.current = null;
+    }
+    setVolumeLevel(0);
+  }, []);
+
+  const startVolumeMeter = useCallback(async () => {
+    // Already running
+    if (meterRafRef.current) return;
+    try {
+      // Reuse existing stream if scribe path captured one; otherwise grab a dedicated one.
+      let stream = mediaStreamRef.current;
+      if (!stream) {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+        });
+        meterStreamRef.current = stream;
+      }
+
+      const AC = (window.AudioContext || (window as any).webkitAudioContext);
+      const ctx = new AC();
+      meterContextRef.current = ctx;
+
+      const source = ctx.createMediaStreamSource(stream);
+      meterSourceRef.current = source;
+
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.6;
+      meterAnalyserRef.current = analyser;
+      source.connect(analyser);
+
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      let lastUpdate = 0;
+
+      const tick = (ts: number) => {
+        if (!meterAnalyserRef.current) return;
+        // Throttle state updates to ~30fps to avoid React thrash
+        if (ts - lastUpdate >= 33) {
+          analyser.getByteTimeDomainData(data);
+          // RMS over the waveform, normalised to 0..1
+          let sumSq = 0;
+          for (let i = 0; i < data.length; i++) {
+            const v = (data[i] - 128) / 128; // -1..1
+            sumSq += v * v;
+          }
+          const rms = Math.sqrt(sumSq / data.length); // 0..~1
+          // Boost so quiet speech is still visible; clamp to 1
+          const level = Math.min(1, rms * 3.5);
+          setVolumeLevel(level);
+          lastUpdate = ts;
+        }
+        meterRafRef.current = requestAnimationFrame(tick);
+      };
+      meterRafRef.current = requestAnimationFrame(tick);
+    } catch (e) {
+      console.warn('[Meter] Failed to start volume meter:', e);
+    }
+  }, []);
+
   const stopWebSpeechFallback = useCallback(() => {
     isStoppedManuallyRef.current = true;
     if (recognitionRef.current) {
