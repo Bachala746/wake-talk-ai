@@ -294,7 +294,21 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
 
       recognition.onend = () => {
         console.log('[Mic] Web Speech recognition ended (manual:', isStoppedManuallyRef.current, ')');
+        const wasManual = isStoppedManuallyRef.current;
         recognitionRef.current = null;
+
+        // Auto-restart if it ended unexpectedly (no manual stop, no error, still wanted)
+        // This keeps the mic alive between phrases on long sessions.
+        if (!wasManual && !accumulatedTranscriptRef.current) {
+          try {
+            console.log('[Mic] Auto-restarting recognition after unexpected end');
+            const restarted = startWebSpeechFallback();
+            if (restarted) return;
+          } catch (e) {
+            console.warn('[Mic] Auto-restart failed:', e);
+          }
+        }
+
         setIsConnected(false);
         setIsListening(false);
         setStatusMessage('');
