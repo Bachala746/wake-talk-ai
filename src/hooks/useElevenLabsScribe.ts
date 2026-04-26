@@ -326,6 +326,7 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
         setIsListening(true);
         setStatusMessage('🎤 Listening...');
         setErrorMessage('');
+        startVolumeMeter();
         cbRef.current.onStart?.();
       };
 
