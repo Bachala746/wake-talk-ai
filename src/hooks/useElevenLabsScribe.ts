@@ -437,7 +437,7 @@ export function useElevenLabsScribe(options: ScribeOptions = {}) {
       cbRef.current.onError?.(error);
       return false;
     }
-  }, [stopListening]);
+  }, [stopListening, startVolumeMeter]);
 
   // Start listening - prefer Web Speech API (instant, reliable in Chrome).
   // CRITICAL: For Web Speech API we must call recognition.start() SYNCHRONOUSLY
