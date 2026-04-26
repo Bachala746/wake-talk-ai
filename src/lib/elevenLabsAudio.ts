@@ -192,49 +192,95 @@ export const speakWithElevenLabs = async (
   }
 };
 
-const fallbackToBrowserTTS = (
+// Cache loaded voices and ensure onvoiceschanged fires before speaking
+let cachedVoices: SpeechSynthesisVoice[] = [];
+const loadVoices = (): Promise<SpeechSynthesisVoice[]> => {
+  return new Promise((resolve) => {
+    if (!('speechSynthesis' in window)) return resolve([]);
+    const existing = window.speechSynthesis.getVoices();
+    if (existing.length > 0) {
+      cachedVoices = existing;
+      return resolve(existing);
+    }
+    // Wait for voiceschanged (Chrome loads voices async)
+    const timeout = setTimeout(() => {
+      cachedVoices = window.speechSynthesis.getVoices();
+      resolve(cachedVoices);
+    }, 1000);
+    window.speechSynthesis.onvoiceschanged = () => {
+      clearTimeout(timeout);
+      cachedVoices = window.speechSynthesis.getVoices();
+      resolve(cachedVoices);
+    };
+  });
+};
+
+// Pre-warm voice list on module load
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  loadVoices();
+}
+
+const fallbackToBrowserTTS = async (
   text: string,
   voiceStyle: string,
   onEnd?: () => void
 ): Promise<void> => {
-  return new Promise((resolve) => {
-    if (!('speechSynthesis' in window)) {
-      console.log('Browser TTS not available');
-      onEnd?.();
-      setTimeout(resolve, 100);
-      return;
-    }
+  if (!('speechSynthesis' in window)) {
+    console.log('[TTS] Browser TTS not available');
+    onEnd?.();
+    return;
+  }
 
+  // CRITICAL: cancel any in-flight speech first to avoid silent overlap
+  window.speechSynthesis.cancel();
+
+  // Ensure voices are loaded
+  const voices = cachedVoices.length ? cachedVoices : await loadVoices();
+
+  return new Promise((resolve) => {
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9;
+    utterance.rate = 0.95;
     utterance.pitch = 1;
     utterance.volume = 1;
+    utterance.lang = 'en-US';
 
-    // Select voice based on style
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length > 0) {
-      const englishVoices = voices.filter(v => v.lang.startsWith('en'));
-      if (englishVoices.length > 0) {
-        const preferredVoice = englishVoices.find(v => 
-          v.name.includes('Google') || 
-          v.name.includes('Premium') || 
-          v.name.includes('Enhanced')
+    // Pick best available English voice, with fallback to default
+    const englishVoices = voices.filter((v) => v.lang.startsWith('en'));
+    if (englishVoices.length > 0) {
+      utterance.voice =
+        englishVoices.find((v) =>
+          /Google|Premium|Enhanced|Natural|Neural/i.test(v.name)
         ) || englishVoices[0];
-        utterance.voice = preferredVoice;
-      }
+      console.log('[TTS] Using browser voice:', utterance.voice?.name);
+    } else if (voices.length > 0) {
+      utterance.voice = voices[0];
+      console.log('[TTS] Falling back to first available voice:', voices[0].name);
+    } else {
+      console.warn('[TTS] No voices available, using browser default');
     }
 
+    utterance.onstart = () => console.log('[TTS] Speaking started');
     utterance.onend = () => {
+      console.log('[TTS] Speaking ended');
+      onEnd?.();
+      resolve();
+    };
+    utterance.onerror = (e) => {
+      console.error('[TTS] Speaking error:', e.error);
       onEnd?.();
       resolve();
     };
 
-    utterance.onerror = () => {
-      onEnd?.();
-      resolve();
-    };
-
-    window.speechSynthesis.speak(utterance);
+    // Small delay so cancel() fully clears before speak() (Chrome quirk)
+    setTimeout(() => {
+      try {
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.error('[TTS] speak() threw:', err);
+        onEnd?.();
+        resolve();
+      }
+    }, 250);
   });
 };
 
