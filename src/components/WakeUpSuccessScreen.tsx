@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sun, Flame, Trophy, ArrowRight, Sparkles } from "lucide-react";
@@ -57,6 +57,19 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
   const [wakeUpTime] = useState(() => new Date());
   const [showContent, setShowContent] = useState(false);
 
+  // Pre-compute random sparkle positions once
+  const sparkles = useMemo(
+    () => Array.from({ length: 14 }).map((_, i) => ({
+      id: i,
+      top: Math.random() * 90 + 2,
+      left: Math.random() * 95 + 2,
+      size: Math.random() * 6 + 4,
+      delay: Math.random() * 3,
+      dur: 2.4 + Math.random() * 2.6,
+    })),
+    []
+  );
+
   useEffect(() => {
     setStreak(incrementStreak());
     const t = setTimeout(() => setShowContent(true), 80);
@@ -70,87 +83,175 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
     <div
       className={`relative min-h-screen flex items-center justify-center p-4 overflow-hidden transition-all duration-700 ${
         isDark
-          ? 'bg-gradient-to-br from-[hsl(240,30%,10%)] via-[hsl(260,35%,16%)] to-[hsl(20,40%,16%)]'
-          : 'bg-gradient-to-br from-[hsl(35,100%,88%)] via-[hsl(20,100%,82%)] to-[hsl(340,90%,88%)]'
+          ? 'bg-[radial-gradient(ellipse_at_top,hsl(260,50%,18%)_0%,hsl(240,40%,10%)_55%,hsl(20,40%,12%)_100%)]'
+          : 'bg-[radial-gradient(ellipse_at_top,hsl(45,100%,90%)_0%,hsl(20,100%,82%)_45%,hsl(340,90%,86%)_100%)]'
       }`}
     >
+      {/* Aurora sweep */}
+      <div
+        className={`pointer-events-none absolute inset-0 opacity-60 mix-blend-screen ${
+          isDark
+            ? 'bg-[conic-gradient(from_180deg_at_50%_120%,transparent,hsl(260,80%,40%)/0.4,transparent_40%,hsl(20,90%,50%)/0.4,transparent)]'
+            : 'bg-[conic-gradient(from_180deg_at_50%_120%,transparent,hsl(45,100%,75%)/0.5,transparent_40%,hsl(340,90%,80%)/0.5,transparent)]'
+        }`}
+        style={{ animation: 'aurora-spin 24s linear infinite' }}
+      />
+
       {/* Ambient sunrise orbs */}
       <div
-        className={`pointer-events-none absolute -top-20 -left-20 w-80 h-80 rounded-full blur-3xl opacity-50 ${
+        className={`pointer-events-none absolute -top-24 -left-24 w-[22rem] h-[22rem] rounded-full blur-3xl opacity-50 ${
           isDark ? 'bg-orange-500/30' : 'bg-amber-300/60'
         }`}
         style={{ animation: 'float-slow 8s ease-in-out infinite' }}
       />
       <div
-        className={`pointer-events-none absolute -bottom-24 -right-16 w-96 h-96 rounded-full blur-3xl opacity-40 ${
-          isDark ? 'bg-pink-500/20' : 'bg-rose-300/50'
+        className={`pointer-events-none absolute -bottom-28 -right-20 w-[26rem] h-[26rem] rounded-full blur-3xl opacity-40 ${
+          isDark ? 'bg-pink-500/25' : 'bg-rose-300/55'
         }`}
         style={{ animation: 'float-slow 10s ease-in-out infinite reverse' }}
       />
+      <div
+        className={`pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 w-[30rem] h-[30rem] rounded-full blur-3xl opacity-30 ${
+          isDark ? 'bg-indigo-500/20' : 'bg-yellow-200/60'
+        }`}
+        style={{ animation: 'float-slow 12s ease-in-out infinite' }}
+      />
+
+      {/* Floating sparkles */}
+      {sparkles.map((s) => (
+        <span
+          key={s.id}
+          className={`pointer-events-none absolute rounded-full ${
+            isDark ? 'bg-amber-200/80' : 'bg-white'
+          }`}
+          style={{
+            top: `${s.top}%`,
+            left: `${s.left}%`,
+            width: s.size,
+            height: s.size,
+            boxShadow: isDark
+              ? '0 0 12px hsl(45,100%,70%)'
+              : '0 0 10px hsl(40,100%,75%)',
+            animation: `twinkle ${s.dur}s ease-in-out ${s.delay}s infinite`,
+          }}
+        />
+      ))}
 
       <div
         className={`relative w-full max-w-sm transition-all duration-700 ${
           showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}
       >
-        {/* Animated sun icon */}
+        {/* Animated sun icon with rotating rays */}
         <div className="flex justify-center mb-6">
-          <div className="relative w-28 h-28 flex items-center justify-center">
-            {/* Sunrays */}
+          <div className="relative w-32 h-32 flex items-center justify-center">
+            {/* Outer glow */}
             <span
-              className={`absolute inset-0 rounded-full ${isDark ? 'bg-orange-400/20' : 'bg-amber-300/50'} blur-xl`}
+              className={`absolute inset-0 rounded-full blur-2xl ${
+                isDark ? 'bg-orange-400/40' : 'bg-amber-300/70'
+              }`}
               style={{ animation: 'pulse-glow 2.4s ease-in-out infinite' }}
             />
+            {/* Rotating ray spokes */}
+            <svg
+              className="absolute inset-0 w-full h-full"
+              viewBox="0 0 100 100"
+              style={{ animation: 'spin-slow 18s linear infinite' }}
+            >
+              {Array.from({ length: 12 }).map((_, i) => {
+                const angle = (i * 360) / 12;
+                return (
+                  <line
+                    key={i}
+                    x1="50"
+                    y1="6"
+                    x2="50"
+                    y2="16"
+                    stroke={isDark ? 'hsl(35,100%,65%)' : 'hsl(35,100%,55%)'}
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    transform={`rotate(${angle} 50 50)`}
+                    opacity="0.85"
+                  />
+                );
+              })}
+            </svg>
+            {/* Inner ring */}
             <span
-              className={`absolute inset-2 rounded-full border-2 ${isDark ? 'border-orange-400/40' : 'border-amber-400/60'}`}
-              style={{ animation: 'spin-slow 14s linear infinite' }}
+              className={`absolute inset-3 rounded-full border-2 ${
+                isDark ? 'border-orange-400/40' : 'border-amber-400/60'
+              }`}
+              style={{ animation: 'spin-slow 14s linear infinite reverse' }}
             />
             <div
-              className={`relative z-10 w-20 h-20 rounded-full flex items-center justify-center shadow-2xl ${
+              className={`relative z-10 w-20 h-20 rounded-full flex items-center justify-center shadow-2xl ring-4 ring-white/20 ${
                 isDark
-                  ? 'bg-gradient-to-br from-orange-400 to-rose-500'
-                  : 'bg-gradient-to-br from-yellow-300 via-amber-400 to-orange-500'
+                  ? 'bg-gradient-to-br from-yellow-300 via-orange-400 to-rose-500'
+                  : 'bg-gradient-to-br from-yellow-200 via-amber-400 to-orange-500'
               }`}
               style={{ animation: 'gentle-bounce 2.8s ease-in-out infinite' }}
             >
-              <Sun className="w-10 h-10 text-white drop-shadow" strokeWidth={2.4} />
+              <Sun className="w-10 h-10 text-white drop-shadow-lg" strokeWidth={2.4} />
             </div>
           </div>
         </div>
 
         {/* Main card */}
         <Card
-          className={`p-7 text-center space-y-6 rounded-3xl border backdrop-blur-xl ${
+          className={`relative p-7 text-center space-y-6 rounded-3xl border backdrop-blur-2xl overflow-hidden ${
             isDark
-              ? 'bg-slate-900/70 border-white/10 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]'
-              : 'bg-white/80 border-white/60 shadow-[0_20px_60px_-15px_rgba(251,146,60,0.35)]'
+              ? 'bg-slate-900/70 border-white/10 shadow-[0_25px_70px_-20px_rgba(0,0,0,0.7)]'
+              : 'bg-white/75 border-white/70 shadow-[0_25px_70px_-15px_rgba(251,146,60,0.4)]'
           }`}
         >
+          {/* Card highlight sheen */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -top-1/2 -left-1/3 w-[180%] h-[80%] rotate-12 opacity-30"
+            style={{
+              background:
+                'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%)',
+              animation: 'sheen 6s ease-in-out infinite',
+            }}
+          />
+
           {/* Title */}
-          <div className="space-y-1.5">
+          <div className="relative space-y-1.5">
             <div className="flex items-center justify-center gap-2">
-              <h1 className={`text-3xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              <h1
+                className={`text-3xl font-extrabold tracking-tight bg-clip-text text-transparent ${
+                  isDark
+                    ? 'bg-gradient-to-r from-orange-200 via-amber-100 to-rose-200'
+                    : 'bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600'
+                }`}
+              >
                 You're Awake!
               </h1>
-              <Sparkles className={`w-6 h-6 ${isDark ? 'text-orange-300' : 'text-amber-500'} animate-pulse`} />
+              <Sparkles className={`w-6 h-6 ${isDark ? 'text-amber-300' : 'text-amber-500'} animate-pulse`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{formattedDate}</p>
+            <p className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{formattedDate}</p>
           </div>
 
           {/* Wake-up time */}
           <div
-            className={`rounded-2xl p-5 ${
+            className={`relative rounded-2xl p-5 overflow-hidden ${
               isDark
-                ? 'bg-white/5 border border-white/10'
-                : 'bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100'
+                ? 'bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10'
+                : 'bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/60'
             }`}
           >
-            <p className={`text-xs uppercase tracking-wider mb-1.5 font-semibold ${isDark ? 'text-slate-400' : 'text-orange-600/80'}`}>
+            <p
+              className={`text-[11px] uppercase tracking-[0.2em] mb-1.5 font-bold ${
+                isDark ? 'text-amber-300/80' : 'text-orange-600/90'
+              }`}
+            >
               Woke up at
             </p>
             <p
-              className={`text-5xl font-extrabold tracking-tight tabular-nums ${
-                isDark ? 'text-white' : 'text-slate-900'
+              className={`text-6xl font-extrabold tracking-tight tabular-nums leading-none bg-clip-text text-transparent ${
+                isDark
+                  ? 'bg-gradient-to-b from-white to-amber-100'
+                  : 'bg-gradient-to-b from-slate-900 to-orange-700'
               }`}
               style={{ animation: 'time-pop 0.6s ease-out' }}
             >
@@ -160,52 +261,70 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
 
           {/* Streak */}
           <div
-            className={`rounded-2xl p-4 flex items-center justify-center gap-3 ${
+            className={`relative rounded-2xl p-4 flex items-center justify-center gap-3 overflow-hidden ${
               isDark
-                ? 'bg-orange-500/10 border border-orange-400/20'
-                : 'bg-gradient-to-r from-orange-100 to-rose-100 border border-orange-200/60'
+                ? 'bg-gradient-to-r from-orange-500/10 via-rose-500/10 to-orange-500/10 border border-orange-400/20'
+                : 'bg-gradient-to-r from-orange-100 via-rose-100 to-amber-100 border border-orange-200/70'
             }`}
           >
             <div className="relative">
               {streak >= 7 ? (
-                <Trophy className={`w-8 h-8 ${isDark ? 'text-amber-300' : 'text-amber-600'}`} />
+                <Trophy className={`w-9 h-9 ${isDark ? 'text-amber-300' : 'text-amber-600'} drop-shadow`} />
               ) : (
                 <Flame
-                  className={`w-8 h-8 ${isDark ? 'text-orange-400' : 'text-orange-500'}`}
+                  className={`w-9 h-9 ${isDark ? 'text-orange-400' : 'text-orange-500'} drop-shadow`}
                   style={{ animation: 'flame-flicker 1.4s ease-in-out infinite' }}
                 />
               )}
             </div>
             <div className="text-left">
-              <p className={`text-2xl font-extrabold tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              <p
+                className={`text-2xl font-extrabold tabular-nums leading-tight ${
+                  isDark ? 'text-white' : 'text-slate-900'
+                }`}
+              >
                 {streak} day{streak !== 1 ? 's' : ''}
               </p>
-              <p className={`text-xs font-medium ${isDark ? 'text-orange-200/80' : 'text-orange-700/80'}`}>
+              <p className={`text-xs font-semibold ${isDark ? 'text-orange-200/80' : 'text-orange-700/85'}`}>
                 {streak >= 7 ? 'Amazing streak! 🏆' : streak >= 3 ? 'Keep it going! 🔥' : 'No-snooze streak'}
               </p>
             </div>
           </div>
 
           {/* Motivational quote */}
-          <div className="space-y-2 px-1">
+          <div
+            className={`relative space-y-2 px-3 py-3 rounded-xl border-l-4 ${
+              isDark ? 'border-amber-400/60 bg-white/[0.03]' : 'border-amber-400 bg-amber-50/60'
+            }`}
+          >
             <p className={`text-sm italic leading-relaxed ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
               "{quote.text}"
             </p>
-            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>— {quote.author}</p>
+            <p
+              className={`text-xs font-semibold tracking-wide ${
+                isDark ? 'text-amber-300/80' : 'text-amber-700'
+              }`}
+            >
+              — {quote.author}
+            </p>
           </div>
 
           {/* Dismiss button — gradient + interactive */}
           <Button
             onClick={onDismiss}
             size="lg"
-            className="group w-full h-14 text-base font-bold gap-2 rounded-2xl border-0 text-white
+            className="group relative w-full h-14 text-base font-bold gap-2 rounded-2xl border-0 text-white overflow-hidden
                        bg-gradient-to-r from-orange-500 via-amber-500 to-rose-500
                        hover:from-orange-600 hover:via-amber-600 hover:to-rose-600
-                       shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50
+                       shadow-lg shadow-orange-500/40 hover:shadow-orange-500/60
                        transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           >
-            Start My Day
-            <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+            <span
+              aria-hidden
+              className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+            />
+            <span className="relative">Start My Day</span>
+            <ArrowRight className="relative w-5 h-5 transition-transform group-hover:translate-x-1" />
           </Button>
         </Card>
       </div>
@@ -217,7 +336,7 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
         }
         @keyframes pulse-glow {
           0%, 100% { opacity: 0.4; transform: scale(1); }
-          50%      { opacity: 0.75; transform: scale(1.12); }
+          50%      { opacity: 0.85; transform: scale(1.15); }
         }
         @keyframes spin-slow {
           from { transform: rotate(0deg); }
@@ -229,12 +348,24 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
         }
         @keyframes flame-flicker {
           0%, 100% { transform: scale(1) rotate(-2deg); opacity: 1; }
-          50%      { transform: scale(1.12) rotate(2deg); opacity: 0.9; }
+          50%      { transform: scale(1.15) rotate(2deg); opacity: 0.9; }
         }
         @keyframes time-pop {
           0%   { transform: scale(0.92); opacity: 0; }
           60%  { transform: scale(1.04); opacity: 1; }
           100% { transform: scale(1); }
+        }
+        @keyframes twinkle {
+          0%, 100% { opacity: 0; transform: scale(0.6); }
+          50%      { opacity: 1; transform: scale(1.1); }
+        }
+        @keyframes aurora-spin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+        @keyframes sheen {
+          0%, 100% { transform: translateX(-30%) rotate(12deg); opacity: 0; }
+          50%      { transform: translateX(30%) rotate(12deg); opacity: 0.35; }
         }
       `}</style>
     </div>
