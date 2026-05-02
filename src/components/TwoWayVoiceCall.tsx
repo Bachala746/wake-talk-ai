@@ -593,6 +593,14 @@ export const TwoWayVoiceCall = ({
           0%, 100% { transform: translate(0, 0) scale(1); }
           50%      { transform: translate(20px, -16px) scale(1.06); }
         }
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+        @keyframes aurora-spin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
       `}</style>
     </div>
   );
