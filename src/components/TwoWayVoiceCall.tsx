@@ -343,9 +343,18 @@ export const TwoWayVoiceCall = ({
   return (
     <div className={`relative min-h-screen flex items-center justify-center p-4 overflow-hidden ${
       isDark
-        ? 'bg-gradient-to-br from-[hsl(240,30%,10%)] via-[hsl(260,35%,16%)] to-[hsl(20,40%,16%)]'
-        : 'bg-gradient-to-br from-[hsl(35,100%,88%)] via-[hsl(20,100%,82%)] to-[hsl(340,90%,88%)]'
+        ? 'bg-[radial-gradient(ellipse_at_top,hsl(260,50%,18%)_0%,hsl(240,40%,10%)_55%,hsl(20,40%,12%)_100%)]'
+        : 'bg-[radial-gradient(ellipse_at_top,hsl(45,100%,90%)_0%,hsl(20,100%,82%)_45%,hsl(340,90%,86%)_100%)]'
     }`}>
+      {/* Aurora sweep */}
+      <div
+        className={`pointer-events-none absolute inset-0 opacity-50 mix-blend-screen ${
+          isDark
+            ? 'bg-[conic-gradient(from_180deg_at_50%_120%,transparent,hsl(260,80%,40%)/0.4,transparent_40%,hsl(20,90%,50%)/0.4,transparent)]'
+            : 'bg-[conic-gradient(from_180deg_at_50%_120%,transparent,hsl(45,100%,75%)/0.5,transparent_40%,hsl(340,90%,80%)/0.5,transparent)]'
+        }`}
+        style={{ animation: 'aurora-spin 30s linear infinite' }}
+      />
       {/* Ambient sunrise orbs */}
       <div className={`pointer-events-none absolute -top-24 -left-24 w-80 h-80 rounded-full blur-3xl opacity-50 ${
         isDark ? 'bg-orange-500/30' : 'bg-amber-300/60'
@@ -353,6 +362,9 @@ export const TwoWayVoiceCall = ({
       <div className={`pointer-events-none absolute -bottom-28 -right-20 w-96 h-96 rounded-full blur-3xl opacity-40 ${
         isDark ? 'bg-pink-500/20' : 'bg-rose-300/50'
       }`} style={{ animation: 'float-slow 10s ease-in-out infinite reverse' }} />
+      <div className={`pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[34rem] h-[34rem] rounded-full blur-3xl opacity-25 ${
+        isDark ? 'bg-indigo-500/20' : 'bg-yellow-200/60'
+      }`} style={{ animation: 'float-slow 12s ease-in-out infinite' }} />
 
       <Card className={`relative w-full max-w-md p-6 backdrop-blur-xl shadow-2xl rounded-3xl border ${
         isDark ? 'bg-slate-900/70 border-white/10' : 'bg-white/80 border-white/60'
