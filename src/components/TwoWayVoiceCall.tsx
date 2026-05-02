@@ -326,14 +326,36 @@ export const TwoWayVoiceCall = ({
     );
   }
 
+  // Derive a single voice state for the UI
+  const voiceState: 'idle' | 'listening' | 'processing' | 'speaking' =
+    isProcessing ? 'processing'
+    : isSpeaking ? 'speaking'
+    : scribe.isListening ? 'listening'
+    : 'idle';
+
+  const stateMeta = {
+    idle:       { label: 'Tap to Speak',       hint: 'Wait for AI, then speak',  emoji: '🎙️', color: isDark ? 'text-slate-300' : 'text-slate-600' },
+    listening:  { label: 'Listening…',         hint: 'I can hear you — keep going', emoji: '🎤', color: isDark ? 'text-rose-300' : 'text-rose-600' },
+    processing: { label: 'Processing…',        hint: 'Thinking about your reply',   emoji: '🤔', color: isDark ? 'text-blue-300' : 'text-blue-600' },
+    speaking:   { label: 'AI Speaking…',       hint: 'Wait for the beep, then speak', emoji: '🔊', color: isDark ? 'text-emerald-300' : 'text-emerald-600' },
+  }[voiceState];
+
   return (
-    <div className={`min-h-screen flex items-center justify-center p-4 ${
-      isDark 
-        ? 'bg-gradient-to-t from-indigo-900 via-slate-800 to-slate-900' 
-        : 'bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300'
+    <div className={`relative min-h-screen flex items-center justify-center p-4 overflow-hidden ${
+      isDark
+        ? 'bg-gradient-to-br from-[hsl(240,30%,10%)] via-[hsl(260,35%,16%)] to-[hsl(20,40%,16%)]'
+        : 'bg-gradient-to-br from-[hsl(35,100%,88%)] via-[hsl(20,100%,82%)] to-[hsl(340,90%,88%)]'
     }`}>
-      <Card className={`w-full max-w-md p-6 backdrop-blur-lg shadow-2xl rounded-3xl ${
-        isDark ? 'bg-slate-800/90' : 'bg-white/90'
+      {/* Ambient sunrise orbs */}
+      <div className={`pointer-events-none absolute -top-24 -left-24 w-80 h-80 rounded-full blur-3xl opacity-50 ${
+        isDark ? 'bg-orange-500/30' : 'bg-amber-300/60'
+      }`} style={{ animation: 'float-slow 8s ease-in-out infinite' }} />
+      <div className={`pointer-events-none absolute -bottom-28 -right-20 w-96 h-96 rounded-full blur-3xl opacity-40 ${
+        isDark ? 'bg-pink-500/20' : 'bg-rose-300/50'
+      }`} style={{ animation: 'float-slow 10s ease-in-out infinite reverse' }} />
+
+      <Card className={`relative w-full max-w-md p-6 backdrop-blur-xl shadow-2xl rounded-3xl border ${
+        isDark ? 'bg-slate-900/70 border-white/10' : 'bg-white/80 border-white/60'
       }`}>
         <div className="text-center space-y-5">
           {/* Avatars showing who is active */}
