@@ -370,31 +370,36 @@ export const TwoWayVoiceCall = ({
             </div>
           </div>
 
-          <h2 className="text-xl font-bold text-foreground">{isTestCall ? '🧪 Two-Way Test' : '💬 AI Conversation'}</h2>
-          <p className="text-sm text-muted-foreground font-medium">
-            {isSpeaking
-              ? '🔊 AI Speaking...'
-              : isProcessing
-                ? '🤔 Processing...'
-                : scribe.isListening
-                  ? '🎤 Listening — speak now!'
-                  : waitingForResponse
-                    ? '⏳ Tap Speak to talk'
-                    : '⏳ Waiting...'}
-          </p>
+          <div>
+            <h2 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              {isTestCall ? '🧪 Two-Way Test' : '💬 AI Conversation'}
+            </h2>
+            <p className={`mt-1 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              {stateMeta.hint}
+            </p>
+          </div>
+
+          {/* State pill — clear, animated, single source of truth */}
+          <div
+            className={`inline-flex items-center gap-2 mx-auto px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-300 ${
+              voiceState === 'listening'
+                ? (isDark ? 'bg-rose-500/15 border-rose-400/40 text-rose-200' : 'bg-rose-50 border-rose-200 text-rose-700')
+                : voiceState === 'processing'
+                  ? (isDark ? 'bg-blue-500/15 border-blue-400/40 text-blue-200' : 'bg-blue-50 border-blue-200 text-blue-700')
+                  : voiceState === 'speaking'
+                    ? (isDark ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-200' : 'bg-emerald-50 border-emerald-200 text-emerald-700')
+                    : (isDark ? 'bg-white/5 border-white/10 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600')
+            }`}
+          >
+            {voiceState === 'processing' && <Loader2 className="w-4 h-4 animate-spin" />}
+            {voiceState !== 'processing' && <span className="text-base leading-none">{stateMeta.emoji}</span>}
+            <span>{stateMeta.label}</span>
+          </div>
 
           {/* Audio Waveform Visualization */}
-          <div className="flex justify-center gap-6 py-2">
-            <AudioWaveform 
-              isActive={scribe.isListening} 
-              type="user" 
-              label="You"
-            />
-            <AudioWaveform 
-              isActive={isSpeaking} 
-              type="ai" 
-              label="AI"
-            />
+          <div className="flex justify-center gap-6 py-1">
+            <AudioWaveform isActive={scribe.isListening} type="user" label="You" />
+            <AudioWaveform isActive={isSpeaking} type="ai" label="AI" />
           </div>
 
           {/* No response indicator */}
@@ -410,16 +415,18 @@ export const TwoWayVoiceCall = ({
           )}
 
           {/* AI message display */}
-          <div className={`rounded-xl p-4 min-h-[80px] transition-all duration-300 ${
+          <div className={`rounded-2xl p-4 min-h-[80px] transition-all duration-300 ${
             isSpeaking 
-              ? isDark ? 'bg-emerald-900/30 border-2 border-emerald-700/50 shadow-lg' : 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 shadow-lg shadow-green-100' 
-              : isDark ? 'bg-indigo-900/30' : 'bg-orange-50'
+              ? isDark ? 'bg-emerald-500/10 border-2 border-emerald-400/40 shadow-lg' : 'bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-200 shadow-lg shadow-emerald-100' 
+              : isDark ? 'bg-white/5 border border-white/10' : 'bg-orange-50/70 border border-orange-100'
           }`}>
             <div className="flex items-start gap-2">
               <Volume2 className={`w-5 h-5 mt-0.5 shrink-0 transition-colors ${
-                isSpeaking ? (isDark ? 'text-emerald-400' : 'text-green-500') : (isDark ? 'text-indigo-400' : 'text-orange-500')
+                isSpeaking ? (isDark ? 'text-emerald-300' : 'text-emerald-600') : (isDark ? 'text-orange-300' : 'text-orange-500')
               }`} />
-              <p className={`text-sm text-left ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>{currentMessage || "Connecting..."}</p>
+              <p className={`text-sm text-left leading-relaxed ${isDark ? 'text-slate-100' : 'text-slate-700'}`}>
+                {currentMessage || "Connecting…"}
+              </p>
             </div>
           </div>
 
