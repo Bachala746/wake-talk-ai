@@ -485,48 +485,77 @@ export const TwoWayVoiceCall = ({
             </div>
           )}
 
-          {/* Info text */}
-          <p className="text-xs text-muted-foreground">
-            {isTestCall 
-              ? "This is a test. Tap the red button to end anytime."
-              : "Complete a challenge to dismiss the alarm."}
-          </p>
-
-          {/* Action buttons */}
-          <div className="flex gap-3 pt-2">
-            <Button 
-              onClick={handleMicClick} 
-              disabled={isSpeaking || isProcessing || !scribe.isSupported} 
-              className={`flex-1 py-6 rounded-xl transition-all ${
-                scribe.isListening 
-                  ? 'bg-blue-500 hover:bg-blue-600 animate-pulse' 
-                  : 'bg-green-500 hover:bg-green-600'
-              }`}
-            >
-              {isProcessing ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
-              ) : scribe.isListening ? (
+          {/* Big central mic VoiceButton */}
+          <div className="flex flex-col items-center gap-3 pt-2">
+            <div className="relative">
+              {/* Pulsing rings when listening */}
+              {voiceState === 'listening' && (
                 <>
-                  <MicOff className="w-6 h-6 mr-2" />
-                  Stop
-                </>
-              ) : (
-                <>
-                  <Mic className="w-6 h-6 mr-2" />
-                  Speak
+                  <span className="absolute inset-0 rounded-full bg-rose-500/30 animate-ping" style={{ animationDuration: '1.4s' }} />
+                  <span className="absolute -inset-2 rounded-full bg-rose-500/20 animate-ping" style={{ animationDuration: '1.8s', animationDelay: '0.3s' }} />
                 </>
               )}
-            </Button>
-            <Button 
-              onClick={handleDismiss} 
-              variant="destructive" 
-              className="py-6 px-6 rounded-xl"
+              {voiceState === 'speaking' && (
+                <span className="absolute inset-0 rounded-full bg-emerald-400/30 animate-ping" style={{ animationDuration: '1.6s' }} />
+              )}
+              <button
+                onClick={handleMicClick}
+                disabled={isSpeaking || isProcessing || !scribe.isSupported}
+                aria-label={scribe.isListening ? 'Stop listening' : 'Tap to speak'}
+                className={`relative z-10 w-24 h-24 rounded-full flex items-center justify-center text-white shadow-2xl
+                            transition-all duration-200 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed
+                            ${voiceState === 'listening'
+                              ? 'bg-gradient-to-br from-rose-500 to-red-600 shadow-rose-500/50 scale-105'
+                              : voiceState === 'processing'
+                                ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/40'
+                                : voiceState === 'speaking'
+                                  ? 'bg-gradient-to-br from-emerald-500 to-green-600 shadow-emerald-500/40'
+                                  : 'bg-gradient-to-br from-orange-500 via-amber-500 to-rose-500 shadow-orange-500/40 hover:scale-105'
+                            }`}
+              >
+                {voiceState === 'processing' ? (
+                  <Loader2 className="w-10 h-10 animate-spin" />
+                ) : voiceState === 'listening' ? (
+                  <MicOff className="w-10 h-10" />
+                ) : voiceState === 'speaking' ? (
+                  <Volume2 className="w-10 h-10" />
+                ) : (
+                  <Mic className="w-10 h-10" />
+                )}
+              </button>
+            </div>
+            <p className={`text-xs font-medium ${stateMeta.color}`}>
+              {voiceState === 'idle' ? 'Tap to Speak' : stateMeta.label}
+            </p>
+
+            {/* End call (small, less prominent) */}
+            <Button
+              onClick={handleDismiss}
+              variant="ghost"
+              size="sm"
+              className={`mt-1 gap-2 rounded-full ${
+                isDark ? 'text-rose-300 hover:bg-rose-500/10' : 'text-rose-600 hover:bg-rose-50'
+              }`}
             >
-              <PhoneOff className="w-6 h-6" />
+              <PhoneOff className="w-4 h-4" />
+              End Call
             </Button>
           </div>
+
+          <p className={`text-[11px] ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+            {isTestCall
+              ? 'This is a test. Tap End Call anytime.'
+              : 'Complete a challenge to dismiss the alarm.'}
+          </p>
         </div>
       </Card>
+
+      <style>{`
+        @keyframes float-slow {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50%      { transform: translate(20px, -16px) scale(1.06); }
+        }
+      `}</style>
     </div>
   );
 };
