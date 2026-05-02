@@ -343,9 +343,18 @@ export const TwoWayVoiceCall = ({
   return (
     <div className={`relative min-h-screen flex items-center justify-center p-4 overflow-hidden ${
       isDark
-        ? 'bg-gradient-to-br from-[hsl(240,30%,10%)] via-[hsl(260,35%,16%)] to-[hsl(20,40%,16%)]'
-        : 'bg-gradient-to-br from-[hsl(35,100%,88%)] via-[hsl(20,100%,82%)] to-[hsl(340,90%,88%)]'
+        ? 'bg-[radial-gradient(ellipse_at_top,hsl(260,50%,18%)_0%,hsl(240,40%,10%)_55%,hsl(20,40%,12%)_100%)]'
+        : 'bg-[radial-gradient(ellipse_at_top,hsl(45,100%,90%)_0%,hsl(20,100%,82%)_45%,hsl(340,90%,86%)_100%)]'
     }`}>
+      {/* Aurora sweep */}
+      <div
+        className={`pointer-events-none absolute inset-0 opacity-50 mix-blend-screen ${
+          isDark
+            ? 'bg-[conic-gradient(from_180deg_at_50%_120%,transparent,hsl(260,80%,40%)/0.4,transparent_40%,hsl(20,90%,50%)/0.4,transparent)]'
+            : 'bg-[conic-gradient(from_180deg_at_50%_120%,transparent,hsl(45,100%,75%)/0.5,transparent_40%,hsl(340,90%,80%)/0.5,transparent)]'
+        }`}
+        style={{ animation: 'aurora-spin 30s linear infinite' }}
+      />
       {/* Ambient sunrise orbs */}
       <div className={`pointer-events-none absolute -top-24 -left-24 w-80 h-80 rounded-full blur-3xl opacity-50 ${
         isDark ? 'bg-orange-500/30' : 'bg-amber-300/60'
@@ -353,6 +362,9 @@ export const TwoWayVoiceCall = ({
       <div className={`pointer-events-none absolute -bottom-28 -right-20 w-96 h-96 rounded-full blur-3xl opacity-40 ${
         isDark ? 'bg-pink-500/20' : 'bg-rose-300/50'
       }`} style={{ animation: 'float-slow 10s ease-in-out infinite reverse' }} />
+      <div className={`pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[34rem] h-[34rem] rounded-full blur-3xl opacity-25 ${
+        isDark ? 'bg-indigo-500/20' : 'bg-yellow-200/60'
+      }`} style={{ animation: 'float-slow 12s ease-in-out infinite' }} />
 
       <Card className={`relative w-full max-w-md p-6 backdrop-blur-xl shadow-2xl rounded-3xl border ${
         isDark ? 'bg-slate-900/70 border-white/10' : 'bg-white/80 border-white/60'
@@ -487,30 +499,56 @@ export const TwoWayVoiceCall = ({
 
           {/* Big central mic VoiceButton */}
           <div className="flex flex-col items-center gap-3 pt-2">
-            <div className="relative">
+            <div className="relative w-32 h-32 flex items-center justify-center">
+              {/* Conic progress / energy ring (volume-reactive when listening) */}
+              <span
+                aria-hidden
+                className="absolute inset-0 rounded-full opacity-90"
+                style={{
+                  background:
+                    voiceState === 'listening'
+                      ? 'conic-gradient(from 0deg, hsl(0,90%,60%), hsl(340,95%,65%), hsl(20,100%,60%), hsl(0,90%,60%))'
+                      : voiceState === 'speaking'
+                        ? 'conic-gradient(from 0deg, hsl(150,80%,45%), hsl(170,80%,50%), hsl(140,75%,50%), hsl(150,80%,45%))'
+                        : voiceState === 'processing'
+                          ? 'conic-gradient(from 0deg, hsl(220,90%,60%), hsl(260,85%,65%), hsl(220,90%,60%))'
+                          : 'conic-gradient(from 0deg, hsl(35,100%,60%), hsl(20,100%,55%), hsl(340,90%,60%), hsl(35,100%,60%))',
+                  filter: 'blur(1px)',
+                  animation: 'spin-slow 6s linear infinite',
+                  transform: voiceState === 'listening' ? `scale(${1 + scribe.volumeLevel * 0.18})` : 'scale(1)',
+                  transition: 'transform 120ms ease-out',
+                }}
+              />
+              {/* Inner masked disk to make the ring read as a stroke */}
+              <span
+                aria-hidden
+                className={`absolute inset-[6px] rounded-full backdrop-blur-md ${
+                  isDark ? 'bg-slate-900/85' : 'bg-white/85'
+                }`}
+              />
               {/* Pulsing rings when listening */}
               {voiceState === 'listening' && (
                 <>
-                  <span className="absolute inset-0 rounded-full bg-rose-500/30 animate-ping" style={{ animationDuration: '1.4s' }} />
-                  <span className="absolute -inset-2 rounded-full bg-rose-500/20 animate-ping" style={{ animationDuration: '1.8s', animationDelay: '0.3s' }} />
+                  <span className="absolute inset-0 rounded-full bg-rose-500/25 animate-ping" style={{ animationDuration: '1.4s' }} />
+                  <span className="absolute -inset-3 rounded-full bg-rose-500/15 animate-ping" style={{ animationDuration: '1.8s', animationDelay: '0.3s' }} />
                 </>
               )}
               {voiceState === 'speaking' && (
-                <span className="absolute inset-0 rounded-full bg-emerald-400/30 animate-ping" style={{ animationDuration: '1.6s' }} />
+                <span className="absolute inset-0 rounded-full bg-emerald-400/25 animate-ping" style={{ animationDuration: '1.6s' }} />
               )}
               <button
                 onClick={handleMicClick}
                 disabled={isSpeaking || isProcessing || !scribe.isSupported}
                 aria-label={scribe.isListening ? 'Stop listening' : 'Tap to speak'}
-                className={`relative z-10 w-24 h-24 rounded-full flex items-center justify-center text-white shadow-2xl
+                className={`relative z-10 w-24 h-24 rounded-full flex items-center justify-center text-white shadow-2xl ring-4 ring-white/15
                             transition-all duration-200 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed
                             ${voiceState === 'listening'
-                              ? 'bg-gradient-to-br from-rose-500 to-red-600 shadow-rose-500/50 scale-105'
+                              ? 'bg-gradient-to-br from-rose-500 to-red-600 shadow-rose-500/60 scale-105'
                               : voiceState === 'processing'
-                                ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/40'
+                                ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/50'
                                 : voiceState === 'speaking'
-                                  ? 'bg-gradient-to-br from-emerald-500 to-green-600 shadow-emerald-500/40'
-                                  : 'bg-gradient-to-br from-orange-500 via-amber-500 to-rose-500 shadow-orange-500/40 hover:scale-105'
+                                  ? 'bg-gradient-to-br from-emerald-500 to-green-600 shadow-emerald-500/50'
+                                  : 'bg-gradient-to-br from-orange-500 via-amber-500 to-rose-500 shadow-orange-500/50 hover:scale-105'
                             }`}
               >
                 {voiceState === 'processing' ? (
@@ -524,7 +562,7 @@ export const TwoWayVoiceCall = ({
                 )}
               </button>
             </div>
-            <p className={`text-xs font-medium ${stateMeta.color}`}>
+            <p className={`text-xs font-semibold tracking-wide ${stateMeta.color}`}>
               {voiceState === 'idle' ? 'Tap to Speak' : stateMeta.label}
             </p>
 
@@ -554,6 +592,14 @@ export const TwoWayVoiceCall = ({
         @keyframes float-slow {
           0%, 100% { transform: translate(0, 0) scale(1); }
           50%      { transform: translate(20px, -16px) scale(1.06); }
+        }
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+        @keyframes aurora-spin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
         }
       `}</style>
     </div>
