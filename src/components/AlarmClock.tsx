@@ -630,7 +630,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const GreetingIcon = greeting.icon;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen">
+      <SunriseAmbience />
       {/* Cheat Penalty Indicator */}
       <div className="fixed top-14 left-0 right-0 z-40">
         <CheatPenaltyIndicator />
