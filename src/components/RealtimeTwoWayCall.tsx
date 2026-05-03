@@ -167,6 +167,7 @@ export const RealtimeTwoWayCall = ({
             objectVerifySettings={settings.objectVerifySettings}
           />
         )}
+        </div>
       </div>
     );
   }
