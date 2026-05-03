@@ -681,13 +681,19 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
             </div>
           </div>
 
-          {/* Main Headline */}
+          {/* Main Headline — gradient accent on second line */}
           <h1 className={`text-3xl sm:text-5xl md:text-7xl font-bold mb-4 sm:mb-6 tracking-tight leading-tight ${
             isDark ? 'text-slate-100' : 'text-slate-800'
           }`}>
             {isDark ? 'Good Night,' : 'Good Morning,'}
             <br />
-            <span className={isDark ? 'text-indigo-400' : 'text-orange-600'}>
+            <span
+              className={`bg-clip-text text-transparent ${
+                isDark
+                  ? 'bg-gradient-to-r from-indigo-300 via-purple-300 to-rose-300'
+                  : 'bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600'
+              }`}
+            >
               {isDark ? 'Sleep Tight' : 'Rise & Shine'}
             </span>
           </h1>
