@@ -649,36 +649,16 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
 
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex flex-col items-center justify-center px-3 sm:px-4 py-12 sm:py-16 overflow-hidden">
-        {/* Gradient background - theme aware */}
-        <div className={`absolute inset-0 ${
-          isDark 
-            ? 'bg-gradient-to-b from-indigo-950 via-slate-900 to-slate-950' 
-            : 'bg-gradient-to-b from-amber-100 via-orange-200 to-amber-200'
-        }`} />
-        
-        {/* Subtle dot pattern overlay */}
-        <div 
-          className="absolute inset-0 opacity-[0.15]"
+        {/* Subtle dot pattern overlay over the global SunriseAmbience */}
+        <div
+          className="absolute inset-0 opacity-[0.12] pointer-events-none"
           style={{
-            backgroundImage: isDark 
-              ? 'radial-gradient(circle, #6366f1 1px, transparent 1px)'
-              : 'radial-gradient(circle, #78350f 1px, transparent 1px)',
-            backgroundSize: '24px 24px'
+            backgroundImage: isDark
+              ? 'radial-gradient(circle, #818cf8 1px, transparent 1px)'
+              : 'radial-gradient(circle, #92400e 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
           }}
         />
-        
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className={`absolute top-20 left-1/4 w-72 h-72 rounded-full blur-3xl animate-pulse-soft ${
-            isDark ? 'bg-indigo-500/25' : 'bg-white/40'
-          }`} />
-          <div className={`absolute bottom-40 right-1/4 w-96 h-96 rounded-full blur-3xl animate-pulse-soft ${
-            isDark ? 'bg-purple-500/20' : 'bg-yellow-200/50'
-          }`} style={{ animationDelay: '1s' }} />
-          <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl animate-pulse-soft ${
-            isDark ? 'bg-blue-600/10' : 'bg-orange-300/20'
-          }`} style={{ animationDelay: '2s' }} />
-        </div>
 
         {/* Hero Content */}
         <div className="relative z-10 text-center max-w-3xl mx-auto px-2">
