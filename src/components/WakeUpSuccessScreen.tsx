@@ -152,37 +152,6 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
               }`}
               style={{ animation: 'pulse-glow 2.4s ease-in-out infinite' }}
             />
-            {/* Rotating ray spokes */}
-            <svg
-              className="absolute inset-0 w-full h-full"
-              viewBox="0 0 100 100"
-              style={{ animation: 'spin-slow 18s linear infinite' }}
-            >
-              {Array.from({ length: 12 }).map((_, i) => {
-                const angle = (i * 360) / 12;
-                return (
-                  <line
-                    key={i}
-                    x1="50"
-                    y1="6"
-                    x2="50"
-                    y2="16"
-                    stroke={isDark ? 'hsl(35,100%,65%)' : 'hsl(35,100%,55%)'}
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    transform={`rotate(${angle} 50 50)`}
-                    opacity="0.85"
-                  />
-                );
-              })}
-            </svg>
-            {/* Inner ring */}
-            <span
-              className={`absolute inset-3 rounded-full border-2 ${
-                isDark ? 'border-orange-400/40' : 'border-amber-400/60'
-              }`}
-              style={{ animation: 'spin-slow 14s linear infinite reverse' }}
-            />
             <div
               className={`relative z-10 w-20 h-20 rounded-full flex items-center justify-center shadow-2xl ring-4 ring-white/20 ${
                 isDark
