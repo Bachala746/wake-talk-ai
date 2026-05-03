@@ -17,6 +17,7 @@ import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 import { AudioWaveform } from "./AudioWaveform";
 import { SpeakingAvatar } from "./SpeakingAvatar";
 import { useTheme } from "@/hooks/useTheme";
+import { SunriseAmbience } from "./SunriseAmbience";
 
 interface VoiceCallProps {
   alarmTime: string;
