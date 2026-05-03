@@ -775,12 +775,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
         </div>
       </section>
 
-      {/* Main Content Section */}
-      <section className={`relative py-10 sm:py-16 px-3 sm:px-4 min-h-screen ${
-        isDark 
-          ? 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950' 
-          : 'bg-gradient-to-b from-amber-200 via-amber-200 to-amber-100'
-      }`}>
+      {/* Main Content Section — transparent so SunriseAmbience shows through */}
+      <section className="relative py-10 sm:py-16 px-3 sm:px-4 min-h-screen">
         <div className="max-w-lg mx-auto w-full">
           {/* Section Header */}
           <div className="text-center mb-10">
