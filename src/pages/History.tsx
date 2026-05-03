@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Trash2, Clock, TrendingUp, Trophy, Zap, BarChart3 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
+import { SunriseAmbience } from "@/components/SunriseAmbience";
 import {
   getAlarmHistory,
   clearAlarmHistory,
