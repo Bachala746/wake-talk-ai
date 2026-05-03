@@ -15,6 +15,7 @@ import { ElevenLabsQuotaPanel } from "./ElevenLabsQuotaPanel";
 import { PermissionCheck } from "./PermissionCheck";
 import { MicrophoneTest } from "./MicrophoneTest";
 import { PreAlarmCheck } from "./PreAlarmCheck";
+import { SunriseAmbience } from "./SunriseAmbience";
 import { useTheme } from "@/hooks/useTheme";
 import {
   AlarmSettings,
