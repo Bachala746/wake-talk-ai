@@ -15,6 +15,7 @@ import { ElevenLabsQuotaPanel } from "./ElevenLabsQuotaPanel";
 import { PermissionCheck } from "./PermissionCheck";
 import { MicrophoneTest } from "./MicrophoneTest";
 import { PreAlarmCheck } from "./PreAlarmCheck";
+import { SunriseAmbience } from "./SunriseAmbience";
 import { useTheme } from "@/hooks/useTheme";
 import {
   AlarmSettings,
@@ -630,7 +631,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const GreetingIcon = greeting.icon;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen">
+      <SunriseAmbience />
       {/* Cheat Penalty Indicator */}
       <div className="fixed top-14 left-0 right-0 z-40">
         <CheatPenaltyIndicator />
@@ -647,36 +649,16 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
 
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex flex-col items-center justify-center px-3 sm:px-4 py-12 sm:py-16 overflow-hidden">
-        {/* Gradient background - theme aware */}
-        <div className={`absolute inset-0 ${
-          isDark 
-            ? 'bg-gradient-to-b from-indigo-950 via-slate-900 to-slate-950' 
-            : 'bg-gradient-to-b from-amber-100 via-orange-200 to-amber-200'
-        }`} />
-        
-        {/* Subtle dot pattern overlay */}
-        <div 
-          className="absolute inset-0 opacity-[0.15]"
+        {/* Subtle dot pattern overlay over the global SunriseAmbience */}
+        <div
+          className="absolute inset-0 opacity-[0.12] pointer-events-none"
           style={{
-            backgroundImage: isDark 
-              ? 'radial-gradient(circle, #6366f1 1px, transparent 1px)'
-              : 'radial-gradient(circle, #78350f 1px, transparent 1px)',
-            backgroundSize: '24px 24px'
+            backgroundImage: isDark
+              ? 'radial-gradient(circle, #818cf8 1px, transparent 1px)'
+              : 'radial-gradient(circle, #92400e 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
           }}
         />
-        
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className={`absolute top-20 left-1/4 w-72 h-72 rounded-full blur-3xl animate-pulse-soft ${
-            isDark ? 'bg-indigo-500/25' : 'bg-white/40'
-          }`} />
-          <div className={`absolute bottom-40 right-1/4 w-96 h-96 rounded-full blur-3xl animate-pulse-soft ${
-            isDark ? 'bg-purple-500/20' : 'bg-yellow-200/50'
-          }`} style={{ animationDelay: '1s' }} />
-          <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl animate-pulse-soft ${
-            isDark ? 'bg-blue-600/10' : 'bg-orange-300/20'
-          }`} style={{ animationDelay: '2s' }} />
-        </div>
 
         {/* Hero Content */}
         <div className="relative z-10 text-center max-w-3xl mx-auto px-2">
@@ -699,13 +681,19 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
             </div>
           </div>
 
-          {/* Main Headline */}
+          {/* Main Headline — gradient accent on second line */}
           <h1 className={`text-3xl sm:text-5xl md:text-7xl font-bold mb-4 sm:mb-6 tracking-tight leading-tight ${
             isDark ? 'text-slate-100' : 'text-slate-800'
           }`}>
             {isDark ? 'Good Night,' : 'Good Morning,'}
             <br />
-            <span className={isDark ? 'text-indigo-400' : 'text-orange-600'}>
+            <span
+              className={`bg-clip-text text-transparent ${
+                isDark
+                  ? 'bg-gradient-to-r from-indigo-300 via-purple-300 to-rose-300'
+                  : 'bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600'
+              }`}
+            >
               {isDark ? 'Sleep Tight' : 'Rise & Shine'}
             </span>
           </h1>
@@ -787,12 +775,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
         </div>
       </section>
 
-      {/* Main Content Section */}
-      <section className={`relative py-10 sm:py-16 px-3 sm:px-4 min-h-screen ${
-        isDark 
-          ? 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950' 
-          : 'bg-gradient-to-b from-amber-200 via-amber-200 to-amber-100'
-      }`}>
+      {/* Main Content Section — transparent so SunriseAmbience shows through */}
+      <section className="relative py-10 sm:py-16 px-3 sm:px-4 min-h-screen">
         <div className="max-w-lg mx-auto w-full">
           {/* Section Header */}
           <div className="text-center mb-10">

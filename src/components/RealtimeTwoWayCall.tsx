@@ -10,6 +10,7 @@ import { useElevenLabsConversation } from "@/hooks/useElevenLabsConversation";
 import { AudioWaveform } from "./AudioWaveform";
 import { SpeakingAvatar } from "./SpeakingAvatar";
 import { useTheme } from "@/hooks/useTheme";
+import { SunriseAmbience } from "./SunriseAmbience";
 
 interface RealtimeTwoWayCallProps {
   alarmTime: string;
@@ -141,11 +142,9 @@ export const RealtimeTwoWayCall = ({
 
   if (showChallenge) {
     return (
-      <div className={`min-h-screen flex items-center justify-center p-4 ${
-        isDark 
-          ? 'bg-gradient-to-t from-indigo-900 via-slate-800 to-slate-900' 
-          : 'bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300'
-      }`}>
+      <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
+        <SunriseAmbience />
+        <div className="relative z-10 w-full flex items-center justify-center">
         {settings.sequentialChallengeSettings?.enabled ? (
           <SequentialChallengeRunner
             settings={settings.sequentialChallengeSettings}
@@ -168,17 +167,15 @@ export const RealtimeTwoWayCall = ({
             objectVerifySettings={settings.objectVerifySettings}
           />
         )}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen flex items-center justify-center p-4 ${
-      isDark 
-        ? 'bg-gradient-to-t from-indigo-950 via-slate-900 to-indigo-900' 
-        : 'bg-gradient-to-t from-purple-600 via-indigo-500 to-blue-400'
-    }`}>
-      <Card className={`w-full max-w-md p-6 backdrop-blur-lg shadow-2xl rounded-3xl ${
+    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
+      <SunriseAmbience />
+      <Card className={`relative z-10 w-full max-w-md p-6 backdrop-blur-lg shadow-2xl rounded-3xl ${
         isDark ? 'bg-slate-800/95' : 'bg-white/95'
       }`}>
         <div className="text-center space-y-5">

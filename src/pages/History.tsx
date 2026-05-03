@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Trash2, Clock, TrendingUp, Trophy, Zap, BarChart3 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
+import { SunriseAmbience } from "@/components/SunriseAmbience";
 import {
   getAlarmHistory,
   clearAlarmHistory,
@@ -64,14 +65,9 @@ const History = () => {
   };
 
   return (
-    <div
-      className={`min-h-screen p-4 sm:p-6 ${
-        isDark
-          ? "bg-gradient-to-br from-[hsl(240,20%,10%)] via-[hsl(260,15%,15%)] to-[hsl(240,20%,10%)]"
-          : "bg-[var(--gradient-morning)]"
-      }`}
-    >
-      <div className="max-w-lg mx-auto space-y-5">
+    <div className="relative min-h-screen p-4 sm:p-6 overflow-hidden">
+      <SunriseAmbience />
+      <div className="relative z-10 max-w-lg mx-auto space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="icon" onClick={() => navigate("/")}>

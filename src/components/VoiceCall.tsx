@@ -17,6 +17,7 @@ import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 import { AudioWaveform } from "./AudioWaveform";
 import { SpeakingAvatar } from "./SpeakingAvatar";
 import { useTheme } from "@/hooks/useTheme";
+import { SunriseAmbience } from "./SunriseAmbience";
 
 interface VoiceCallProps {
   alarmTime: string;
@@ -405,16 +406,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
   if (showChallenge) {
     return (
       <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
-        <div className={`absolute inset-0 ${
-          isDark 
-            ? 'bg-gradient-to-t from-indigo-900 via-slate-800 to-slate-900' 
-            : 'bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300'
-        }`}>
-          <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className={`w-32 h-32 rounded-full animate-pulse shadow-2xl ${isDark ? 'bg-indigo-400' : 'bg-yellow-200'}`}
-                 style={{ boxShadow: isDark ? '0 0 100px 50px rgba(129, 140, 248, 0.4)' : '0 0 100px 50px rgba(255, 200, 100, 0.6)' }} />
-          </div>
-        </div>
+        <SunriseAmbience />
         <div className="relative z-10">
           {settings.sequentialChallengeSettings?.enabled ? (
             <SequentialChallengeRunner
@@ -445,17 +437,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
 
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-3 sm:p-4">
-      {/* Animated background */}
-      <div className={`absolute inset-0 ${
-        isDark 
-          ? 'bg-gradient-to-t from-indigo-900 via-slate-800 to-slate-900' 
-          : 'bg-gradient-to-t from-orange-500 via-amber-400 to-yellow-300'
-      }`}>
-        <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <div className={`w-24 sm:w-32 h-24 sm:h-32 rounded-full animate-pulse shadow-2xl ${isDark ? 'bg-indigo-400' : 'bg-yellow-200'}`}
-               style={{ boxShadow: isDark ? '0 0 100px 50px rgba(129, 140, 248, 0.4)' : '0 0 100px 50px rgba(255, 200, 100, 0.6)' }} />
-        </div>
-      </div>
+      <SunriseAmbience />
 
       <Card className={`relative z-10 w-full max-w-md p-4 sm:p-8 backdrop-blur-lg shadow-2xl border-0 rounded-2xl sm:rounded-3xl ${
         isDark ? 'bg-slate-800/90' : 'bg-white/90'
