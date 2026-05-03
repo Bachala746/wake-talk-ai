@@ -10,6 +10,7 @@ import { useElevenLabsConversation } from "@/hooks/useElevenLabsConversation";
 import { AudioWaveform } from "./AudioWaveform";
 import { SpeakingAvatar } from "./SpeakingAvatar";
 import { useTheme } from "@/hooks/useTheme";
+import { SunriseAmbience } from "./SunriseAmbience";
 
 interface RealtimeTwoWayCallProps {
   alarmTime: string;
