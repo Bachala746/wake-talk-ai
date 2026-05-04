@@ -6,7 +6,6 @@ import { Phone, PhoneOff, Volume2, Heart, Sun } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlarmSettings,
-  themeMessages,
   snoozeMessages,
   ringtoneStyles,
   defaultAlarmSettings,
