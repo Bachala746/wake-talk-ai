@@ -11,6 +11,10 @@ import {
   ringtoneStyles,
   defaultAlarmSettings,
 } from "@/lib/alarmSettings";
+import {
+  getMotivationalGreeting,
+  getMotivationalMessage,
+} from "@/lib/motivationLibrary";
 import { WakeUpChallenge } from "./WakeUpChallenge";
 import { SequentialChallengeRunner } from "./SequentialChallengeRunner";
 import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
