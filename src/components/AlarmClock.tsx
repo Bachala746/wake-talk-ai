@@ -42,6 +42,8 @@ import {
   ringtoneStyles,
   snoozeLevels,
   challengeTypes,
+  challengeCategories,
+  getCategoryForChallenge,
   challengeDifficulties,
   interactionModes,
   failureRetryBehaviors,
