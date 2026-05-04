@@ -53,9 +53,9 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const ringtoneVolumeRef = useRef(0.1);
 
-  // Get themed messages based on settings
-  const themeContent = themeMessages[settings.messageTheme];
-  
+  // Greeting + per-cycle motivational messages now come from the
+  // time-of-day + theme + intensity aware library.
+
   const getGreetingMessage = () => {
     const { greetingStyle, userName, messageTheme } = settings;
     const baseGreeting = getMotivationalGreeting(messageTheme, new Date());
