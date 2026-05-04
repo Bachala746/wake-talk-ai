@@ -58,19 +58,17 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
   
   const getGreetingMessage = () => {
     const { greetingStyle, userName, messageTheme } = settings;
-    const baseGreeting = themeContent.greeting;
-    
+    const baseGreeting = getMotivationalGreeting(messageTheme, new Date());
+
     if (greetingStyle === 'personalized' && userName) {
-      // Replace generic greeting with personalized one
       const timeOfDay = new Date().getHours() < 12 ? 'morning' : 'day';
-      return `Good ${timeOfDay}, ${userName}! ${baseGreeting.split('!').slice(1).join('!')}`;
+      return `Good ${timeOfDay}, ${userName}. ${baseGreeting}`;
     } else if (greetingStyle === 'formal') {
-      return `Good morning. I hope you rested well. ${baseGreeting.split('!').slice(1).join('!')}`;
+      return `Good morning. I hope you rested well. ${baseGreeting}`;
     }
     return baseGreeting;
   };
 
-  const motivationalMessages = themeContent.messages;
   const antiSnoozeMessages = snoozeMessages[settings.snoozeLevel];
 
   const playRingtone = () => {
