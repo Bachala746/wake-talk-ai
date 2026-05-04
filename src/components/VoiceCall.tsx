@@ -216,20 +216,13 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
       messageToSpeak = getGreetingMessage();
       hasGreetedRef.current = true;
     } else {
-      // Get unused message index
-      const availableIndices = motivationalMessages
-        .map((_, i) => i)
-        .filter(i => !usedMessageIndicesRef.current.has(i));
-      
-      // Reset if all messages used
-      if (availableIndices.length === 0) {
-        usedMessageIndicesRef.current.clear();
-        availableIndices.push(...motivationalMessages.map((_, i) => i));
-      }
-      
-      const randomIdx = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-      usedMessageIndicesRef.current.add(randomIdx);
-      messageToSpeak = motivationalMessages[randomIdx];
+      // Pick a time-of-day + theme + intensity-aware message
+      messageToSpeak = getMotivationalMessage(
+        settings.messageTheme,
+        settings.snoozeLevel,
+        usedMessageKeysRef.current,
+        new Date()
+      );
     }
     
     setCurrentMessage(messageToSpeak);
