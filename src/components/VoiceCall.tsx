@@ -6,11 +6,14 @@ import { Phone, PhoneOff, Volume2, Heart, Sun } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlarmSettings,
-  themeMessages,
   snoozeMessages,
   ringtoneStyles,
   defaultAlarmSettings,
 } from "@/lib/alarmSettings";
+import {
+  getMotivationalGreeting,
+  getMotivationalMessage,
+} from "@/lib/motivationLibrary";
 import { WakeUpChallenge } from "./WakeUpChallenge";
 import { SequentialChallengeRunner } from "./SequentialChallengeRunner";
 import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
@@ -44,29 +47,27 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
   const lastSpeechTimeRef = useRef(0);
   const isSpeechActiveRef = useRef(false);
   const intentionallyCanceledRef = useRef(false);
-  const usedMessageIndicesRef = useRef<Set<number>>(new Set());
+  const usedMessageKeysRef = useRef<Set<string>>(new Set());
   const hasGreetedRef = useRef(false);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const ringtoneVolumeRef = useRef(0.1);
 
-  // Get themed messages based on settings
-  const themeContent = themeMessages[settings.messageTheme];
-  
+  // Greeting + per-cycle motivational messages now come from the
+  // time-of-day + theme + intensity aware library.
+
   const getGreetingMessage = () => {
     const { greetingStyle, userName, messageTheme } = settings;
-    const baseGreeting = themeContent.greeting;
-    
+    const baseGreeting = getMotivationalGreeting(messageTheme, new Date());
+
     if (greetingStyle === 'personalized' && userName) {
-      // Replace generic greeting with personalized one
       const timeOfDay = new Date().getHours() < 12 ? 'morning' : 'day';
-      return `Good ${timeOfDay}, ${userName}! ${baseGreeting.split('!').slice(1).join('!')}`;
+      return `Good ${timeOfDay}, ${userName}. ${baseGreeting}`;
     } else if (greetingStyle === 'formal') {
-      return `Good morning. I hope you rested well. ${baseGreeting.split('!').slice(1).join('!')}`;
+      return `Good morning. I hope you rested well. ${baseGreeting}`;
     }
     return baseGreeting;
   };
 
-  const motivationalMessages = themeContent.messages;
   const antiSnoozeMessages = snoozeMessages[settings.snoozeLevel];
 
   const playRingtone = () => {
@@ -214,20 +215,13 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
       messageToSpeak = getGreetingMessage();
       hasGreetedRef.current = true;
     } else {
-      // Get unused message index
-      const availableIndices = motivationalMessages
-        .map((_, i) => i)
-        .filter(i => !usedMessageIndicesRef.current.has(i));
-      
-      // Reset if all messages used
-      if (availableIndices.length === 0) {
-        usedMessageIndicesRef.current.clear();
-        availableIndices.push(...motivationalMessages.map((_, i) => i));
-      }
-      
-      const randomIdx = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-      usedMessageIndicesRef.current.add(randomIdx);
-      messageToSpeak = motivationalMessages[randomIdx];
+      // Pick a time-of-day + theme + intensity-aware message
+      messageToSpeak = getMotivationalMessage(
+        settings.messageTheme,
+        settings.snoozeLevel,
+        usedMessageKeysRef.current,
+        new Date()
+      );
     }
     
     setCurrentMessage(messageToSpeak);
