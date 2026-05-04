@@ -1308,26 +1308,48 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                     </div>
                   </div>
 
-                  {/* Add challenge buttons */}
+                  {/* Add challenge — categorized */}
                   {challengeSequence.length < MAX_CHALLENGES_PER_ALARM && (
-                    <div>
-                      <Label className="text-xs sm:text-sm font-medium mb-2 block">Add Challenge</Label>
-                      <div className="grid grid-cols-2 gap-1.5">
-                        {challengeTypes.filter(t => t.value !== 'none').map((type) => (
-                          <Button
-                            key={type.value}
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setChallengeSequence(prev => [...prev, { type: type.value, difficulty: challengeDifficulty }]);
-                            }}
-                            className="flex items-center gap-1.5 justify-start h-auto py-2 px-2 min-w-0 text-xs"
-                          >
-                            <span className="shrink-0">{type.icon}</span>
-                            <span className="truncate">{type.label}</span>
-                          </Button>
-                        ))}
+                    <div className="space-y-2">
+                      <Label className="text-xs sm:text-sm font-medium block">Add Challenge by Category</Label>
+                      <div className="space-y-2">
+                        {challengeCategories.map((cat) => {
+                          const items = challengeTypes.filter(t => cat.challenges.includes(t.value));
+                          if (items.length === 0) return null;
+                          return (
+                            <details
+                              key={cat.id}
+                              className="group rounded-xl border border-border bg-card/50 backdrop-blur-sm overflow-hidden"
+                            >
+                              <summary className="flex items-center gap-2 px-3 py-2.5 cursor-pointer list-none select-none hover:bg-accent/40 transition-colors">
+                                <span className="text-xl shrink-0">{cat.icon}</span>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-xs sm:text-sm font-semibold truncate">{cat.label}</div>
+                                  <div className="text-[10px] sm:text-xs text-muted-foreground truncate">{cat.tagline}</div>
+                                </div>
+                                <span className="text-[10px] text-muted-foreground shrink-0">{items.length}</span>
+                                <span className="text-muted-foreground shrink-0 transition-transform group-open:rotate-180">▾</span>
+                              </summary>
+                              <div className="px-2 pb-2 pt-1 grid grid-cols-2 gap-1.5">
+                                {items.map((type) => (
+                                  <Button
+                                    key={type.value}
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setChallengeSequence(prev => [...prev, { type: type.value, difficulty: challengeDifficulty }]);
+                                    }}
+                                    className="flex items-center gap-1.5 justify-start h-auto py-2 px-2 min-w-0 text-xs"
+                                  >
+                                    <span className="shrink-0">{type.icon}</span>
+                                    <span className="truncate">{type.label}</span>
+                                  </Button>
+                                ))}
+                              </div>
+                            </details>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
