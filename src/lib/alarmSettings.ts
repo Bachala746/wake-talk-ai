@@ -319,6 +319,67 @@ export const challengeDifficulties: { value: ChallengeDifficulty; label: string;
   { value: 'hard', label: 'Hard', description: 'For heavy sleepers' },
 ];
 
+// ============================================================
+// Challenge Categories — group challenges by purpose
+// ============================================================
+export type ChallengeCategoryId = 'mind' | 'body' | 'reality' | 'interaction' | 'focus';
+
+export interface ChallengeCategory {
+  id: ChallengeCategoryId;
+  label: string;
+  icon: string;
+  tagline: string;
+  purpose: string;
+  challenges: ChallengeType[];
+}
+
+export const challengeCategories: ChallengeCategory[] = [
+  {
+    id: 'mind',
+    label: 'Mind Wake-Up',
+    icon: '🧠',
+    tagline: 'Activate your brain',
+    purpose: 'Boost alertness through reasoning, memory, and word puzzles',
+    challenges: ['math', 'memory', 'typing', 'pattern', 'captcha', 'slider'],
+  },
+  {
+    id: 'body',
+    label: 'Body Wake-Up',
+    icon: '🏃',
+    tagline: 'Get your body moving',
+    purpose: 'Physically wake up with movement and motion detection',
+    challenges: ['shake', 'steps'],
+  },
+  {
+    id: 'reality',
+    label: 'Reality Wake-Up',
+    icon: '📸',
+    tagline: 'Leave the bed',
+    purpose: 'Force you out of bed via real-world scanning',
+    challenges: ['qrcode', 'barcode', 'objectVerify'],
+  },
+  {
+    id: 'interaction',
+    label: 'Interaction',
+    icon: '🗣️',
+    tagline: 'Speak to wake up',
+    purpose: 'Engage your voice and cognition',
+    challenges: ['speakMatch'],
+  },
+  {
+    id: 'focus',
+    label: 'Focus & Discipline',
+    icon: '⏱️',
+    tagline: 'Build awareness',
+    purpose: 'Train control and focus with timed exercises',
+    challenges: [],
+  },
+];
+
+export function getCategoryForChallenge(type: ChallengeType): ChallengeCategory | undefined {
+  return challengeCategories.find(cat => cat.challenges.includes(type));
+}
+
 // Speak & Match settings interface
 export interface SpeakMatchSettings {
   paragraphLength: SpeakMatchParagraphLength;
