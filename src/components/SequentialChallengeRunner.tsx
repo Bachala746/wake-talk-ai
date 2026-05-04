@@ -327,17 +327,27 @@ export const SequentialChallengeRunner = ({
       }`}>
         <div className="space-y-3">
           {/* Step indicator */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-foreground">
-                Challenge {currentIndex + 1} of {challenges.length}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-sm font-bold text-foreground whitespace-nowrap">
+                {currentIndex + 1} / {challenges.length}
               </span>
               {challengeInfo && (
-                <span className="text-base">{challengeInfo.icon}</span>
+                <span className="text-base shrink-0">{challengeInfo.icon}</span>
               )}
+              {(() => {
+                const cat = getCategoryForChallenge(currentChallenge.type);
+                if (!cat) return null;
+                return (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold truncate">
+                    <span>{cat.icon}</span>
+                    <span className="truncate">{cat.label}</span>
+                  </span>
+                );
+              })()}
             </div>
             {totalFailures > 0 && (
-              <div className="flex items-center gap-1 text-xs text-destructive font-medium">
+              <div className="flex items-center gap-1 text-xs text-destructive font-medium shrink-0">
                 <AlertTriangle className="h-3 w-3" />
                 {totalFailures} fail{totalFailures !== 1 ? 's' : ''}
               </div>
