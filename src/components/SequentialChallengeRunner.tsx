@@ -9,6 +9,7 @@ import {
   SequentialChallengeSettings,
   ChallengeDifficulty,
   challengeTypes,
+  getCategoryForChallenge,
   defaultSpeakMatchSettings,
   defaultObjectVerifySettings,
 } from "@/lib/alarmSettings";
