@@ -48,7 +48,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
   const lastSpeechTimeRef = useRef(0);
   const isSpeechActiveRef = useRef(false);
   const intentionallyCanceledRef = useRef(false);
-  const usedMessageIndicesRef = useRef<Set<number>>(new Set());
+  const usedMessageKeysRef = useRef<Set<string>>(new Set());
   const hasGreetedRef = useRef(false);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const ringtoneVolumeRef = useRef(0.1);
