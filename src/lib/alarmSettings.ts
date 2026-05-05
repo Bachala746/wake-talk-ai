@@ -166,6 +166,50 @@ export const themeMessages: Record<MessageTheme, { greeting: string; messages: s
       "Fun fact: Getting up is the hardest part. After that, it's just... well, everything else. You got this!",
       "Roses are red, mornings are tough, but you're getting up, and that's pretty enough!",
     ]
+  },
+  education: {
+    greeting: "Good morning, lifelong learner! Today is another page in the book you're writing of yourself.",
+    messages: [
+      "Every chapter you read today plants a seed for tomorrow's wisdom. Open the book.",
+      "Curiosity is a muscle. Stretch it early, and it carries you all day.",
+      "The mind grows when fed. What new idea will you feed it today?",
+      "One concept understood deeply beats ten skimmed. Go deep.",
+      "Knowledge compounds quietly. Show up for it daily.",
+      "You are one good question away from a breakthrough. Ask it.",
+    ]
+  },
+  study: {
+    greeting: "Good morning, scholar. Your desk is waiting and your focus is fresh — let's use it.",
+    messages: [
+      "First 25 minutes, no phone. Just you and the material. Begin.",
+      "Active recall beats passive reading every single time. Quiz yourself.",
+      "Hard now, easy on test day. Lean into the difficulty.",
+      "One topic, one focused block. Stack the blocks, build the win.",
+      "You don't need motivation. You need to start. The motivation follows.",
+      "Sleepy minds remember less. Stand up, breathe, then dive back in.",
+    ]
+  },
+  life: {
+    greeting: "Good morning. Life is short, and today is one of its precious pages. Live it on purpose.",
+    messages: [
+      "You won't remember the scrolling. You'll remember the doing. Choose doing.",
+      "Be the kind of person you'd want to wake up next to. Start with kindness — to yourself.",
+      "Small habits, lived daily, become the life you didn't know you were building.",
+      "Don't postpone joy. Find a small one in the next hour.",
+      "The best response to a hard morning is one honest, thoughtful action.",
+      "Life rewards presence. Be where your feet are.",
+    ]
+  },
+  exam: {
+    greeting: "Good morning. Exam day energy: calm body, clear mind, prepared heart. You've got this.",
+    messages: [
+      "You've put in the work. Today, just trust it and execute.",
+      "Breathe in for four, out for six. Calm is your sharpest weapon.",
+      "Read each question twice. Then answer the one in front of you — only that one.",
+      "You don't need a perfect score. You need a present mind. Stay present.",
+      "Confidence is doing the next right thing, even when nervous. Do that.",
+      "Remember: this exam measures preparation, not your worth. You are already enough.",
+    ]
   }
 };
 
