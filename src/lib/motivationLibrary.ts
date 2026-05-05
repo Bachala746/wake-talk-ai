@@ -350,6 +350,233 @@ export const motivationLibrary: Record<MessageTheme, ThemeBucket> = {
       },
     },
   },
+
+  education: {
+    greetings: {
+      earlyMorning: [
+        "The library inside your head just opened. You hold the only key.",
+        "Quiet morning, sharp mind. Perfect conditions for learning.",
+      ],
+      morning: [
+        "Good morning, learner. Curiosity is the best alarm — let's follow it.",
+        "A new day, a new chapter. Let's open one together.",
+      ],
+      afternoon: [
+        "The brain is still hungry. Feed it one good idea this hour.",
+      ],
+      evening: [
+        "Evening reading rewires the day. Pick a page and start.",
+      ],
+      night: [
+        "One small thing learned today is yours forever.",
+      ],
+    },
+    messages: {
+      gentle: {
+        morning: [
+          "Read just one page. Curiosity will handle the rest.",
+          "Learning is a slow river. Step in — even ankle deep counts.",
+        ],
+        afternoon: [
+          "Watch one short lesson. Future you will thank present you.",
+        ],
+      },
+      moderate: {
+        morning: [
+          "Twenty focused minutes of learning beats two hours of drift.",
+          "Pick your hardest topic. Spend fifteen minutes on it before anything else.",
+        ],
+        afternoon: [
+          "Ask yourself: what did I actually learn today? If 'nothing,' fix it now.",
+        ],
+      },
+      aggressive: {
+        morning: [
+          "Open the book. NOW. Knowledge doesn't reward hesitation.",
+          "Every minute scrolling is a minute someone else is studying. CHOOSE.",
+        ],
+      },
+    },
+  },
+
+  study: {
+    greetings: {
+      earlyMorning: [
+        "The early desk is the secret weapon. Welcome to it.",
+        "Before notifications, before noise — just you and the page. Use this.",
+      ],
+      morning: [
+        "Good morning, scholar. Your sharpest hour is right now.",
+        "Coffee, notebook, focus. That's the whole formula. Go.",
+      ],
+      lateMorning: [
+        "Still time for a clean focus block. Ninety minutes, no exits.",
+      ],
+      afternoon: [
+        "Afternoon study needs a fresh approach: stand, water, then sit and start.",
+      ],
+      evening: [
+        "Evening review consolidates what morning learned. Don't skip it.",
+      ],
+      night: [
+        "Light review only. Then sleep — your brain finishes the work.",
+      ],
+    },
+    messages: {
+      gentle: {
+        morning: [
+          "Open one notebook. Read one paragraph. That's the whole start.",
+          "You don't have to study for hours. Just begin for ten minutes.",
+        ],
+        afternoon: [
+          "A short quiz on yesterday's material is enough. Be kind, but show up.",
+        ],
+      },
+      moderate: {
+        earlyMorning: [
+          "Pomodoro: 25 minutes on, 5 off. Start the timer. No negotiation.",
+          "Phone face-down, in another room. Then study. That's the deal.",
+        ],
+        morning: [
+          "Active recall, not passive rereading. Close the notes and explain it out loud.",
+          "Pick the topic you've been avoiding. Spend 30 minutes there. Today.",
+        ],
+        afternoon: [
+          "One topic, one timer, one outcome. Begin.",
+        ],
+        evening: [
+          "Review today's notes for ten minutes. That single habit changes everything.",
+        ],
+      },
+      aggressive: {
+        morning: [
+          "PUT THE PHONE DOWN. Open the books. NO EXCUSES.",
+          "Your future depends on the next 90 minutes. PROVE IT.",
+        ],
+        afternoon: [
+          "Stop drifting. ONE topic. ONE hour. SIT DOWN.",
+        ],
+      },
+    },
+  },
+
+  life: {
+    greetings: {
+      earlyMorning: [
+        "Quiet hour, full heart. Life is best lived early and on purpose.",
+        "Before the world tells you who to be, decide for yourself.",
+      ],
+      morning: [
+        "Good morning. You get one of these days. Make it count, not just count it.",
+        "Live the day, don't just survive it. That's the whole challenge.",
+      ],
+      afternoon: [
+        "Pause. Ask: am I living, or just reacting? Choose living.",
+      ],
+      evening: [
+        "Evening is for honesty. What mattered today? Do more of that tomorrow.",
+      ],
+      night: [
+        "Lay the day down kindly. Tomorrow is its own story.",
+      ],
+    },
+    messages: {
+      gentle: {
+        morning: [
+          "One small kind act today changes the texture of your whole life.",
+          "Be patient with yourself. You're doing better than your inner critic admits.",
+          "Life is the small things added up. Pay attention to one of them now.",
+        ],
+        afternoon: [
+          "Step outside for two minutes. Sky, breath, body. That's enough.",
+        ],
+        evening: [
+          "Name one good moment from today. Hold it gently before sleep.",
+        ],
+      },
+      moderate: {
+        morning: [
+          "Stop waiting for the perfect time. Live the imperfect one well.",
+          "Your habits are voting on the person you're becoming. Vote wisely today.",
+        ],
+        afternoon: [
+          "Don't settle into autopilot. Make one deliberate choice this hour.",
+        ],
+        evening: [
+          "Life rewards what you repeat. What did you repeat today?",
+        ],
+      },
+      aggressive: {
+        morning: [
+          "STOP scrolling your life away. STAND UP. LIVE IT.",
+          "Time is the one thing you can't refund. SPEND IT WELL — STARTING NOW.",
+        ],
+      },
+    },
+  },
+
+  exam: {
+    greetings: {
+      earlyMorning: [
+        "Exam morning. Calm body, clear mind. You've prepared — now trust it.",
+        "Today is a performance, not a verdict. Go perform.",
+      ],
+      morning: [
+        "Good morning. Today, you don't need to be perfect. You need to be present.",
+        "Exam day. Breathe. Walk in like you belong there — because you do.",
+      ],
+      lateMorning: [
+        "Plenty of time to settle in. Hydrate, breathe, review the basics gently.",
+      ],
+      afternoon: [
+        "Afternoon exam? Eat light, walk briefly, then focus. Energy over panic.",
+      ],
+      evening: [
+        "Evening test prep: light review only. Sleep is the real study tool tonight.",
+      ],
+      night: [
+        "Stop cramming. Trust your preparation. Sleep is the final lesson.",
+      ],
+    },
+    messages: {
+      gentle: {
+        morning: [
+          "You don't have to ace it. You have to show up calm and try.",
+          "Breathe slowly. Your knowledge is there — panic is the only thing that hides it.",
+          "One question at a time. That's all the universe is asking.",
+        ],
+        afternoon: [
+          "Drink water, stretch, smile. The rest will come.",
+        ],
+        evening: [
+          "Done is better than perfect. Be proud you sat down and tried.",
+        ],
+      },
+      moderate: {
+        earlyMorning: [
+          "Eat something simple. Skim your notes once. Then walk in ready.",
+          "Your hardest preparation has already happened. Today is just delivery.",
+        ],
+        morning: [
+          "Read every question twice before answering. Slow is smooth, smooth is fast.",
+          "If you blank, breathe four counts in, six out, then move to the next question.",
+          "Your nerves mean you care. Use them; don't fear them.",
+        ],
+        afternoon: [
+          "Last hour: review only what you already know. Don't introduce new doubt.",
+        ],
+      },
+      aggressive: {
+        morning: [
+          "GET UP. EAT. REVIEW. WALK IN LIKE YOU OWN IT.",
+          "No more 'what ifs.' WALK IN AND EXECUTE.",
+        ],
+        afternoon: [
+          "PUT DOWN the new material. You know what you know. GO USE IT.",
+        ],
+      },
+    },
+  },
 };
 
 const pickRandom = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
