@@ -88,14 +88,27 @@ export const greetingStyles: { value: GreetingStyle; label: string; description:
 ];
 
 // Message themes with their own sets of motivational messages
-export type MessageTheme = 'fitness' | 'career' | 'gratitude' | 'mindfulness' | 'humor';
+export type MessageTheme =
+  | 'fitness'
+  | 'career'
+  | 'gratitude'
+  | 'mindfulness'
+  | 'humor'
+  | 'education'
+  | 'study'
+  | 'life'
+  | 'exam';
 
 export const messageThemes: { value: MessageTheme; label: string; description: string; icon: string }[] = [
   { value: 'fitness', label: 'Fitness', description: 'Get pumped for exercise', icon: '💪' },
-  { value: 'career', label: 'Career', description: 'Professional success mindset', icon: '📈' },
   { value: 'gratitude', label: 'Gratitude', description: 'Start with thankfulness', icon: '🙏' },
   { value: 'mindfulness', label: 'Mindfulness', description: 'Calm and centered start', icon: '🧘' },
   { value: 'humor', label: 'Humor', description: 'Start with a smile', icon: '😄' },
+  { value: 'education', label: 'Education', description: 'Lifelong learner energy', icon: '📚' },
+  { value: 'study', label: 'Study', description: 'Deep-focus session fuel', icon: '✏️' },
+  { value: 'life', label: 'Life', description: 'Daily life wisdom', icon: '🌱' },
+  { value: 'exam', label: 'Exam', description: 'Test-day confidence boost', icon: '🎯' },
+  { value: 'career', label: 'Career', description: 'Professional success mindset', icon: '📈' },
 ];
 
 export const themeMessages: Record<MessageTheme, { greeting: string; messages: string[] }> = {
