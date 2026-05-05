@@ -127,6 +127,12 @@ All colors MUST be HSL.
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
+  .theme-switching *,
+  .theme-switching *::before,
+  .theme-switching *::after {
+    transition-property: none !important;
+  }
+
   body {
     @apply bg-background text-foreground;
   }
