@@ -42,6 +42,7 @@ import {
   messageThemes,
   ringtoneStyles,
   snoozeLevels,
+  motivationIntensities,
   challengeTypes,
   challengeCategories,
   getCategoryForChallenge,
