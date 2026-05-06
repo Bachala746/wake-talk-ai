@@ -361,6 +361,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setMessageTheme(alarm.settings.messageTheme);
     setRingtoneStyle(alarm.settings.ringtoneStyle);
     setSnoozeLevel(alarm.settings.snoozeLevel);
+    setMotivationIntensity(alarm.settings.motivationIntensity ?? defaultAlarmSettings.motivationIntensity);
     setGradualVolume(alarm.settings.gradualVolume);
     setChallengeType(alarm.settings.challengeType || defaultAlarmSettings.challengeType);
     setChallengeDifficulty(alarm.settings.challengeDifficulty || defaultAlarmSettings.challengeDifficulty);
