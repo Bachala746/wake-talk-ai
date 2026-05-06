@@ -290,6 +290,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       messageTheme,
       ringtoneStyle,
       snoozeLevel,
+      motivationIntensity,
       gradualVolume,
       challengeType: multiChallengeEnabled ? (challengeSequence[0]?.type || 'none') : challengeType,
       challengeDifficulty: multiChallengeEnabled ? (challengeSequence[0]?.difficulty || 'easy') : challengeDifficulty,
