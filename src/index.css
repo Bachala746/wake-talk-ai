@@ -127,10 +127,16 @@ All colors MUST be HSL.
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
-  .theme-switching body *:not(.theme-color-transition),
-  .theme-switching body *::before,
-  .theme-switching body *::after {
-    transition-property: none !important;
+  .theme-switching .animate-float,
+  .theme-switching .animate-pulse-soft,
+  .theme-switching .animate-glow-pulse,
+  .theme-switching .animate-shimmer,
+  .theme-switching .sunrise-aurora,
+  .theme-switching .sunrise-orb-one,
+  .theme-switching .sunrise-orb-two,
+  .theme-switching .sunrise-orb-three,
+  .theme-switching .sunrise-sparkle {
+    animation-play-state: paused;
   }
 
   body {
