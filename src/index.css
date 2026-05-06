@@ -127,7 +127,7 @@ All colors MUST be HSL.
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
-  .theme-switching body *,
+  .theme-switching body *:not(.theme-color-transition),
   .theme-switching body *::before,
   .theme-switching body *::after {
     transition-property: none !important;
@@ -163,6 +163,51 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
+  .theme-color-transition {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .theme-dot-pattern {
+    background-image: radial-gradient(circle, hsl(30 85% 32%) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .dark .theme-dot-pattern {
+    background-image: radial-gradient(circle, hsl(239 84% 77%) 1px, transparent 1px);
+  }
+
+  .sunrise-sky {
+    background: radial-gradient(ellipse at top, hsl(45 100% 90%) 0%, hsl(20 100% 82%) 45%, hsl(340 90% 86%) 100%);
+  }
+
+  .dark .sunrise-sky {
+    background: radial-gradient(ellipse at top, hsl(260 50% 18%) 0%, hsl(240 40% 10%) 55%, hsl(20 40% 12%) 100%);
+  }
+
+  .sunrise-aurora {
+    background: conic-gradient(from 180deg at 50% 120%, transparent, hsl(45 100% 75% / 0.5), transparent 40%, hsl(340 90% 80% / 0.5), transparent);
+  }
+
+  .dark .sunrise-aurora {
+    background: conic-gradient(from 180deg at 50% 120%, transparent, hsl(260 80% 40% / 0.4), transparent 40%, hsl(20 90% 50% / 0.4), transparent);
+  }
+
+  .sunrise-orb-one { background-color: hsl(45 96% 72% / 0.6); }
+  .sunrise-orb-two { background-color: hsl(355 88% 82% / 0.55); }
+  .sunrise-orb-three { background-color: hsl(50 95% 84% / 0.6); }
+  .sunrise-sparkle {
+    background-color: hsl(0 0% 100%);
+    box-shadow: 0 0 10px hsl(40 100% 75%);
+  }
+
+  .dark .sunrise-orb-one { background-color: hsl(25 95% 53% / 0.3); }
+  .dark .sunrise-orb-two { background-color: hsl(330 82% 60% / 0.25); }
+  .dark .sunrise-orb-three { background-color: hsl(239 84% 67% / 0.2); }
+  .dark .sunrise-sparkle {
+    background-color: hsl(48 96% 89% / 0.8);
+    box-shadow: 0 0 12px hsl(45 100% 70%);
+  }
+
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-primary;
   }
