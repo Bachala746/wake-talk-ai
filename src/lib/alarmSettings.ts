@@ -533,6 +533,7 @@ export interface AlarmSettings {
   messageTheme: MessageTheme;
   ringtoneStyle: RingtoneStyle;
   snoozeLevel: SnoozeLevel;
+  motivationIntensity: MotivationIntensity;
   gradualVolume: boolean;
   challengeType: ChallengeType;
   challengeDifficulty: ChallengeDifficulty;
