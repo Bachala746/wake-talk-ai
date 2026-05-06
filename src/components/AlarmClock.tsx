@@ -1183,6 +1183,34 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                   ))}
                 </div>
               </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <Label className="text-xs sm:text-sm font-medium flex items-center gap-2">
+                    <span aria-hidden>🔥</span>
+                    Motivation Intensity
+                  </Label>
+                  <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-primary">
+                    {motivationIntensities.find(i => i.value === motivationIntensity)?.label}
+                  </span>
+                </div>
+                <Slider
+                  value={[motivationIntensities.findIndex(i => i.value === motivationIntensity)]}
+                  onValueChange={(v) => setMotivationIntensity(motivationIntensities[v[0]].value)}
+                  min={0}
+                  max={2}
+                  step={1}
+                  className="py-3"
+                />
+                <div className="flex justify-between text-[10px] sm:text-xs text-muted-foreground mt-1">
+                  <span>Gentle</span>
+                  <span>Moderate</span>
+                  <span>Aggressive</span>
+                </div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground mt-2">
+                  {motivationIntensities.find(i => i.value === motivationIntensity)?.description}
+                </p>
+              </div>
             </TabsContent>
 
             <TabsContent value="sound" className="space-y-4">
