@@ -5,7 +5,6 @@ import { Progress } from "@/components/ui/progress";
 import { BarChart3, RefreshCw, AlertTriangle, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useTheme } from "@/hooks/useTheme";
 
 interface QuotaData {
   characterCount: number;
@@ -14,7 +13,6 @@ interface QuotaData {
 }
 
 export const ElevenLabsQuotaPanel = () => {
-  const { isDark } = useTheme();
   const [quota, setQuota] = useState<QuotaData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,11 +58,7 @@ export const ElevenLabsQuotaPanel = () => {
   };
 
   return (
-    <Card className={`p-4 sm:p-5 backdrop-blur-sm border shadow-md ${
-      isDark 
-        ? 'bg-slate-800/80 border-slate-700/50' 
-        : 'bg-white/80 border-white/50'
-    }`}>
+    <Card className="p-4 sm:p-5 backdrop-blur-sm border shadow-md bg-white/80 border-white/50 dark:bg-slate-800/80 dark:border-slate-700/50">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -113,8 +107,8 @@ export const ElevenLabsQuotaPanel = () => {
             {quota.percentUsed >= 80 && (
               <div className={`flex items-start gap-2 p-3 rounded-xl text-xs ${
                 quota.percentUsed >= 95 
-                  ? isDark ? "bg-red-900/30 text-red-300 border border-red-700/30" : "bg-red-50 text-red-700 border border-red-200"
-                  : isDark ? "bg-amber-900/30 text-amber-300 border border-amber-700/30" : "bg-amber-50 text-amber-700 border border-amber-200"
+                  ? "bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700/30"
+                  : "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700/30"
               }`}>
                 <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                 <span>
