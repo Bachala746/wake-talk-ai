@@ -24,6 +24,7 @@ import {
   MessageTheme,
   RingtoneStyle,
   SnoozeLevel,
+  MotivationIntensity,
   ChallengeType,
   ChallengeDifficulty,
   InteractionMode,
