@@ -16,7 +16,7 @@ import { PermissionCheck } from "./PermissionCheck";
 import { MicrophoneTest } from "./MicrophoneTest";
 import { PreAlarmCheck } from "./PreAlarmCheck";
 import { SunriseAmbience } from "./SunriseAmbience";
-import { useTheme } from "@/hooks/useTheme";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   AlarmSettings,
   VoiceStyle,
@@ -91,7 +91,6 @@ interface AlarmClockProps {
 }
 
 export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
-  const { isDark, toggleTheme } = useTheme();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [alarms, setAlarms] = useState<Alarm[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -647,70 +646,37 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
         <CheatPenaltyIndicator />
       </div>
       {/* Theme Toggle */}
-      <button
-        onClick={toggleTheme}
-        className="fixed top-4 right-4 z-50 p-2.5 rounded-full backdrop-blur-md border shadow-glass hover:scale-110 hover:rotate-12 transition-all duration-300"
-        style={{ background: 'var(--glass-background)', borderColor: 'var(--glass-border)' }}
-        aria-label="Toggle theme"
-      >
-        {isDark ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-indigo-600" />}
-      </button>
+      <ThemeToggle />
 
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex flex-col items-center justify-center px-3 sm:px-4 py-12 sm:py-16 overflow-hidden">
         {/* Subtle dot pattern overlay over the global SunriseAmbience */}
-        <div
-          className="absolute inset-0 opacity-[0.12] pointer-events-none"
-          style={{
-            backgroundImage: isDark
-              ? 'radial-gradient(circle, #818cf8 1px, transparent 1px)'
-              : 'radial-gradient(circle, #92400e 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
-          }}
-        />
+        <div className="theme-dot-pattern absolute inset-0 opacity-[0.12] pointer-events-none" />
 
         {/* Hero Content */}
         <div className="relative z-10 text-center max-w-3xl mx-auto px-2">
           {/* Icon */}
           <div className="mb-6 sm:mb-8 animate-float">
             <div className="relative">
-              <div className={`absolute inset-0 rounded-2xl blur-xl animate-glow-pulse ${
-                isDark ? 'bg-indigo-500/40' : 'bg-orange-400/30'
-              }`} />
-              <div className={`relative inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl backdrop-blur-md border shadow-glass ${
-                isDark 
-                  ? 'bg-indigo-500/20 border-indigo-400/30' 
-                  : 'bg-white/50 border-white/60'
-              }`}>
-                {isDark 
-                  ? <Moon className="h-8 w-8 sm:h-10 sm:w-10 text-indigo-300 drop-shadow-lg" />
-                  : <Sun className="h-8 w-8 sm:h-10 sm:w-10 text-orange-600 drop-shadow-lg" />
-                }
+              <div className="absolute inset-0 rounded-2xl blur-xl animate-glow-pulse bg-orange-400/30 dark:bg-indigo-500/40" />
+              <div className="relative inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl backdrop-blur-md border shadow-glass bg-white/50 border-white/60 dark:bg-indigo-500/20 dark:border-indigo-400/30">
+                <Sun className="h-8 w-8 sm:h-10 sm:w-10 text-orange-600 drop-shadow-lg dark:hidden" />
+                <Moon className="hidden h-8 w-8 sm:h-10 sm:w-10 text-indigo-300 drop-shadow-lg dark:block" />
               </div>
             </div>
           </div>
 
           {/* Main Headline — gradient accent on second line */}
-          <h1 className={`text-3xl sm:text-5xl md:text-7xl font-bold mb-4 sm:mb-6 tracking-tight leading-tight ${
-            isDark ? 'text-slate-100' : 'text-slate-800'
-          }`}>
-            {isDark ? 'Good Night,' : 'Good Morning,'}
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-4 sm:mb-6 tracking-tight leading-tight text-slate-800 dark:text-slate-100">
+            {greeting.text},
             <br />
-            <span
-              className={`bg-clip-text text-transparent ${
-                isDark
-                  ? 'bg-gradient-to-r from-indigo-300 via-purple-300 to-rose-300'
-                  : 'bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600'
-              }`}
-            >
-              {isDark ? 'Sleep Tight' : 'Rise & Shine'}
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 dark:from-indigo-300 dark:via-purple-300 dark:to-rose-300">
+              Rise & Shine
             </span>
           </h1>
 
           {/* Subtitle */}
-          <p className={`text-base sm:text-lg md:text-xl mb-8 sm:mb-10 max-w-xl mx-auto leading-relaxed px-2 ${
-            isDark ? 'text-slate-300' : 'text-slate-700'
-          }`}>
+          <p className="text-base sm:text-lg md:text-xl mb-8 sm:mb-10 max-w-xl mx-auto leading-relaxed px-2 text-slate-700 dark:text-slate-300">
             Your AI-powered morning companion that wakes you up gently and starts your day with meaningful conversations.
           </p>
 
@@ -718,20 +684,14 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           <Button
             onClick={openNewDialog}
             size="lg"
-            className={`px-6 sm:px-8 py-5 sm:py-6 rounded-xl text-base sm:text-lg shadow-xl transition-all duration-300 hover:-translate-y-1 w-full sm:w-auto max-w-xs sm:max-w-none mx-auto ${
-              isDark 
-                ? 'bg-indigo-500 hover:bg-indigo-600 text-white hover:shadow-indigo-500/40' 
-                : 'bg-orange-500 hover:bg-orange-600 text-white hover:shadow-orange-400/40'
-            }`}
+            className="px-6 sm:px-8 py-5 sm:py-6 rounded-xl text-base sm:text-lg shadow-xl transition-all duration-300 hover:-translate-y-1 w-full sm:w-auto max-w-xs sm:max-w-none mx-auto bg-orange-500 hover:bg-orange-600 text-white hover:shadow-orange-400/40 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:hover:shadow-indigo-500/40"
           >
             <Clock className="h-5 w-5 mr-2 shrink-0" />
             <span className="truncate">Set Your Wake-up Time</span>
           </Button>
 
           {/* Feature highlights */}
-          <div className={`flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 mt-6 sm:mt-8 text-xs sm:text-sm ${
-            isDark ? 'text-slate-400' : 'text-slate-600'
-          }`}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 mt-6 sm:mt-8 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 shrink-0" />
               <span>Daily wake-up calls</span>
@@ -744,28 +704,16 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
 
           {/* Motivational Quote in Hero */}
           <div className="mt-8 sm:mt-10 max-w-xl mx-auto">
-            <div className={`p-4 sm:p-5 backdrop-blur-sm rounded-2xl border shadow-lg ${
-              isDark 
-                ? 'bg-indigo-500/10 border-indigo-400/20' 
-                : 'bg-white/40 border-white/50'
-            }`}>
+            <div className="p-4 sm:p-5 backdrop-blur-sm rounded-2xl border shadow-lg bg-white/40 border-white/50 dark:bg-indigo-500/10 dark:border-indigo-400/20">
               <div className="flex items-start gap-3 sm:gap-4">
-                <div className={`rounded-xl p-2 sm:p-2.5 shrink-0 shadow-md ${
-                  isDark 
-                    ? 'bg-gradient-to-br from-indigo-500 to-purple-600' 
-                    : 'bg-gradient-to-br from-orange-400 to-amber-500'
-                }`}>
+                <div className="rounded-xl p-2 sm:p-2.5 shrink-0 shadow-md bg-gradient-to-br from-orange-400 to-amber-500 dark:from-indigo-500 dark:to-purple-600">
                   <Flame className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
                 <div className="min-h-[50px] sm:min-h-[60px] flex flex-col justify-center min-w-0 flex-1">
-                  <p className={`text-sm sm:text-base font-medium italic leading-relaxed break-words ${
-                    isDark ? 'text-slate-200' : 'text-slate-700'
-                  }`}>
+                  <p className="text-sm sm:text-base font-medium italic leading-relaxed break-words text-slate-700 dark:text-slate-200">
                     "{motivationalQuotes[currentQuoteIndex].quote}"
                   </p>
-                  <p className={`text-xs sm:text-sm font-semibold mt-2 truncate ${
-                    isDark ? 'text-indigo-400' : 'text-orange-600'
-                  }`}>
+                  <p className="text-xs sm:text-sm font-semibold mt-2 truncate text-orange-600 dark:text-indigo-400">
                     — {motivationalQuotes[currentQuoteIndex].author}
                   </p>
                 </div>
@@ -776,10 +724,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
 
         {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <div className={`w-6 h-10 rounded-full border-2 flex items-start justify-center p-2 ${
-            isDark ? 'border-indigo-400/30' : 'border-white/30'
-          }`}>
-            <div className={`w-1 h-2 rounded-full ${isDark ? 'bg-indigo-400/50' : 'bg-white/50'}`} />
+          <div className="w-6 h-10 rounded-full border-2 flex items-start justify-center p-2 border-white/30 dark:border-indigo-400/30">
+            <div className="w-1 h-2 rounded-full bg-white/50 dark:bg-indigo-400/50" />
           </div>
         </div>
       </section>
@@ -796,15 +742,9 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           </div>
 
           {/* Current Time Display */}
-          <Card className={`relative overflow-hidden p-4 sm:p-6 mb-6 sm:mb-8 backdrop-blur-md border shadow-glass rounded-2xl group hover:shadow-xl transition-shadow duration-500 ${
-            isDark 
-              ? 'bg-slate-800/60 border-slate-600/30' 
-              : 'bg-white/70 border-white/60'
-          }`}>
+          <Card className="relative overflow-hidden p-4 sm:p-6 mb-6 sm:mb-8 backdrop-blur-md border shadow-glass rounded-2xl group hover:shadow-xl transition-shadow duration-500 bg-white/70 border-white/60 dark:bg-slate-800/60 dark:border-slate-600/30">
             {/* Subtle shimmer overlay */}
-            <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 ${
-              isDark ? 'bg-gradient-to-r from-transparent via-indigo-500/5 to-transparent' : 'bg-gradient-to-r from-transparent via-orange-300/10 to-transparent'
-            }`} />
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-gradient-to-r from-transparent via-orange-300/10 to-transparent dark:via-indigo-500/5" />
             <div className="relative text-center">
               <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
                 <div className="bg-gradient-warm p-2 sm:p-2.5 rounded-xl shadow-md shrink-0 animate-pulse-soft">
@@ -812,9 +752,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                 </div>
                 <span className="text-lg sm:text-xl font-semibold text-foreground">{greeting.text}</span>
               </div>
-              <div className={`text-4xl sm:text-5xl font-bold mb-1 tracking-tight ${
-                isDark ? 'text-foreground' : 'text-foreground'
-              }`} style={{ fontVariantNumeric: 'tabular-nums' }}>{formatTime(currentTime)}</div>
+              <div className="text-4xl sm:text-5xl font-bold mb-1 tracking-tight text-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatTime(currentTime)}</div>
               <div className="text-muted-foreground text-xs sm:text-sm mt-1">
                 {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
               </div>
@@ -829,11 +767,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           {/* History Button */}
           <Button
             variant="outline"
-            className={`w-full gap-2 mb-5 rounded-2xl py-4 backdrop-blur-sm border transition-all duration-300 hover:-translate-y-0.5 ${
-              isDark 
-                ? 'bg-slate-800/40 border-slate-600/30 hover:bg-slate-700/50' 
-                : 'bg-white/50 border-white/60 hover:bg-white/70'
-            }`}
+            className="w-full gap-2 mb-5 rounded-2xl py-4 backdrop-blur-sm border transition-all duration-300 hover:-translate-y-0.5 bg-white/50 border-white/60 hover:bg-white/70 dark:bg-slate-800/40 dark:border-slate-600/30 dark:hover:bg-slate-700/50"
             onClick={() => window.location.href = '/history'}
           >
             <BarChart3 className="w-4 h-4" />
@@ -844,13 +778,9 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           {/* Alarms List */}
           <div className="space-y-3">
             {alarms.length === 0 ? (
-              <div className={`text-center py-10 px-4 rounded-2xl backdrop-blur-md border shadow-glass ${
-                isDark ? 'bg-slate-800/30 border-slate-600/20' : 'bg-white/40 border-white/50'
-              }`}>
+              <div className="text-center py-10 px-4 rounded-2xl backdrop-blur-md border shadow-glass bg-white/40 border-white/50 dark:bg-slate-800/30 dark:border-slate-600/20">
                 <div className="relative mx-auto mb-4 w-20 h-20">
-                  <div className={`absolute inset-0 rounded-3xl blur-xl animate-pulse-soft ${
-                    isDark ? 'bg-indigo-500/30' : 'bg-orange-400/30'
-                  }`} />
+                  <div className="absolute inset-0 rounded-3xl blur-xl animate-pulse-soft bg-orange-400/30 dark:bg-indigo-500/30" />
                   <div className="relative bg-gradient-warm w-20 h-20 rounded-3xl flex items-center justify-center shadow-glass animate-float">
                     <Clock className="h-10 w-10 text-white" />
                   </div>
@@ -862,11 +792,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
               alarms.map((alarm, index) => (
                 <Card 
                   key={alarm.id} 
-                  className={`relative overflow-hidden p-3 sm:p-4 backdrop-blur-md border shadow-glass rounded-2xl hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 ${
-                    isDark 
-                      ? 'bg-slate-800/50 border-slate-600/30' 
-                      : 'bg-white/60 border-white/60'
-                  } ${alarm.isActive ? 'ring-1 ring-primary/20' : ''}`}
+                  className={`relative overflow-hidden p-3 sm:p-4 backdrop-blur-md border shadow-glass rounded-2xl hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 bg-white/60 border-white/60 dark:bg-slate-800/50 dark:border-slate-600/30 ${alarm.isActive ? 'ring-1 ring-primary/20' : ''}`}
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div className="flex flex-col gap-3">
@@ -923,16 +849,12 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                           <span className="capitalize">{alarm.settings.messageTheme}</span>
                         </span>
                         {alarm.settings.sequentialChallengeSettings?.enabled && (
-                          <span className={`px-1.5 py-0.5 rounded shrink-0 ${
-                            isDark ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-700'
-                          }`}>
+                          <span className="px-1.5 py-0.5 rounded shrink-0 bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
                             🎯 {alarm.settings.sequentialChallengeSettings.challenges.length} challenges
                           </span>
                         )}
                         {!alarm.settings.sequentialChallengeSettings?.enabled && alarm.settings.challengeType !== 'none' && (
-                          <span className={`px-1.5 py-0.5 rounded shrink-0 ${
-                            isDark ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-700'
-                          }`}>
+                          <span className="px-1.5 py-0.5 rounded shrink-0 bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300">
                             {challengeTypes.find(c => c.value === alarm.settings.challengeType)?.icon} {challengeTypes.find(c => c.value === alarm.settings.challengeType)?.label}
                           </span>
                         )}
@@ -965,11 +887,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
               <Button 
                 onClick={() => onStartCall("now", 5, defaultAlarmSettings, true)}
                 variant="outline"
-                className={`flex-1 py-4 sm:py-5 rounded-2xl backdrop-blur-sm border-2 transition-all duration-300 text-xs sm:text-sm min-w-0 hover:-translate-y-0.5 ${
-                  isDark 
-                    ? 'border-indigo-500/30 hover:border-indigo-400 hover:bg-indigo-500/10 bg-indigo-500/5' 
-                    : 'border-primary/20 hover:border-primary hover:bg-primary/5 bg-white/40'
-                }`}
+                className="flex-1 py-4 sm:py-5 rounded-2xl backdrop-blur-sm border-2 transition-all duration-300 text-xs sm:text-sm min-w-0 hover:-translate-y-0.5 border-primary/20 hover:border-primary hover:bg-primary/5 bg-white/40 dark:border-indigo-500/30 dark:hover:border-indigo-400 dark:hover:bg-indigo-500/10 dark:bg-indigo-500/5"
                 size="lg"
               >
                 <Phone className="h-4 w-4 mr-1.5 text-primary shrink-0" />
@@ -979,14 +897,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
               <Button 
                 onClick={() => onStartCall("now", 5, { ...defaultAlarmSettings, interactionMode: 'two-way' }, true)}
                 variant="outline"
-                className={`flex-1 py-4 sm:py-5 rounded-2xl backdrop-blur-sm border-2 transition-all duration-300 text-xs sm:text-sm min-w-0 hover:-translate-y-0.5 ${
-                  isDark 
-                    ? 'border-blue-500/30 hover:border-blue-400 hover:bg-blue-500/10 bg-blue-500/5' 
-                    : 'border-blue-300/50 hover:border-blue-500 hover:bg-blue-50 bg-white/40'
-                }`}
+                className="flex-1 py-4 sm:py-5 rounded-2xl backdrop-blur-sm border-2 transition-all duration-300 text-xs sm:text-sm min-w-0 hover:-translate-y-0.5 border-blue-300/50 hover:border-blue-500 hover:bg-blue-50 bg-white/40 dark:border-blue-500/30 dark:hover:border-blue-400 dark:hover:bg-blue-500/10 dark:bg-blue-500/5"
                 size="lg"
               >
-                <MessageSquare className={`h-4 w-4 mr-1.5 shrink-0 ${isDark ? 'text-blue-400' : 'text-blue-500'}`} />
+                <MessageSquare className="h-4 w-4 mr-1.5 shrink-0 text-blue-500 dark:text-blue-400" />
                 <span className="truncate">Two-Way Test</span>
               </Button>
             </div>
@@ -994,14 +908,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
             <Button
               onClick={() => setMicTestOpen(true)}
               variant="outline"
-              className={`w-full py-4 sm:py-5 rounded-2xl backdrop-blur-sm border-2 transition-all duration-300 text-xs sm:text-sm hover:-translate-y-0.5 ${
-                isDark
-                  ? 'border-emerald-500/30 hover:border-emerald-400 hover:bg-emerald-500/10 bg-emerald-500/5'
-                  : 'border-emerald-300/50 hover:border-emerald-500 hover:bg-emerald-50 bg-white/40'
-              }`}
+              className="w-full py-4 sm:py-5 rounded-2xl backdrop-blur-sm border-2 transition-all duration-300 text-xs sm:text-sm hover:-translate-y-0.5 border-emerald-300/50 hover:border-emerald-500 hover:bg-emerald-50 bg-white/40 dark:border-emerald-500/30 dark:hover:border-emerald-400 dark:hover:bg-emerald-500/10 dark:bg-emerald-500/5"
               size="lg"
             >
-              <Mic className={`h-4 w-4 mr-1.5 shrink-0 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+              <Mic className="h-4 w-4 mr-1.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
               <span className="truncate">Microphone Test</span>
             </Button>
           </div>
@@ -1085,13 +995,9 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
 
               {/* Real-Time AI Agent ID */}
               {interactionMode === 'two-way' && (
-                <div className={`p-3 rounded-lg border ${
-                  isDark 
-                    ? 'bg-gradient-to-r from-purple-900/30 to-indigo-900/30 border-purple-700/30' 
-                    : 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200'
-                }`}>
+                <div className="p-3 rounded-lg border bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200 dark:from-purple-900/30 dark:to-indigo-900/30 dark:border-purple-700/30">
                   <Label className="text-xs sm:text-sm font-medium mb-2 block flex items-center gap-2">
-                    <Zap className={`h-4 w-4 ${isDark ? 'text-purple-400' : 'text-purple-500'}`} />
+                    <Zap className="h-4 w-4 text-purple-500 dark:text-purple-400" />
                     Real-Time AI Agent ID (Optional)
                   </Label>
                   <Input
@@ -1101,7 +1007,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                     onChange={(e) => setElevenLabsAgentId(e.target.value)}
                     className="mb-2"
                   />
-                  <p className={`text-[10px] sm:text-xs ${isDark ? 'text-purple-300' : 'text-purple-600'}`}>
+                  <p className="text-[10px] sm:text-xs text-purple-600 dark:text-purple-300">
                     {elevenLabsAgentId 
                       ? "⚡ Real-time mode enabled! Zero latency voice-to-voice."
                       : "Leave empty for standard mode, or add Agent ID from ElevenLabs for instant responses."}
