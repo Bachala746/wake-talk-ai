@@ -227,8 +227,15 @@ export const ringtoneStyles: { value: RingtoneStyle; label: string; description:
   { value: 'military', label: 'Military Reveille', description: 'Loud and commanding', frequency: 1800, type: 'square', volume: 0.9 },
 ];
 
-// Snooze aggressiveness levels
-export type SnoozeLevel = 'gentle' | 'moderate' | 'aggressive';
+// Motivation intensity (also reused as snooze aggressiveness level)
+export type MotivationIntensity = 'gentle' | 'moderate' | 'aggressive';
+export type SnoozeLevel = MotivationIntensity;
+
+export const motivationIntensities: { value: MotivationIntensity; label: string; description: string }[] = [
+  { value: 'gentle', label: 'Gentle', description: 'Soft, kind encouragement' },
+  { value: 'moderate', label: 'Moderate', description: 'Balanced, supportive push' },
+  { value: 'aggressive', label: 'Aggressive', description: 'Bold, no-nonsense drive' },
+];
 
 export const snoozeLevels: { value: SnoozeLevel; label: string; description: string }[] = [
   { value: 'gentle', label: 'Gentle', description: 'Kind reminders to get up' },
@@ -526,6 +533,7 @@ export interface AlarmSettings {
   messageTheme: MessageTheme;
   ringtoneStyle: RingtoneStyle;
   snoozeLevel: SnoozeLevel;
+  motivationIntensity: MotivationIntensity;
   gradualVolume: boolean;
   challengeType: ChallengeType;
   challengeDifficulty: ChallengeDifficulty;
@@ -549,6 +557,7 @@ export const defaultAlarmSettings: AlarmSettings = {
   messageTheme: 'gratitude',
   ringtoneStyle: 'gentle',
   snoozeLevel: 'moderate',
+  motivationIntensity: 'moderate',
   gradualVolume: true,
   challengeType: 'none',
   challengeDifficulty: 'easy',

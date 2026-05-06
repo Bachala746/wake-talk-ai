@@ -24,6 +24,7 @@ import {
   MessageTheme,
   RingtoneStyle,
   SnoozeLevel,
+  MotivationIntensity,
   ChallengeType,
   ChallengeDifficulty,
   InteractionMode,
@@ -41,6 +42,7 @@ import {
   messageThemes,
   ringtoneStyles,
   snoozeLevels,
+  motivationIntensities,
   challengeTypes,
   challengeCategories,
   getCategoryForChallenge,
@@ -112,6 +114,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [messageTheme, setMessageTheme] = useState<MessageTheme>(defaultAlarmSettings.messageTheme);
   const [ringtoneStyle, setRingtoneStyle] = useState<RingtoneStyle>(defaultAlarmSettings.ringtoneStyle);
   const [snoozeLevel, setSnoozeLevel] = useState<SnoozeLevel>(defaultAlarmSettings.snoozeLevel);
+  const [motivationIntensity, setMotivationIntensity] = useState<MotivationIntensity>(defaultAlarmSettings.motivationIntensity);
   const [challengeType, setChallengeType] = useState<ChallengeType>(defaultAlarmSettings.challengeType);
   const [challengeDifficulty, setChallengeDifficulty] = useState<ChallengeDifficulty>(defaultAlarmSettings.challengeDifficulty);
   const [gradualVolume, setGradualVolume] = useState(defaultAlarmSettings.gradualVolume);
@@ -290,6 +293,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       messageTheme,
       ringtoneStyle,
       snoozeLevel,
+      motivationIntensity,
       gradualVolume,
       challengeType: multiChallengeEnabled ? (challengeSequence[0]?.type || 'none') : challengeType,
       challengeDifficulty: multiChallengeEnabled ? (challengeSequence[0]?.difficulty || 'easy') : challengeDifficulty,
@@ -357,6 +361,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setMessageTheme(alarm.settings.messageTheme);
     setRingtoneStyle(alarm.settings.ringtoneStyle);
     setSnoozeLevel(alarm.settings.snoozeLevel);
+    setMotivationIntensity(alarm.settings.motivationIntensity ?? defaultAlarmSettings.motivationIntensity);
     setGradualVolume(alarm.settings.gradualVolume);
     setChallengeType(alarm.settings.challengeType || defaultAlarmSettings.challengeType);
     setChallengeDifficulty(alarm.settings.challengeDifficulty || defaultAlarmSettings.challengeDifficulty);
@@ -406,6 +411,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setMessageTheme(defaultAlarmSettings.messageTheme);
     setRingtoneStyle(defaultAlarmSettings.ringtoneStyle);
     setSnoozeLevel(defaultAlarmSettings.snoozeLevel);
+    setMotivationIntensity(defaultAlarmSettings.motivationIntensity);
     setGradualVolume(defaultAlarmSettings.gradualVolume);
     setChallengeType(defaultAlarmSettings.challengeType);
     setChallengeDifficulty(defaultAlarmSettings.challengeDifficulty);
@@ -1176,6 +1182,34 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                     </Button>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <Label className="text-xs sm:text-sm font-medium flex items-center gap-2">
+                    <span aria-hidden>🔥</span>
+                    Motivation Intensity
+                  </Label>
+                  <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-primary">
+                    {motivationIntensities.find(i => i.value === motivationIntensity)?.label}
+                  </span>
+                </div>
+                <Slider
+                  value={[motivationIntensities.findIndex(i => i.value === motivationIntensity)]}
+                  onValueChange={(v) => setMotivationIntensity(motivationIntensities[v[0]].value)}
+                  min={0}
+                  max={2}
+                  step={1}
+                  className="py-3"
+                />
+                <div className="flex justify-between text-[10px] sm:text-xs text-muted-foreground mt-1">
+                  <span>Gentle</span>
+                  <span>Moderate</span>
+                  <span>Aggressive</span>
+                </div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground mt-2">
+                  {motivationIntensities.find(i => i.value === motivationIntensity)?.description}
+                </p>
               </div>
             </TabsContent>
 
