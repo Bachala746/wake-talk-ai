@@ -641,3 +641,23 @@ export const getMotivationalMessage = (
   usedKeys.add(choice);
   return choice;
 };
+
+/**
+ * Returns a stable example message for the given theme + intensity, matched to
+ * the current time-of-day when possible. Used by the settings preview UI.
+ */
+export const getExampleMessage = (
+  theme: MessageTheme,
+  intensity: Intensity,
+  date: Date = new Date()
+): string => {
+  const tod = getTimeOfDay(date);
+  const themeBucket = motivationLibrary[theme]?.messages ?? ({} as Record<Intensity, Bucket>);
+  const intensityBucket = themeBucket[intensity] ?? {};
+  const todList = intensityBucket[tod] ?? [];
+  const anyTime = flatten(intensityBucket);
+  const list = todList.length > 0 ? todList : anyTime;
+  if (list.length === 0) return "Keep going. You've got this.";
+  return list[0];
+};
+
