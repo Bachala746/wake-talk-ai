@@ -14,8 +14,12 @@ const listeners = new Set<() => void>();
 
 const persistTheme = (isDark: boolean) => {
   const save = () => localStorage.setItem(STORAGE_KEY, isDark ? "dark" : "light");
-  if ("requestIdleCallback" in window) {
-    window.requestIdleCallback(save, { timeout: 500 });
+  const scheduler = window as Window & {
+    requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number;
+  };
+
+  if (scheduler.requestIdleCallback) {
+    scheduler.requestIdleCallback(save, { timeout: 500 });
   } else {
     window.setTimeout(save, 0);
   }
