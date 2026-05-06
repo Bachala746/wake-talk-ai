@@ -838,9 +838,9 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                       </div>
                       <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-xs text-muted-foreground">
                         <span className={`px-1.5 py-0.5 rounded shrink-0 ${
-                          isDark
-                            ? alarm.settings.interactionMode === 'two-way' ? 'bg-blue-900/50 text-blue-300' : 'bg-indigo-900/50 text-indigo-300'
-                            : alarm.settings.interactionMode === 'two-way' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
+                          alarm.settings.interactionMode === 'two-way'
+                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
+                            : 'bg-orange-100 text-orange-700 dark:bg-indigo-900/50 dark:text-indigo-300'
                         }`}>
                           {alarm.settings.interactionMode === 'two-way' ? '💬 Two-Way' : '📢 One-Way'}
                         </span>
