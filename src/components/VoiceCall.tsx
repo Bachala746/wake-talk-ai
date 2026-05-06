@@ -218,7 +218,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
       // Pick a time-of-day + theme + intensity-aware message
       messageToSpeak = getMotivationalMessage(
         settings.messageTheme,
-        settings.snoozeLevel,
+        settings.motivationIntensity ?? settings.snoozeLevel,
         usedMessageKeysRef.current,
         new Date()
       );
