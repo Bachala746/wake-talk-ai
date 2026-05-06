@@ -1212,9 +1212,44 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                   {motivationIntensities.find(i => i.value === motivationIntensity)?.description}
                 </p>
               </div>
-            </TabsContent>
 
-            <TabsContent value="sound" className="space-y-4">
+              <div className="rounded-lg border bg-muted/40 p-3 sm:p-4 space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <Label className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                    <span aria-hidden>👁️</span>
+                    Live Preview
+                  </Label>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground capitalize truncate">
+                    {messageThemes.find(t => t.value === messageTheme)?.icon} {messageTheme}
+                  </span>
+                </div>
+                {motivationIntensities.map((level) => {
+                  const isActive = level.value === motivationIntensity;
+                  return (
+                    <div
+                      key={level.value}
+                      className={`rounded-md border p-2.5 sm:p-3 transition-colors ${
+                        isActive
+                          ? "border-primary/60 bg-primary/10"
+                          : "border-border/50 bg-background/40"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wide ${isActive ? "text-primary" : "text-muted-foreground"}`}>
+                          {level.label}
+                        </span>
+                        {isActive && (
+                          <span className="text-[9px] sm:text-[10px] font-medium text-primary">SELECTED</span>
+                        )}
+                      </div>
+                      <p className="text-xs sm:text-sm leading-snug text-foreground/90">
+                        "{getExampleMessage(messageTheme, level.value)}"
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+
               <div>
                 <Label className="text-xs sm:text-sm font-medium mb-2 sm:mb-3 block flex items-center gap-2">
                   <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
