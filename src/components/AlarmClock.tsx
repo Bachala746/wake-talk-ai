@@ -112,6 +112,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [messageTheme, setMessageTheme] = useState<MessageTheme>(defaultAlarmSettings.messageTheme);
   const [ringtoneStyle, setRingtoneStyle] = useState<RingtoneStyle>(defaultAlarmSettings.ringtoneStyle);
   const [snoozeLevel, setSnoozeLevel] = useState<SnoozeLevel>(defaultAlarmSettings.snoozeLevel);
+  const [motivationIntensity, setMotivationIntensity] = useState<MotivationIntensity>(defaultAlarmSettings.motivationIntensity);
   const [challengeType, setChallengeType] = useState<ChallengeType>(defaultAlarmSettings.challengeType);
   const [challengeDifficulty, setChallengeDifficulty] = useState<ChallengeDifficulty>(defaultAlarmSettings.challengeDifficulty);
   const [gradualVolume, setGradualVolume] = useState(defaultAlarmSettings.gradualVolume);
