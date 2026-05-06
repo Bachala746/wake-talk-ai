@@ -557,6 +557,7 @@ export const defaultAlarmSettings: AlarmSettings = {
   messageTheme: 'gratitude',
   ringtoneStyle: 'gentle',
   snoozeLevel: 'moderate',
+  motivationIntensity: 'moderate',
   gradualVolume: true,
   challengeType: 'none',
   challengeDifficulty: 'easy',
