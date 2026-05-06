@@ -61,6 +61,7 @@ import {
   speakMatchParagraphTypes,
 } from "@/lib/alarmSettings";
 import { getStoredObjects, addStoredObject, removeStoredObject, captureImageFromVideo } from "@/lib/objectStore";
+import { getExampleMessage } from "@/lib/motivationLibrary";
 
 const motivationalQuotes = [
   { quote: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
