@@ -189,6 +189,47 @@ All colors MUST be HSL.
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   }
 
+  .glass-card {
+    background: hsla(0, 0%, 100%, 0.55);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid hsla(25, 80%, 90%, 0.6);
+    box-shadow: 0 10px 40px -10px hsla(20, 100%, 60%, 0.25), inset 0 1px 0 hsla(0, 0%, 100%, 0.6);
+  }
+
+  .dark .glass-card {
+    background: hsla(230, 30%, 12%, 0.55);
+    border-color: hsla(25, 60%, 50%, 0.18);
+    box-shadow: 0 10px 40px -10px hsla(20, 100%, 40%, 0.25), inset 0 1px 0 hsla(0, 0%, 100%, 0.05);
+  }
+
+  .btn-sunrise {
+    background: linear-gradient(135deg, hsl(20 100% 60%) 0%, hsl(340 90% 65%) 100%);
+    color: white;
+    box-shadow: 0 8px 24px -6px hsla(20, 100%, 55%, 0.55);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  }
+  .btn-sunrise:hover { transform: translateY(-1px) scale(1.02); box-shadow: 0 12px 32px -6px hsla(20, 100%, 55%, 0.7); filter: brightness(1.05); }
+  .btn-sunrise:active { transform: scale(0.98); }
+
+  .text-sunrise {
+    background: linear-gradient(135deg, hsl(20 100% 55%) 0%, hsl(340 90% 60%) 50%, hsl(45 100% 55%) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .sun-glow {
+    background: radial-gradient(circle, hsl(45 100% 70%) 0%, hsl(25 100% 60%) 60%, hsl(15 95% 55%) 100%);
+    box-shadow: 0 0 40px hsla(35, 100%, 60%, 0.6), 0 0 80px hsla(20, 100%, 55%, 0.4);
+    animation: sun-pulse 4s ease-in-out infinite;
+  }
+
+  @keyframes sun-pulse {
+    0%, 100% { box-shadow: 0 0 40px hsla(35, 100%, 60%, 0.6), 0 0 80px hsla(20, 100%, 55%, 0.4); }
+    50% { box-shadow: 0 0 60px hsla(35, 100%, 65%, 0.75), 0 0 120px hsla(20, 100%, 60%, 0.5); }
+  }
+
   .theme-dot-pattern {
     background-image: radial-gradient(circle, hsl(30 85% 32%) 1px, transparent 1px);
     background-size: 24px 24px;
