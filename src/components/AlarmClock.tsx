@@ -682,7 +682,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           <Button
             onClick={openNewDialog}
             size="lg"
-            className="px-6 sm:px-8 py-5 sm:py-6 rounded-xl text-base sm:text-lg shadow-xl transition-all duration-300 hover:-translate-y-1 w-full sm:w-auto max-w-xs sm:max-w-none mx-auto bg-orange-500 hover:bg-orange-600 text-white hover:shadow-orange-400/40 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:hover:shadow-indigo-500/40"
+            className="btn-sunrise px-6 sm:px-8 py-5 sm:py-6 rounded-2xl text-base sm:text-lg w-full sm:w-auto max-w-xs sm:max-w-none mx-auto border-0"
           >
             <Clock className="h-5 w-5 mr-2 shrink-0" />
             <span className="truncate">Set Your Wake-up Time</span>
