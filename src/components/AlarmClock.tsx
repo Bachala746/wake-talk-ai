@@ -666,11 +666,11 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
             </div>
           </div>
 
-          {/* Main Headline */}
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 tracking-tight leading-tight text-slate-800 dark:text-slate-100">
-            <span className="text-sunrise">Good Morning</span>
+          {/* Main Headline — gradient accent on second line */}
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-4 sm:mb-6 tracking-tight leading-tight text-slate-800 dark:text-slate-100">
+            {greeting.text},
             <br />
-            <span className="text-2xl sm:text-4xl md:text-5xl">Set Up Your Morning Routine</span>
+            <span className="text-sunrise">Rise & Shine</span>
           </h1>
 
           {/* Subtitle */}
@@ -736,8 +736,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl sun-glow mb-4">
               <Sun className="h-7 w-7 text-white" />
             </div>
-            <h2 className="text-3xl font-bold"><span className="text-sunrise">Good Morning</span></h2>
-            <p className="text-sm text-muted-foreground mt-1">Set Up Your Morning Routine</p>
+            <h2 className="text-3xl font-bold"><span className="text-sunrise">Setup Your Morning Routine</span></h2>
           </div>
 
           {/* Good Morning + Time Card */}
