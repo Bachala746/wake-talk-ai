@@ -655,24 +655,22 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
 
         {/* Hero Content */}
         <div className="relative z-10 text-center max-w-3xl mx-auto px-2">
-          {/* Icon */}
+          {/* Glowing Sun Icon */}
           <div className="mb-6 sm:mb-8 animate-float">
-            <div className="relative">
-              <div className="absolute inset-0 rounded-2xl blur-xl animate-glow-pulse bg-orange-400/30 dark:bg-indigo-500/40" />
-              <div className="relative inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl backdrop-blur-md border shadow-glass bg-white/50 border-white/60 dark:bg-indigo-500/20 dark:border-indigo-400/30">
-                <Sun className="h-8 w-8 sm:h-10 sm:w-10 text-orange-600 drop-shadow-lg dark:hidden" />
-                <Moon className="hidden h-8 w-8 sm:h-10 sm:w-10 text-indigo-300 drop-shadow-lg dark:block" />
+            <div className="relative inline-flex">
+              <div className="absolute inset-0 rounded-full blur-2xl sun-glow opacity-70" />
+              <div className="relative inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full sun-glow">
+                <Sun className="h-10 w-10 sm:h-12 sm:w-12 text-white drop-shadow-lg dark:hidden" />
+                <Moon className="hidden h-10 w-10 sm:h-12 sm:w-12 text-white drop-shadow-lg dark:block" />
               </div>
             </div>
           </div>
 
-          {/* Main Headline — gradient accent on second line */}
-          <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-4 sm:mb-6 tracking-tight leading-tight text-slate-800 dark:text-slate-100">
-            {greeting.text},
+          {/* Main Headline */}
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 tracking-tight leading-tight text-slate-800 dark:text-slate-100">
+            <span className="text-sunrise">Good Morning</span>
             <br />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 dark:from-indigo-300 dark:via-purple-300 dark:to-rose-300">
-              Rise & Shine
-            </span>
+            <span className="text-2xl sm:text-4xl md:text-5xl">Set Up Your Morning Routine</span>
           </h1>
 
           {/* Subtitle */}
@@ -684,7 +682,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           <Button
             onClick={openNewDialog}
             size="lg"
-            className="px-6 sm:px-8 py-5 sm:py-6 rounded-xl text-base sm:text-lg shadow-xl transition-all duration-300 hover:-translate-y-1 w-full sm:w-auto max-w-xs sm:max-w-none mx-auto bg-orange-500 hover:bg-orange-600 text-white hover:shadow-orange-400/40 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:hover:shadow-indigo-500/40"
+            className="btn-sunrise px-6 sm:px-8 py-5 sm:py-6 rounded-2xl text-base sm:text-lg w-full sm:w-auto max-w-xs sm:max-w-none mx-auto border-0"
           >
             <Clock className="h-5 w-5 mr-2 shrink-0" />
             <span className="truncate">Set Your Wake-up Time</span>
@@ -735,22 +733,22 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
         <div className="max-w-lg mx-auto w-full">
           {/* Section Header */}
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-warm mb-4 shadow-lg">
-              <Settings className="h-7 w-7 text-white" />
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl sun-glow mb-4">
+              <Sun className="h-7 w-7 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-foreground">Setup Your Morning Routine</h2>
+            <h2 className="text-3xl font-bold"><span className="text-sunrise">Good Morning</span></h2>
+            <p className="text-sm text-muted-foreground mt-1">Set Up Your Morning Routine</p>
           </div>
 
-          {/* Current Time Display */}
-          <Card className="relative overflow-hidden p-4 sm:p-6 mb-6 sm:mb-8 backdrop-blur-md border shadow-glass rounded-2xl group hover:shadow-xl transition-shadow duration-500 bg-white/70 border-white/60 dark:bg-slate-800/60 dark:border-slate-600/30">
-            {/* Subtle shimmer overlay */}
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-gradient-to-r from-transparent via-orange-300/10 to-transparent dark:via-indigo-500/5" />
+          {/* Good Morning + Time Card */}
+          <Card className="glass-card relative overflow-hidden p-5 sm:p-7 mb-6 sm:mb-8 rounded-3xl group hover:-translate-y-0.5 transition-all duration-500">
+            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full sun-glow opacity-30 blur-2xl pointer-events-none" />
             <div className="relative text-center">
               <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                <div className="bg-gradient-warm p-2 sm:p-2.5 rounded-xl shadow-md shrink-0 animate-pulse-soft">
+                <div className="p-2 sm:p-2.5 rounded-xl sun-glow shrink-0">
                   <GreetingIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
-                <span className="text-lg sm:text-xl font-semibold text-foreground">{greeting.text}</span>
+                <span className="text-lg sm:text-xl font-semibold text-sunrise">{greeting.text}</span>
               </div>
               <div className="text-4xl sm:text-5xl font-bold mb-1 tracking-tight text-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatTime(currentTime)}</div>
               <div className="text-muted-foreground text-xs sm:text-sm mt-1">
