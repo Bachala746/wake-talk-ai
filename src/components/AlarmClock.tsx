@@ -733,22 +733,22 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
         <div className="max-w-lg mx-auto w-full">
           {/* Section Header */}
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-warm mb-4 shadow-lg">
-              <Settings className="h-7 w-7 text-white" />
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl sun-glow mb-4">
+              <Sun className="h-7 w-7 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-foreground">Setup Your Morning Routine</h2>
+            <h2 className="text-3xl font-bold"><span className="text-sunrise">Good Morning</span></h2>
+            <p className="text-sm text-muted-foreground mt-1">Set Up Your Morning Routine</p>
           </div>
 
-          {/* Current Time Display */}
-          <Card className="relative overflow-hidden p-4 sm:p-6 mb-6 sm:mb-8 backdrop-blur-md border shadow-glass rounded-2xl group hover:shadow-xl transition-shadow duration-500 bg-white/70 border-white/60 dark:bg-slate-800/60 dark:border-slate-600/30">
-            {/* Subtle shimmer overlay */}
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-gradient-to-r from-transparent via-orange-300/10 to-transparent dark:via-indigo-500/5" />
+          {/* Good Morning + Time Card */}
+          <Card className="glass-card relative overflow-hidden p-5 sm:p-7 mb-6 sm:mb-8 rounded-3xl group hover:-translate-y-0.5 transition-all duration-500">
+            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full sun-glow opacity-30 blur-2xl pointer-events-none" />
             <div className="relative text-center">
               <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                <div className="bg-gradient-warm p-2 sm:p-2.5 rounded-xl shadow-md shrink-0 animate-pulse-soft">
+                <div className="p-2 sm:p-2.5 rounded-xl sun-glow shrink-0">
                   <GreetingIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
-                <span className="text-lg sm:text-xl font-semibold text-foreground">{greeting.text}</span>
+                <span className="text-lg sm:text-xl font-semibold text-sunrise">{greeting.text}</span>
               </div>
               <div className="text-4xl sm:text-5xl font-bold mb-1 tracking-tight text-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatTime(currentTime)}</div>
               <div className="text-muted-foreground text-xs sm:text-sm mt-1">
