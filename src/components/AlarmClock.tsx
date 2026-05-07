@@ -655,24 +655,22 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
 
         {/* Hero Content */}
         <div className="relative z-10 text-center max-w-3xl mx-auto px-2">
-          {/* Icon */}
+          {/* Glowing Sun Icon */}
           <div className="mb-6 sm:mb-8 animate-float">
-            <div className="relative">
-              <div className="absolute inset-0 rounded-2xl blur-xl animate-glow-pulse bg-orange-400/30 dark:bg-indigo-500/40" />
-              <div className="relative inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl backdrop-blur-md border shadow-glass bg-white/50 border-white/60 dark:bg-indigo-500/20 dark:border-indigo-400/30">
-                <Sun className="h-8 w-8 sm:h-10 sm:w-10 text-orange-600 drop-shadow-lg dark:hidden" />
-                <Moon className="hidden h-8 w-8 sm:h-10 sm:w-10 text-indigo-300 drop-shadow-lg dark:block" />
+            <div className="relative inline-flex">
+              <div className="absolute inset-0 rounded-full blur-2xl sun-glow opacity-70" />
+              <div className="relative inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full sun-glow">
+                <Sun className="h-10 w-10 sm:h-12 sm:w-12 text-white drop-shadow-lg dark:hidden" />
+                <Moon className="hidden h-10 w-10 sm:h-12 sm:w-12 text-white drop-shadow-lg dark:block" />
               </div>
             </div>
           </div>
 
-          {/* Main Headline — gradient accent on second line */}
-          <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-4 sm:mb-6 tracking-tight leading-tight text-slate-800 dark:text-slate-100">
-            {greeting.text},
+          {/* Main Headline */}
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 tracking-tight leading-tight text-slate-800 dark:text-slate-100">
+            <span className="text-sunrise">Good Morning</span>
             <br />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 dark:from-indigo-300 dark:via-purple-300 dark:to-rose-300">
-              Rise & Shine
-            </span>
+            <span className="text-2xl sm:text-4xl md:text-5xl">Set Up Your Morning Routine</span>
           </h1>
 
           {/* Subtitle */}
