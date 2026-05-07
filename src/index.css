@@ -140,7 +140,23 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background:
+      radial-gradient(ellipse 90% 60% at 50% -10%, hsl(45 100% 88%) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 50% at 100% 20%, hsl(20 100% 85%) 0%, transparent 55%),
+      radial-gradient(ellipse 80% 60% at 0% 80%, hsl(340 95% 88%) 0%, transparent 60%),
+      linear-gradient(160deg, hsl(35 100% 92%) 0%, hsl(20 100% 88%) 40%, hsl(345 95% 90%) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  .dark body {
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(25 80% 25% / 0.5) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 100% 100%, hsl(330 70% 25% / 0.45) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 0% 80%, hsl(260 60% 22% / 0.4) 0%, transparent 60%),
+      linear-gradient(160deg, hsl(230 35% 8%) 0%, hsl(245 35% 10%) 50%, hsl(260 35% 9%) 100%);
+    background-attachment: fixed;
   }
 
   /* Mobile-first touch-friendly defaults */
