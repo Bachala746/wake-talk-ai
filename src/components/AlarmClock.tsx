@@ -1156,6 +1156,9 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                 })}
               </div>
 
+            </TabsContent>
+
+            <TabsContent value="sound" className="space-y-4">
               <div>
                 <Label className="text-xs sm:text-sm font-medium mb-2 sm:mb-3 block flex items-center gap-2">
                   <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
