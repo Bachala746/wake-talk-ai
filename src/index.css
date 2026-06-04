@@ -152,10 +152,10 @@ All colors MUST be HSL.
 
   .dark body {
     background:
-      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(25 80% 25% / 0.5) 0%, transparent 60%),
-      radial-gradient(ellipse 70% 50% at 100% 100%, hsl(330 70% 25% / 0.45) 0%, transparent 60%),
-      radial-gradient(ellipse 70% 50% at 0% 80%, hsl(260 60% 22% / 0.4) 0%, transparent 60%),
-      linear-gradient(160deg, hsl(230 35% 8%) 0%, hsl(245 35% 10%) 50%, hsl(260 35% 9%) 100%);
+      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(230 70% 18% / 0.6) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 100% 100%, hsl(260 60% 20% / 0.5) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 0% 80%, hsl(220 70% 16% / 0.5) 0%, transparent 60%),
+      linear-gradient(160deg, hsl(230 40% 6%) 0%, hsl(240 38% 8%) 50%, hsl(250 35% 9%) 100%);
     background-attachment: fixed;
   }
 
@@ -198,9 +198,9 @@ All colors MUST be HSL.
   }
 
   .dark .glass-card {
-    background: hsla(230, 30%, 12%, 0.55);
-    border-color: hsla(25, 60%, 50%, 0.18);
-    box-shadow: 0 10px 40px -10px hsla(20, 100%, 40%, 0.25), inset 0 1px 0 hsla(0, 0%, 100%, 0.05);
+    background: hsla(230, 35%, 12%, 0.6);
+    border-color: hsla(220, 60%, 50%, 0.2);
+    box-shadow: 0 10px 40px -10px hsla(230, 80%, 20%, 0.5), inset 0 1px 0 hsla(220, 80%, 90%, 0.06);
   }
 
   .btn-sunrise {
@@ -244,7 +244,7 @@ All colors MUST be HSL.
   }
 
   .dark .sunrise-sky {
-    background: radial-gradient(ellipse at top, hsl(260 50% 18%) 0%, hsl(240 40% 10%) 55%, hsl(20 40% 12%) 100%);
+    background: radial-gradient(ellipse at top, hsl(230 60% 16%) 0%, hsl(240 50% 10%) 55%, hsl(255 45% 8%) 100%);
   }
 
   .sunrise-aurora {
@@ -252,7 +252,7 @@ All colors MUST be HSL.
   }
 
   .dark .sunrise-aurora {
-    background: conic-gradient(from 180deg at 50% 120%, transparent, hsl(260 80% 40% / 0.4), transparent 40%, hsl(20 90% 50% / 0.4), transparent);
+    background: conic-gradient(from 180deg at 50% 120%, transparent, hsl(230 80% 45% / 0.4), transparent 40%, hsl(260 70% 50% / 0.4), transparent);
   }
 
   .sunrise-orb-one { background-color: hsl(45 96% 72% / 0.6); }
@@ -263,12 +263,12 @@ All colors MUST be HSL.
     box-shadow: 0 0 10px hsl(40 100% 75%);
   }
 
-  .dark .sunrise-orb-one { background-color: hsl(25 95% 53% / 0.3); }
-  .dark .sunrise-orb-two { background-color: hsl(330 82% 60% / 0.25); }
-  .dark .sunrise-orb-three { background-color: hsl(239 84% 67% / 0.2); }
+  .dark .sunrise-orb-one { background-color: hsl(230 80% 55% / 0.28); }
+  .dark .sunrise-orb-two { background-color: hsl(260 70% 55% / 0.25); }
+  .dark .sunrise-orb-three { background-color: hsl(220 85% 60% / 0.22); }
   .dark .sunrise-sparkle {
-    background-color: hsl(48 96% 89% / 0.8);
-    box-shadow: 0 0 12px hsl(45 100% 70%);
+    background-color: hsl(220 80% 92% / 0.85);
+    box-shadow: 0 0 12px hsl(225 90% 75%);
   }
 
   .text-gradient {
