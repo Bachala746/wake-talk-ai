@@ -83,7 +83,7 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
     <div
       className={`relative min-h-screen flex items-center justify-center p-4 overflow-hidden transition-all duration-700 ${
         isDark
-          ? 'bg-[radial-gradient(ellipse_at_top,hsl(260,50%,18%)_0%,hsl(240,40%,10%)_55%,hsl(20,40%,12%)_100%)]'
+          ? 'bg-[radial-gradient(ellipse_at_top,hsl(230,60%,16%)_0%,hsl(245,50%,10%)_55%,hsl(255,45%,8%)_100%)]'
           : 'bg-[radial-gradient(ellipse_at_top,hsl(45,100%,90%)_0%,hsl(20,100%,82%)_45%,hsl(340,90%,86%)_100%)]'
       }`}
     >
@@ -91,28 +91,28 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
       <div
         className={`pointer-events-none absolute inset-0 opacity-60 mix-blend-screen ${
           isDark
-            ? 'bg-[conic-gradient(from_180deg_at_50%_120%,transparent,hsl(260,80%,40%)/0.4,transparent_40%,hsl(20,90%,50%)/0.4,transparent)]'
+            ? 'bg-[conic-gradient(from_180deg_at_50%_120%,transparent,hsl(230,80%,45%)/0.4,transparent_40%,hsl(260,70%,50%)/0.4,transparent)]'
             : 'bg-[conic-gradient(from_180deg_at_50%_120%,transparent,hsl(45,100%,75%)/0.5,transparent_40%,hsl(340,90%,80%)/0.5,transparent)]'
         }`}
         style={{ animation: 'aurora-spin 24s linear infinite' }}
       />
 
-      {/* Ambient sunrise orbs */}
+      {/* Ambient orbs */}
       <div
         className={`pointer-events-none absolute -top-24 -left-24 w-[22rem] h-[22rem] rounded-full blur-3xl opacity-50 ${
-          isDark ? 'bg-orange-500/30' : 'bg-amber-300/60'
+          isDark ? 'bg-indigo-500/30' : 'bg-amber-300/60'
         }`}
         style={{ animation: 'float-slow 8s ease-in-out infinite' }}
       />
       <div
         className={`pointer-events-none absolute -bottom-28 -right-20 w-[26rem] h-[26rem] rounded-full blur-3xl opacity-40 ${
-          isDark ? 'bg-pink-500/25' : 'bg-rose-300/55'
+          isDark ? 'bg-violet-600/25' : 'bg-rose-300/55'
         }`}
         style={{ animation: 'float-slow 10s ease-in-out infinite reverse' }}
       />
       <div
         className={`pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 w-[30rem] h-[30rem] rounded-full blur-3xl opacity-30 ${
-          isDark ? 'bg-indigo-500/20' : 'bg-yellow-200/60'
+          isDark ? 'bg-blue-500/20' : 'bg-yellow-200/60'
         }`}
         style={{ animation: 'float-slow 12s ease-in-out infinite' }}
       />
@@ -122,7 +122,7 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
         <span
           key={s.id}
           className={`pointer-events-none absolute rounded-full ${
-            isDark ? 'bg-amber-200/80' : 'bg-white'
+            isDark ? 'bg-blue-100/85' : 'bg-white'
           }`}
           style={{
             top: `${s.top}%`,
@@ -130,7 +130,7 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
             width: s.size,
             height: s.size,
             boxShadow: isDark
-              ? '0 0 12px hsl(45,100%,70%)'
+              ? '0 0 12px hsl(225,90%,75%)'
               : '0 0 10px hsl(40,100%,75%)',
             animation: `twinkle ${s.dur}s ease-in-out ${s.delay}s infinite`,
           }}
@@ -142,20 +142,20 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
           showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}
       >
-        {/* Animated sun icon with rotating rays */}
+        {/* Animated sun/moon icon */}
         <div className="flex justify-center mb-6">
           <div className="relative w-32 h-32 flex items-center justify-center">
             {/* Outer glow */}
             <span
               className={`absolute inset-0 rounded-full blur-2xl ${
-                isDark ? 'bg-orange-400/40' : 'bg-amber-300/70'
+                isDark ? 'bg-indigo-400/40' : 'bg-amber-300/70'
               }`}
               style={{ animation: 'pulse-glow 2.4s ease-in-out infinite' }}
             />
             <div
               className={`relative z-10 w-20 h-20 rounded-full flex items-center justify-center shadow-2xl ring-4 ring-white/20 ${
                 isDark
-                  ? 'bg-gradient-to-br from-yellow-300 via-orange-400 to-rose-500'
+                  ? 'bg-gradient-to-br from-blue-300 via-indigo-500 to-violet-700'
                   : 'bg-gradient-to-br from-yellow-200 via-amber-400 to-orange-500'
               }`}
               style={{ animation: 'gentle-bounce 2.8s ease-in-out infinite' }}
@@ -190,13 +190,13 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
               <h1
                 className={`text-3xl font-extrabold tracking-tight bg-clip-text text-transparent ${
                   isDark
-                    ? 'bg-gradient-to-r from-orange-200 via-amber-100 to-rose-200'
+                    ? 'bg-gradient-to-r from-blue-200 via-indigo-200 to-violet-200'
                     : 'bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600'
                 }`}
               >
                 You're Awake!
               </h1>
-              <Sparkles className={`w-6 h-6 ${isDark ? 'text-amber-300' : 'text-amber-500'} animate-pulse`} />
+              <Sparkles className={`w-6 h-6 ${isDark ? 'text-indigo-300' : 'text-amber-500'} animate-pulse`} />
             </div>
             <p className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{formattedDate}</p>
           </div>
@@ -211,7 +211,7 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
           >
             <p
               className={`text-[11px] uppercase tracking-[0.2em] mb-1.5 font-bold ${
-                isDark ? 'text-amber-300/80' : 'text-orange-600/90'
+                isDark ? 'text-indigo-300/85' : 'text-orange-600/90'
               }`}
             >
               Woke up at
@@ -219,7 +219,7 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
             <p
               className={`text-6xl font-extrabold tracking-tight tabular-nums leading-none bg-clip-text text-transparent ${
                 isDark
-                  ? 'bg-gradient-to-b from-white to-amber-100'
+                  ? 'bg-gradient-to-b from-white to-indigo-100'
                   : 'bg-gradient-to-b from-slate-900 to-orange-700'
               }`}
               style={{ animation: 'time-pop 0.6s ease-out' }}
@@ -232,16 +232,16 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
           <div
             className={`relative rounded-2xl p-4 flex items-center justify-center gap-3 overflow-hidden ${
               isDark
-                ? 'bg-gradient-to-r from-orange-500/10 via-rose-500/10 to-orange-500/10 border border-orange-400/20'
+                ? 'bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-blue-500/10 border border-indigo-400/20'
                 : 'bg-gradient-to-r from-orange-100 via-rose-100 to-amber-100 border border-orange-200/70'
             }`}
           >
             <div className="relative">
               {streak >= 7 ? (
-                <Trophy className={`w-9 h-9 ${isDark ? 'text-amber-300' : 'text-amber-600'} drop-shadow`} />
+                <Trophy className={`w-9 h-9 ${isDark ? 'text-indigo-300' : 'text-amber-600'} drop-shadow`} />
               ) : (
                 <Flame
-                  className={`w-9 h-9 ${isDark ? 'text-orange-400' : 'text-orange-500'} drop-shadow`}
+                  className={`w-9 h-9 ${isDark ? 'text-blue-300' : 'text-orange-500'} drop-shadow`}
                   style={{ animation: 'flame-flicker 1.4s ease-in-out infinite' }}
                 />
               )}
@@ -254,7 +254,7 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
               >
                 {streak} day{streak !== 1 ? 's' : ''}
               </p>
-              <p className={`text-xs font-semibold ${isDark ? 'text-orange-200/80' : 'text-orange-700/85'}`}>
+              <p className={`text-xs font-semibold ${isDark ? 'text-indigo-200/85' : 'text-orange-700/85'}`}>
                 {streak >= 7 ? 'Amazing streak! 🏆' : streak >= 3 ? 'Keep it going! 🔥' : 'No-snooze streak'}
               </p>
             </div>
@@ -263,7 +263,7 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
           {/* Motivational quote */}
           <div
             className={`relative space-y-2 px-3 py-3 rounded-xl border-l-4 ${
-              isDark ? 'border-amber-400/60 bg-white/[0.03]' : 'border-amber-400 bg-amber-50/60'
+              isDark ? 'border-indigo-400/60 bg-white/[0.03]' : 'border-amber-400 bg-amber-50/60'
             }`}
           >
             <p className={`text-sm italic leading-relaxed ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
@@ -271,22 +271,22 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
             </p>
             <p
               className={`text-xs font-semibold tracking-wide ${
-                isDark ? 'text-amber-300/80' : 'text-amber-700'
+                isDark ? 'text-indigo-300/85' : 'text-amber-700'
               }`}
             >
               — {quote.author}
             </p>
           </div>
 
-          {/* Dismiss button — gradient + interactive */}
+          {/* Dismiss button */}
           <Button
             onClick={onDismiss}
             size="lg"
-            className="group relative w-full h-14 text-base font-bold gap-2 rounded-2xl border-0 text-white overflow-hidden
-                       bg-gradient-to-r from-orange-500 via-amber-500 to-rose-500
-                       hover:from-orange-600 hover:via-amber-600 hover:to-rose-600
-                       shadow-lg shadow-orange-500/40 hover:shadow-orange-500/60
-                       transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            className={`group relative w-full h-14 text-base font-bold gap-2 rounded-2xl border-0 text-white overflow-hidden
+                       transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]
+                       ${isDark
+                         ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-600 hover:from-blue-600 hover:via-indigo-600 hover:to-violet-700 shadow-lg shadow-indigo-500/40 hover:shadow-indigo-500/60'
+                         : 'bg-gradient-to-r from-orange-500 via-amber-500 to-rose-500 hover:from-orange-600 hover:via-amber-600 hover:to-rose-600 shadow-lg shadow-orange-500/40 hover:shadow-orange-500/60'}`}
           >
             <span
               aria-hidden
