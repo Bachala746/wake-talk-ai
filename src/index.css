@@ -152,12 +152,13 @@ All colors MUST be HSL.
 
   .dark body {
     background:
-      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(230 70% 18% / 0.6) 0%, transparent 60%),
-      radial-gradient(ellipse 70% 50% at 100% 100%, hsl(260 60% 20% / 0.5) 0%, transparent 60%),
-      radial-gradient(ellipse 70% 50% at 0% 80%, hsl(220 70% 16% / 0.5) 0%, transparent 60%),
-      linear-gradient(160deg, hsl(230 40% 6%) 0%, hsl(240 38% 8%) 50%, hsl(250 35% 9%) 100%);
+      radial-gradient(ellipse 90% 60% at 50% -10%, hsl(230 70% 16%) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 50% at 100% 20%, hsl(250 55% 14%) 0%, transparent 55%),
+      radial-gradient(ellipse 80% 60% at 0% 80%, hsl(260 50% 12%) 0%, transparent 60%),
+      linear-gradient(160deg, hsl(230 45% 6%) 0%, hsl(240 42% 7%) 50%, hsl(250 40% 8%) 100%);
     background-attachment: fixed;
   }
+
 
   /* Mobile-first touch-friendly defaults */
   html {
