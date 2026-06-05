@@ -152,12 +152,13 @@ All colors MUST be HSL.
 
   .dark body {
     background:
-      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(230 70% 18% / 0.6) 0%, transparent 60%),
-      radial-gradient(ellipse 70% 50% at 100% 100%, hsl(260 60% 20% / 0.5) 0%, transparent 60%),
-      radial-gradient(ellipse 70% 50% at 0% 80%, hsl(220 70% 16% / 0.5) 0%, transparent 60%),
-      linear-gradient(160deg, hsl(230 40% 6%) 0%, hsl(240 38% 8%) 50%, hsl(250 35% 9%) 100%);
+      radial-gradient(ellipse 90% 60% at 50% -10%, hsl(230 70% 16%) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 50% at 100% 20%, hsl(250 55% 14%) 0%, transparent 55%),
+      radial-gradient(ellipse 80% 60% at 0% 80%, hsl(260 50% 12%) 0%, transparent 60%),
+      linear-gradient(160deg, hsl(230 45% 6%) 0%, hsl(240 42% 7%) 50%, hsl(250 40% 8%) 100%);
     background-attachment: fixed;
   }
+
 
   /* Mobile-first touch-friendly defaults */
   html {
@@ -212,8 +213,21 @@ All colors MUST be HSL.
   .btn-sunrise:hover { transform: translateY(-1px) scale(1.02); box-shadow: 0 12px 32px -6px hsla(20, 100%, 55%, 0.7); filter: brightness(1.05); }
   .btn-sunrise:active { transform: scale(0.98); }
 
+  .dark .btn-sunrise {
+    background: linear-gradient(135deg, hsl(225 85% 60%) 0%, hsl(260 70% 58%) 100%);
+    box-shadow: 0 8px 24px -6px hsla(225, 85%, 50%, 0.55);
+  }
+  .dark .btn-sunrise:hover { box-shadow: 0 12px 32px -6px hsla(225, 85%, 55%, 0.7); }
+
   .text-sunrise {
     background: linear-gradient(135deg, hsl(20 100% 55%) 0%, hsl(340 90% 60%) 50%, hsl(45 100% 55%) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .dark .text-sunrise {
+    background: linear-gradient(135deg, hsl(220 90% 72%) 0%, hsl(255 80% 75%) 50%, hsl(195 85% 75%) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -225,9 +239,20 @@ All colors MUST be HSL.
     animation: sun-pulse 4s ease-in-out infinite;
   }
 
+  .dark .sun-glow {
+    background: radial-gradient(circle, hsl(220 90% 80%) 0%, hsl(230 80% 60%) 60%, hsl(255 65% 42%) 100%);
+    box-shadow: 0 0 40px hsla(220, 90%, 60%, 0.55), 0 0 80px hsla(255, 70%, 55%, 0.35);
+    animation: moon-pulse 4s ease-in-out infinite;
+  }
+
   @keyframes sun-pulse {
     0%, 100% { box-shadow: 0 0 40px hsla(35, 100%, 60%, 0.6), 0 0 80px hsla(20, 100%, 55%, 0.4); }
     50% { box-shadow: 0 0 60px hsla(35, 100%, 65%, 0.75), 0 0 120px hsla(20, 100%, 60%, 0.5); }
+  }
+
+  @keyframes moon-pulse {
+    0%, 100% { box-shadow: 0 0 40px hsla(220, 90%, 60%, 0.55), 0 0 80px hsla(255, 70%, 55%, 0.35); }
+    50% { box-shadow: 0 0 60px hsla(220, 90%, 70%, 0.7), 0 0 120px hsla(255, 75%, 60%, 0.45); }
   }
 
   .theme-dot-pattern {
