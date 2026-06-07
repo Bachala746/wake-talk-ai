@@ -169,7 +169,7 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
         <Card
           className={`relative p-7 text-center space-y-6 rounded-3xl border backdrop-blur-2xl overflow-hidden ${
             isDark
-              ? 'bg-slate-900/70 border-white/10 shadow-[0_25px_70px_-20px_rgba(0,0,0,0.7)]'
+              ? 'bg-slate-900/70 border-indigo-300/20 shadow-[0_25px_70px_-15px_hsl(230_90%_30%/0.6),inset_0_1px_0_0_hsl(220_90%_90%/0.1)]'
               : 'bg-white/75 border-white/70 shadow-[0_25px_70px_-15px_rgba(251,146,60,0.4)]'
           }`}
         >
