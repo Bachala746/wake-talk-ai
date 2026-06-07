@@ -1,14 +1,39 @@
-## Remove rotating ray spokes and ring glow from sun icon
+## Goal
+Match the Light Theme's typographic richness, depth, and "premium glow" in Dark Mode for `WakeUpSuccessScreen`, without changing the established dark navy/indigo/violet color palette, backgrounds, gradients, or layout.
 
-In `src/components/WakeUpSuccessScreen.tsx`, simplify the animated sun (lines ~146–197) by removing two decorative layers:
+## Scope
+Only `src/components/WakeUpSuccessScreen.tsx`. No changes to layout, spacing, components, icons, or color tokens. All enhancements use the existing indigo/blue/violet dark palette.
 
-1. **Rotating ray spokes** — the `<svg>` block (lines 156–178) that renders 12 rotating lines around the sun.
-2. **Inner rotating ring** — the bordered `<span>` (lines 180–185) that spins in reverse.
+## Changes
 
-Keep:
-- The outer blurred glow halo (`pulse-glow`)
-- The central gradient sun disc with the `Sun` lucide icon and `gentle-bounce` animation
+### 1. "You're Awake!" heading
+- Add a layered text-glow using `text-shadow` (soft indigo + tight white-ish core) so the gradient text feels luminous like the orange glow in light mode.
+- Slightly increase font weight emphasis via `drop-shadow` on the gradient span.
+- Brighten gradient stops (within current blue→indigo→violet palette) for more punch.
 
-Result: a cleaner sun icon with just the soft glow + bouncing disc — no rotating spokes or ring outline.
+### 2. Wake-up time ("10:49")
+- Add multi-layer glow: outer indigo halo + inner white core via `text-shadow`.
+- Add a subtle radial highlight behind the number (absolutely-positioned blurred indigo orb inside the card) to mirror the warm radial bloom under the light-mode time.
+- Strengthen the gradient (white → light indigo) and add `drop-shadow` for depth.
+- Make the "WOKE UP AT" label brighter/bolder with tighter letter-spacing emphasis and a faint glow.
 
-No other files affected. The `spin-slow` keyframe stays (still used elsewhere, e.g. `TwoWayVoiceCall`).
+### 3. Streak card ("1 day")
+- Add glow to the number ("1 day") and a soft inner highlight band at the top of the card (white/5 gradient sheen) for depth parity with light mode.
+- Add a subtle drop-shadow to the Flame/Trophy icon in indigo.
+- Brighten the supporting label text.
+
+### 4. Quote card
+- Add a faint inner highlight (top gradient) and slight glow on the opening quote mark area.
+- Brighten italic quote text contrast and add subtle text-shadow.
+- Author name gets a tiny indigo glow for emphasis.
+
+### 5. Card depth
+- Add an inner top highlight (1px gradient line / inset shadow) and a stronger outer shadow stack using indigo tones for more pronounced layering, matching the light card's warm shadow depth.
+
+### Technical notes
+- All glows use `hsl(...)` within existing dark palette (indigo 220–260 range), implemented via inline `style={{ textShadow: ... }}` and Tailwind utilities (`drop-shadow-[...]`).
+- No new dependencies. No changes to `index.css` or `tailwind.config.ts`.
+- Light Mode branches untouched.
+
+## Out of scope
+Background, gradients, orbs, aurora, sparkles, button styles, layout, typography sizes/weights structure, and any other component.
