@@ -244,17 +244,21 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
             <p
               className={`relative text-6xl font-extrabold tracking-tight tabular-nums leading-none bg-clip-text text-transparent ${
                 isDark
-                  ? 'bg-gradient-to-b from-white via-indigo-50 to-indigo-200'
-                  : 'bg-gradient-to-b from-slate-900 to-orange-700'
+                  ? 'bg-gradient-to-r from-blue-400 via-indigo-400 to-violet-400'
+                  : 'bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600'
               }`}
               style={
                 isDark
                   ? {
                       animation: 'time-pop 0.6s ease-out',
                       filter:
-                        'drop-shadow(0 0 18px hsl(230 95% 70% / 0.55)) drop-shadow(0 2px 6px hsl(255 85% 55% / 0.35))',
+                        'drop-shadow(0 0 22px hsl(230 95% 70% / 0.65)) drop-shadow(0 4px 10px hsl(255 85% 55% / 0.45))',
                     }
-                  : { animation: 'time-pop 0.6s ease-out' }
+                  : {
+                      animation: 'time-pop 0.6s ease-out',
+                      filter:
+                        'drop-shadow(0 0 16px hsl(25 95% 60% / 0.45)) drop-shadow(0 2px 6px hsl(340 80% 55% / 0.3))',
+                    }
               }
             >
               {formattedTime}
