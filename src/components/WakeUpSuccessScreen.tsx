@@ -190,29 +190,54 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
               <h1
                 className={`text-3xl font-extrabold tracking-tight bg-clip-text text-transparent ${
                   isDark
-                    ? 'bg-gradient-to-r from-blue-200 via-indigo-200 to-violet-200'
+                    ? 'bg-gradient-to-r from-white via-indigo-100 to-violet-200 drop-shadow-[0_0_18px_hsl(230_90%_70%/0.55)]'
                     : 'bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600'
                 }`}
+                style={
+                  isDark
+                    ? { filter: 'drop-shadow(0 2px 12px hsl(235 90% 65% / 0.45))' }
+                    : undefined
+                }
               >
                 You're Awake!
               </h1>
-              <Sparkles className={`w-6 h-6 ${isDark ? 'text-indigo-300' : 'text-amber-500'} animate-pulse`} />
+              <Sparkles
+                className={`w-6 h-6 ${isDark ? 'text-indigo-200' : 'text-amber-500'} animate-pulse`}
+                style={isDark ? { filter: 'drop-shadow(0 0 8px hsl(230 90% 75% / 0.8))' } : undefined}
+              />
             </div>
-            <p className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{formattedDate}</p>
+            <p
+              className={`text-sm font-medium ${isDark ? 'text-indigo-100/90' : 'text-slate-600'}`}
+              style={isDark ? { textShadow: '0 0 12px hsl(230 80% 60% / 0.35)' } : undefined}
+            >
+              {formattedDate}
+            </p>
           </div>
 
           {/* Wake-up time */}
           <div
             className={`relative rounded-2xl p-5 overflow-hidden ${
               isDark
-                ? 'bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10'
+                ? 'bg-gradient-to-br from-white/[0.07] to-white/[0.02] border border-white/15 shadow-[inset_0_1px_0_0_hsl(220_90%_90%/0.12),inset_0_-1px_0_0_hsl(230_60%_20%/0.4)]'
                 : 'bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/60'
             }`}
           >
+            {/* Inner radial highlight (dark only) */}
+            {isDark && (
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background:
+                    'radial-gradient(ellipse at 50% 60%, hsl(230 90% 65% / 0.28) 0%, transparent 60%)',
+                }}
+              />
+            )}
             <p
-              className={`text-[11px] uppercase tracking-[0.2em] mb-1.5 font-bold ${
-                isDark ? 'text-indigo-300/85' : 'text-orange-600/90'
+              className={`relative text-[11px] uppercase tracking-[0.22em] mb-1.5 font-bold ${
+                isDark ? 'text-indigo-200' : 'text-orange-600/90'
               }`}
+              style={isDark ? { textShadow: '0 0 10px hsl(230 90% 65% / 0.6)' } : undefined}
             >
               Woke up at
             </p>
