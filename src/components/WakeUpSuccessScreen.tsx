@@ -242,12 +242,20 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
               Woke up at
             </p>
             <p
-              className={`text-6xl font-extrabold tracking-tight tabular-nums leading-none bg-clip-text text-transparent ${
+              className={`relative text-6xl font-extrabold tracking-tight tabular-nums leading-none bg-clip-text text-transparent ${
                 isDark
-                  ? 'bg-gradient-to-b from-white to-indigo-100'
+                  ? 'bg-gradient-to-b from-white via-indigo-50 to-indigo-200'
                   : 'bg-gradient-to-b from-slate-900 to-orange-700'
               }`}
-              style={{ animation: 'time-pop 0.6s ease-out' }}
+              style={
+                isDark
+                  ? {
+                      animation: 'time-pop 0.6s ease-out',
+                      filter:
+                        'drop-shadow(0 0 18px hsl(230 95% 70% / 0.55)) drop-shadow(0 2px 6px hsl(255 85% 55% / 0.35))',
+                    }
+                  : { animation: 'time-pop 0.6s ease-out' }
+              }
             >
               {formattedTime}
             </p>
@@ -257,29 +265,49 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
           <div
             className={`relative rounded-2xl p-4 flex items-center justify-center gap-3 overflow-hidden ${
               isDark
-                ? 'bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-blue-500/10 border border-indigo-400/20'
+                ? 'bg-gradient-to-r from-indigo-500/15 via-violet-500/15 to-blue-500/15 border border-indigo-400/30 shadow-[inset_0_1px_0_0_hsl(220_90%_90%/0.12)]'
                 : 'bg-gradient-to-r from-orange-100 via-rose-100 to-amber-100 border border-orange-200/70'
             }`}
           >
+            {isDark && (
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-x-0 top-0 h-1/2"
+                style={{
+                  background:
+                    'linear-gradient(to bottom, hsl(220 90% 85% / 0.08), transparent)',
+                }}
+              />
+            )}
             <div className="relative">
               {streak >= 7 ? (
-                <Trophy className={`w-9 h-9 ${isDark ? 'text-indigo-300' : 'text-amber-600'} drop-shadow`} />
+                <Trophy
+                  className={`w-9 h-9 ${isDark ? 'text-indigo-200' : 'text-amber-600'} drop-shadow`}
+                  style={isDark ? { filter: 'drop-shadow(0 0 10px hsl(230 90% 70% / 0.75))' } : undefined}
+                />
               ) : (
                 <Flame
-                  className={`w-9 h-9 ${isDark ? 'text-blue-300' : 'text-orange-500'} drop-shadow`}
-                  style={{ animation: 'flame-flicker 1.4s ease-in-out infinite' }}
+                  className={`w-9 h-9 ${isDark ? 'text-blue-200' : 'text-orange-500'} drop-shadow`}
+                  style={{
+                    animation: 'flame-flicker 1.4s ease-in-out infinite',
+                    filter: isDark ? 'drop-shadow(0 0 10px hsl(220 95% 70% / 0.75))' : undefined,
+                  }}
                 />
               )}
             </div>
-            <div className="text-left">
+            <div className="relative text-left">
               <p
                 className={`text-2xl font-extrabold tabular-nums leading-tight ${
                   isDark ? 'text-white' : 'text-slate-900'
                 }`}
+                style={isDark ? { textShadow: '0 0 14px hsl(230 90% 70% / 0.5)' } : undefined}
               >
                 {streak} day{streak !== 1 ? 's' : ''}
               </p>
-              <p className={`text-xs font-semibold ${isDark ? 'text-indigo-200/85' : 'text-orange-700/85'}`}>
+              <p
+                className={`text-xs font-semibold ${isDark ? 'text-indigo-100/95' : 'text-orange-700/85'}`}
+                style={isDark ? { textShadow: '0 0 8px hsl(230 80% 60% / 0.4)' } : undefined}
+              >
                 {streak >= 7 ? 'Amazing streak! 🏆' : streak >= 3 ? 'Keep it going! 🔥' : 'No-snooze streak'}
               </p>
             </div>
@@ -287,17 +315,28 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
 
           {/* Motivational quote */}
           <div
-            className={`relative space-y-2 px-3 py-3 rounded-xl border-l-4 ${
-              isDark ? 'border-indigo-400/60 bg-white/[0.03]' : 'border-amber-400 bg-amber-50/60'
+            className={`relative space-y-2 px-3 py-3 rounded-xl border-l-4 overflow-hidden ${
+              isDark
+                ? 'border-indigo-300/80 bg-white/[0.04]'
+                : 'border-amber-400 bg-amber-50/60'
             }`}
+            style={
+              isDark
+                ? { boxShadow: 'inset 3px 0 14px -6px hsl(230 95% 65% / 0.45), inset 0 1px 0 0 hsl(220 90% 90% / 0.08)' }
+                : undefined
+            }
           >
-            <p className={`text-sm italic leading-relaxed ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+            <p
+              className={`text-sm italic leading-relaxed ${isDark ? 'text-indigo-50' : 'text-slate-700'}`}
+              style={isDark ? { textShadow: '0 0 10px hsl(230 70% 50% / 0.35)' } : undefined}
+            >
               "{quote.text}"
             </p>
             <p
               className={`text-xs font-semibold tracking-wide ${
-                isDark ? 'text-indigo-300/85' : 'text-amber-700'
+                isDark ? 'text-indigo-200' : 'text-amber-700'
               }`}
+              style={isDark ? { textShadow: '0 0 8px hsl(230 85% 65% / 0.5)' } : undefined}
             >
               — {quote.author}
             </p>
