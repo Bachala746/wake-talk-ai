@@ -815,22 +815,44 @@ export const WakeUpChallenge = ({
   };
   
   const handleMathSubmit = () => {
-    const answer = parseInt(userAnswer);
-    if (answer === mathProblem.answer) {
+    if (userAnswer.trim() === '') return;
+    const answer = parseInt(userAnswer, 10);
+    if (Number.isNaN(answer)) return;
+
+    if (answer === mathCurrent.answer) {
+      setMathFeedback('correct');
       setIsCorrect(true);
-      playChallengeCompleteSound();
-      setTimeout(onComplete, 500);
+      playCorrectTapSound();
+      const isLastInLevel = mathQIndex + 1 >= mathQTotal;
+      const isLastLevel = mathLevel >= MATH_TOTAL_LEVELS;
+      setTimeout(() => {
+        setUserAnswer('');
+        setMathFeedback(null);
+        setIsCorrect(null);
+        if (isLastInLevel && isLastLevel) {
+          playChallengeCompleteSound();
+          onComplete();
+        } else if (isLastInLevel) {
+          const nextLevel = mathLevel + 1;
+          setMathLevel(nextLevel);
+          setMathQTotal(pickQuestionsPerLevel());
+          setMathQIndex(0);
+          setMathCurrent(generateMathQuestion(nextLevel, mathUsedRef.current));
+        } else {
+          setMathQIndex(mathQIndex + 1);
+          setMathCurrent(generateMathQuestion(mathLevel, mathUsedRef.current));
+        }
+      }, 550);
     } else {
+      setMathFeedback('wrong');
       setIsCorrect(false);
       handleWrongAttempt();
-      setAttempts(prev => prev + 1);
-      setUserAnswer("");
-      if (attempts >= 2) {
-        // After 3 wrong attempts, generate new problem
-        setMathProblem(generateMathProblem(difficulty));
-        setAttempts(0);
-        setTimeLeft(difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 15);
-      }
+      setUserAnswer('');
+      setTimeout(() => {
+        setMathCurrent(generateMathQuestion(mathLevel, mathUsedRef.current));
+        setMathFeedback(null);
+        setIsCorrect(null);
+      }, 800);
     }
   };
   
