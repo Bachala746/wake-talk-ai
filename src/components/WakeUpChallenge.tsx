@@ -556,27 +556,7 @@ export const WakeUpChallenge = ({
     return () => clearInterval(interval);
   }, [challengeType, showingPattern, patternData.pattern.length]);
   
-  // Timer countdown
-  useEffect(() => {
-    if (challengeType !== 'math') return;
-    
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          if (onFail) onFail();
-          // Reset with new problem
-          setMathProblem(generateMathProblem(difficulty));
-          setUserAnswer("");
-          setAttempts(0);
-          return difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 15;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    
-    return () => clearInterval(timer);
-  }, [challengeType, difficulty, mathProblem, onFail]);
+  // Math challenge no longer uses a per-question timer — progression is by levels.
   
   // Barcode/QR Scanner initialization
   useEffect(() => {
