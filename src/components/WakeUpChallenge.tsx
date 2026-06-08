@@ -1175,32 +1175,82 @@ export const WakeUpChallenge = ({
       {/* Challenge Content */}
       {challengeType === 'math' && (
         <div className="space-y-3 sm:space-y-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs sm:text-sm text-gray-500">Time left</span>
-            <span className={`text-xs sm:text-sm font-bold ${timeLeft <= 5 ? 'text-red-500' : 'text-gray-700'}`}>
-              {timeLeft}s
+          {/* Level + question progress */}
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
+              Level {mathLevel} / {MATH_TOTAL_LEVELS}
+            </span>
+            <span className="text-xs sm:text-sm font-semibold text-muted-foreground tabular-nums">
+              Question {mathQIndex + 1} of {mathQTotal} · {mathQTotal - mathQIndex} left
             </span>
           </div>
-          <Progress value={(timeLeft / (difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 15)) * 100} className="h-2" />
-          
-          <div className="text-center py-4 sm:py-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl sm:rounded-2xl">
-            <p className="text-2xl sm:text-4xl font-bold text-gray-800 mb-2 break-all px-2">{mathProblem.problem} = ?</p>
-            {attempts > 0 && (
-              <p className="text-xs sm:text-sm text-red-500">Wrong! Try again ({3 - attempts} left)</p>
+          <Progress
+            value={((mathLevel - 1) / MATH_TOTAL_LEVELS) * 100 + (mathQIndex / mathQTotal) * (100 / MATH_TOTAL_LEVELS)}
+            className="h-2"
+          />
+
+          {/* Level dots */}
+          <div className="flex items-center justify-center gap-1.5">
+            {Array.from({ length: MATH_TOTAL_LEVELS }).map((_, i) => {
+              const idx = i + 1;
+              const done = idx < mathLevel;
+              const current = idx === mathLevel;
+              return (
+                <span
+                  key={idx}
+                  className={`h-2 rounded-full transition-all ${
+                    done ? 'w-6 bg-green-500' : current ? 'w-8 bg-primary' : 'w-2 bg-muted'
+                  }`}
+                />
+              );
+            })}
+          </div>
+
+          <div
+            className={`text-center py-5 sm:py-7 rounded-xl sm:rounded-2xl border transition-colors ${
+              mathFeedback === 'correct'
+                ? 'bg-green-50 border-green-300 dark:bg-green-500/15 dark:border-green-500/40'
+                : mathFeedback === 'wrong'
+                ? 'bg-red-50 border-red-300 dark:bg-red-500/15 dark:border-red-500/40'
+                : isDark
+                ? 'bg-slate-800/60 border-slate-600/40'
+                : 'bg-gradient-to-br from-orange-50 to-amber-50 border-transparent'
+            }`}
+          >
+            <p className={`text-3xl sm:text-5xl font-extrabold tabular-nums mb-2 break-all px-2 ${
+              isDark ? 'text-indigo-100' : 'text-gray-800'
+            }`}>
+              {mathCurrent.problem} = ?
+            </p>
+            {mathFeedback === 'wrong' && (
+              <p className="text-xs sm:text-sm text-red-500 font-semibold animate-in fade-in">
+                Not quite — here's a new one. Stay sharp!
+              </p>
+            )}
+            {mathFeedback === 'correct' && (
+              <p className="text-xs sm:text-sm text-green-600 font-semibold animate-in fade-in">
+                Correct! Keep going 🚀
+              </p>
             )}
           </div>
-          
+
           <div className="flex gap-2">
             <Input
               type="number"
+              inputMode="numeric"
               value={userAnswer}
               onChange={(e) => setUserAnswer(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleMathSubmit()}
               placeholder="Your answer"
               className="text-center text-lg sm:text-xl font-bold flex-1 min-w-0"
               autoFocus
+              disabled={mathFeedback !== null}
             />
-            <Button onClick={handleMathSubmit} className="bg-orange-500 hover:bg-orange-600 shrink-0 px-4 sm:px-6">
+            <Button
+              onClick={handleMathSubmit}
+              disabled={mathFeedback !== null}
+              className="bg-orange-500 hover:bg-orange-600 shrink-0 px-4 sm:px-6"
+            >
               Submit
             </Button>
           </div>
