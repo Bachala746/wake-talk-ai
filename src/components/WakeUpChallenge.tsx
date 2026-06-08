@@ -88,36 +88,105 @@ const getEncouragementMessage = (completed: number, total: number): string => {
   return encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
 };
 
-// Math problem generator
-const generateMathProblem = (difficulty: 'easy' | 'medium' | 'hard') => {
-  let a: number, b: number, c: number, operation: string, answer: number;
-  
-  switch (difficulty) {
-    case 'easy':
-      a = Math.floor(Math.random() * 10) + 1;
-      b = Math.floor(Math.random() * 10) + 1;
-      operation = Math.random() > 0.5 ? '+' : '-';
-      answer = operation === '+' ? a + b : a - b;
-      return { problem: `${a} ${operation} ${b}`, answer };
-    case 'medium':
-      a = Math.floor(Math.random() * 20) + 5;
-      b = Math.floor(Math.random() * 10) + 1;
-      const ops = ['+', '-', '×'];
-      operation = ops[Math.floor(Math.random() * ops.length)];
-      if (operation === '×') {
-        b = Math.floor(Math.random() * 12) + 1;
-        answer = a * b;
-      } else {
-        answer = operation === '+' ? a + b : a - b;
+// Math problem generator — 5-level progressive system
+const MATH_TOTAL_LEVELS = 5;
+const randInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+const pickQuestionsPerLevel = () => randInt(3, 5);
+
+const generateMathQuestion = (
+  level: number,
+  used: Set<string>
+): { problem: string; answer: number } => {
+  for (let attempt = 0; attempt < 60; attempt++) {
+    let problem = '';
+    let answer = 0;
+    switch (level) {
+      case 1: {
+        const a = randInt(1, 20), b = randInt(1, 20);
+        problem = `${a} + ${b}`; answer = a + b; break;
       }
-      return { problem: `${a} ${operation} ${b}`, answer };
-    case 'hard':
-      a = Math.floor(Math.random() * 50) + 10;
-      b = Math.floor(Math.random() * 30) + 5;
-      c = Math.floor(Math.random() * 10) + 1;
-      answer = a + b - c;
-      return { problem: `${a} + ${b} - ${c}`, answer };
+      case 2: {
+        const op = Math.random() < 0.5 ? '+' : '-';
+        if (op === '+') {
+          const a = randInt(1, 50), b = randInt(1, 50);
+          problem = `${a} + ${b}`; answer = a + b;
+        } else {
+          const a = randInt(1, 50), b = randInt(1, 50);
+          const [x, y] = a >= b ? [a, b] : [b, a];
+          problem = `${x} - ${y}`; answer = x - y;
+        }
+        break;
+      }
+      case 3: {
+        const ops = ['+', '-', '×'];
+        const op = ops[randInt(0, 2)];
+        if (op === '×') {
+          const a = randInt(2, 12), b = randInt(2, 12);
+          problem = `${a} × ${b}`; answer = a * b;
+        } else if (op === '+') {
+          const a = randInt(10, 100), b = randInt(10, 100);
+          problem = `${a} + ${b}`; answer = a + b;
+        } else {
+          const a = randInt(10, 100), b = randInt(1, a);
+          problem = `${a} - ${b}`; answer = a - b;
+        }
+        break;
+      }
+      case 4: {
+        const ops = ['+', '-', '×', '÷'];
+        const op = ops[randInt(0, 3)];
+        if (op === '÷') {
+          const b = randInt(2, 12), q = randInt(2, 12);
+          const a = b * q;
+          problem = `${a} ÷ ${b}`; answer = q;
+        } else if (op === '×') {
+          const a = randInt(3, 15), b = randInt(3, 15);
+          problem = `${a} × ${b}`; answer = a * b;
+        } else if (op === '+') {
+          const a = randInt(20, 100), b = randInt(20, 100);
+          problem = `${a} + ${b}`; answer = a + b;
+        } else {
+          const a = randInt(30, 100), b = randInt(1, a);
+          problem = `${a} - ${b}`; answer = a - b;
+        }
+        break;
+      }
+      case 5:
+      default: {
+        const pattern = randInt(0, 3);
+        if (pattern === 0) {
+          const a = randInt(3, 12), b = randInt(3, 12), c = randInt(1, 30);
+          problem = `(${a} × ${b}) - ${c}`; answer = a * b - c;
+        } else if (pattern === 1) {
+          const b = randInt(2, 9), q = randInt(2, 12);
+          const a = b * q;
+          const c = randInt(1, 30);
+          problem = `${a} ÷ ${b} + ${c}`; answer = q + c;
+        } else if (pattern === 2) {
+          const a = randInt(1, 30), b = randInt(2, 12), c = randInt(2, 9);
+          problem = `${a} + ${b} × ${c}`; answer = a + b * c;
+        } else {
+          const c = randInt(2, 9), q = randInt(2, 12);
+          const sum = c * q;
+          const a = randInt(1, sum - 1), b = sum - a;
+          problem = `(${a} + ${b}) ÷ ${c}`; answer = q;
+        }
+        break;
+      }
+    }
+    if (!used.has(problem)) {
+      used.add(problem);
+      return { problem, answer };
+    }
   }
+  const fb = `${level} + ${level}-${used.size}`;
+  return { problem: `${level} + ${level}`, answer: 2 * level };
+};
+
+// Back-compat shim for any external use; starts at level 1
+const generateMathProblem = (_difficulty: 'easy' | 'medium' | 'hard') => {
+  const used = new Set<string>();
+  return generateMathQuestion(1, used);
 };
 
 // Memory sequence generator
