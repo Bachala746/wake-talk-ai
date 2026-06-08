@@ -400,6 +400,14 @@ export const WakeUpSuccessScreen = ({ onDismiss }: WakeUpSuccessScreenProps) => 
           from { transform: rotate(0deg); }
           to   { transform: rotate(360deg); }
         }
+        @keyframes glow-pulse-dark {
+          0%, 100% { filter: drop-shadow(0 0 18px hsl(230 95% 70% / 0.5)) drop-shadow(0 4px 8px hsl(255 85% 55% / 0.35)); }
+          50%      { filter: drop-shadow(0 0 30px hsl(230 95% 70% / 0.85)) drop-shadow(0 4px 12px hsl(255 85% 55% / 0.6)); }
+        }
+        @keyframes glow-pulse-light {
+          0%, 100% { filter: drop-shadow(0 0 14px hsl(25 95% 60% / 0.35)) drop-shadow(0 2px 5px hsl(340 80% 55% / 0.25)); }
+          50%      { filter: drop-shadow(0 0 22px hsl(25 95% 60% / 0.65)) drop-shadow(0 2px 8px hsl(340 80% 55% / 0.45)); }
+        }
         @keyframes sheen {
           0%, 100% { transform: translateX(-30%) rotate(12deg); opacity: 0; }
           50%      { transform: translateX(30%) rotate(12deg); opacity: 0.35; }
