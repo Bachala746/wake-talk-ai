@@ -88,36 +88,105 @@ const getEncouragementMessage = (completed: number, total: number): string => {
   return encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
 };
 
-// Math problem generator
-const generateMathProblem = (difficulty: 'easy' | 'medium' | 'hard') => {
-  let a: number, b: number, c: number, operation: string, answer: number;
-  
-  switch (difficulty) {
-    case 'easy':
-      a = Math.floor(Math.random() * 10) + 1;
-      b = Math.floor(Math.random() * 10) + 1;
-      operation = Math.random() > 0.5 ? '+' : '-';
-      answer = operation === '+' ? a + b : a - b;
-      return { problem: `${a} ${operation} ${b}`, answer };
-    case 'medium':
-      a = Math.floor(Math.random() * 20) + 5;
-      b = Math.floor(Math.random() * 10) + 1;
-      const ops = ['+', '-', '×'];
-      operation = ops[Math.floor(Math.random() * ops.length)];
-      if (operation === '×') {
-        b = Math.floor(Math.random() * 12) + 1;
-        answer = a * b;
-      } else {
-        answer = operation === '+' ? a + b : a - b;
+// Math problem generator — 5-level progressive system
+const MATH_TOTAL_LEVELS = 5;
+const randInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+const pickQuestionsPerLevel = () => randInt(3, 5);
+
+const generateMathQuestion = (
+  level: number,
+  used: Set<string>
+): { problem: string; answer: number } => {
+  for (let attempt = 0; attempt < 60; attempt++) {
+    let problem = '';
+    let answer = 0;
+    switch (level) {
+      case 1: {
+        const a = randInt(1, 20), b = randInt(1, 20);
+        problem = `${a} + ${b}`; answer = a + b; break;
       }
-      return { problem: `${a} ${operation} ${b}`, answer };
-    case 'hard':
-      a = Math.floor(Math.random() * 50) + 10;
-      b = Math.floor(Math.random() * 30) + 5;
-      c = Math.floor(Math.random() * 10) + 1;
-      answer = a + b - c;
-      return { problem: `${a} + ${b} - ${c}`, answer };
+      case 2: {
+        const op = Math.random() < 0.5 ? '+' : '-';
+        if (op === '+') {
+          const a = randInt(1, 50), b = randInt(1, 50);
+          problem = `${a} + ${b}`; answer = a + b;
+        } else {
+          const a = randInt(1, 50), b = randInt(1, 50);
+          const [x, y] = a >= b ? [a, b] : [b, a];
+          problem = `${x} - ${y}`; answer = x - y;
+        }
+        break;
+      }
+      case 3: {
+        const ops = ['+', '-', '×'];
+        const op = ops[randInt(0, 2)];
+        if (op === '×') {
+          const a = randInt(2, 12), b = randInt(2, 12);
+          problem = `${a} × ${b}`; answer = a * b;
+        } else if (op === '+') {
+          const a = randInt(10, 100), b = randInt(10, 100);
+          problem = `${a} + ${b}`; answer = a + b;
+        } else {
+          const a = randInt(10, 100), b = randInt(1, a);
+          problem = `${a} - ${b}`; answer = a - b;
+        }
+        break;
+      }
+      case 4: {
+        const ops = ['+', '-', '×', '÷'];
+        const op = ops[randInt(0, 3)];
+        if (op === '÷') {
+          const b = randInt(2, 12), q = randInt(2, 12);
+          const a = b * q;
+          problem = `${a} ÷ ${b}`; answer = q;
+        } else if (op === '×') {
+          const a = randInt(3, 15), b = randInt(3, 15);
+          problem = `${a} × ${b}`; answer = a * b;
+        } else if (op === '+') {
+          const a = randInt(20, 100), b = randInt(20, 100);
+          problem = `${a} + ${b}`; answer = a + b;
+        } else {
+          const a = randInt(30, 100), b = randInt(1, a);
+          problem = `${a} - ${b}`; answer = a - b;
+        }
+        break;
+      }
+      case 5:
+      default: {
+        const pattern = randInt(0, 3);
+        if (pattern === 0) {
+          const a = randInt(3, 12), b = randInt(3, 12), c = randInt(1, 30);
+          problem = `(${a} × ${b}) - ${c}`; answer = a * b - c;
+        } else if (pattern === 1) {
+          const b = randInt(2, 9), q = randInt(2, 12);
+          const a = b * q;
+          const c = randInt(1, 30);
+          problem = `${a} ÷ ${b} + ${c}`; answer = q + c;
+        } else if (pattern === 2) {
+          const a = randInt(1, 30), b = randInt(2, 12), c = randInt(2, 9);
+          problem = `${a} + ${b} × ${c}`; answer = a + b * c;
+        } else {
+          const c = randInt(2, 9), q = randInt(2, 12);
+          const sum = c * q;
+          const a = randInt(1, sum - 1), b = sum - a;
+          problem = `(${a} + ${b}) ÷ ${c}`; answer = q;
+        }
+        break;
+      }
+    }
+    if (!used.has(problem)) {
+      used.add(problem);
+      return { problem, answer };
+    }
   }
+  const fb = `${level} + ${level}-${used.size}`;
+  return { problem: `${level} + ${level}`, answer: 2 * level };
+};
+
+// Back-compat shim for any external use; starts at level 1
+const generateMathProblem = (_difficulty: 'easy' | 'medium' | 'hard') => {
+  const used = new Set<string>();
+  return generateMathQuestion(1, used);
 };
 
 // Memory sequence generator
@@ -230,7 +299,13 @@ export const WakeUpChallenge = ({
 }: WakeUpChallengeProps) => {
   const { isDark } = useTheme();
   // State for different challenge types
-  const [mathProblem, setMathProblem] = useState(() => generateMathProblem(difficulty));
+  const mathUsedRef = useRef<Set<string>>(new Set());
+  const [mathLevel, setMathLevel] = useState(1);
+  const [mathQTotal, setMathQTotal] = useState(() => pickQuestionsPerLevel());
+  const [mathQIndex, setMathQIndex] = useState(0);
+  const [mathCurrent, setMathCurrent] = useState(() => generateMathQuestion(1, mathUsedRef.current));
+  const [mathFeedback, setMathFeedback] = useState<'correct' | 'wrong' | null>(null);
+  
   const [userAnswer, setUserAnswer] = useState("");
   const [attempts, setAttempts] = useState(0);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
@@ -481,27 +556,7 @@ export const WakeUpChallenge = ({
     return () => clearInterval(interval);
   }, [challengeType, showingPattern, patternData.pattern.length]);
   
-  // Timer countdown
-  useEffect(() => {
-    if (challengeType !== 'math') return;
-    
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          if (onFail) onFail();
-          // Reset with new problem
-          setMathProblem(generateMathProblem(difficulty));
-          setUserAnswer("");
-          setAttempts(0);
-          return difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 15;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    
-    return () => clearInterval(timer);
-  }, [challengeType, difficulty, mathProblem, onFail]);
+  // Math challenge no longer uses a per-question timer — progression is by levels.
   
   // Barcode/QR Scanner initialization
   useEffect(() => {
@@ -760,22 +815,44 @@ export const WakeUpChallenge = ({
   };
   
   const handleMathSubmit = () => {
-    const answer = parseInt(userAnswer);
-    if (answer === mathProblem.answer) {
+    if (userAnswer.trim() === '') return;
+    const answer = parseInt(userAnswer, 10);
+    if (Number.isNaN(answer)) return;
+
+    if (answer === mathCurrent.answer) {
+      setMathFeedback('correct');
       setIsCorrect(true);
-      playChallengeCompleteSound();
-      setTimeout(onComplete, 500);
+      playCorrectTapSound();
+      const isLastInLevel = mathQIndex + 1 >= mathQTotal;
+      const isLastLevel = mathLevel >= MATH_TOTAL_LEVELS;
+      setTimeout(() => {
+        setUserAnswer('');
+        setMathFeedback(null);
+        setIsCorrect(null);
+        if (isLastInLevel && isLastLevel) {
+          playChallengeCompleteSound();
+          onComplete();
+        } else if (isLastInLevel) {
+          const nextLevel = mathLevel + 1;
+          setMathLevel(nextLevel);
+          setMathQTotal(pickQuestionsPerLevel());
+          setMathQIndex(0);
+          setMathCurrent(generateMathQuestion(nextLevel, mathUsedRef.current));
+        } else {
+          setMathQIndex(mathQIndex + 1);
+          setMathCurrent(generateMathQuestion(mathLevel, mathUsedRef.current));
+        }
+      }, 550);
     } else {
+      setMathFeedback('wrong');
       setIsCorrect(false);
       handleWrongAttempt();
-      setAttempts(prev => prev + 1);
-      setUserAnswer("");
-      if (attempts >= 2) {
-        // After 3 wrong attempts, generate new problem
-        setMathProblem(generateMathProblem(difficulty));
-        setAttempts(0);
-        setTimeLeft(difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 15);
-      }
+      setUserAnswer('');
+      setTimeout(() => {
+        setMathCurrent(generateMathQuestion(mathLevel, mathUsedRef.current));
+        setMathFeedback(null);
+        setIsCorrect(null);
+      }, 800);
     }
   };
   
@@ -1098,32 +1175,82 @@ export const WakeUpChallenge = ({
       {/* Challenge Content */}
       {challengeType === 'math' && (
         <div className="space-y-3 sm:space-y-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs sm:text-sm text-gray-500">Time left</span>
-            <span className={`text-xs sm:text-sm font-bold ${timeLeft <= 5 ? 'text-red-500' : 'text-gray-700'}`}>
-              {timeLeft}s
+          {/* Level + question progress */}
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
+              Level {mathLevel} / {MATH_TOTAL_LEVELS}
+            </span>
+            <span className="text-xs sm:text-sm font-semibold text-muted-foreground tabular-nums">
+              Question {mathQIndex + 1} of {mathQTotal} · {mathQTotal - mathQIndex} left
             </span>
           </div>
-          <Progress value={(timeLeft / (difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 15)) * 100} className="h-2" />
-          
-          <div className="text-center py-4 sm:py-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl sm:rounded-2xl">
-            <p className="text-2xl sm:text-4xl font-bold text-gray-800 mb-2 break-all px-2">{mathProblem.problem} = ?</p>
-            {attempts > 0 && (
-              <p className="text-xs sm:text-sm text-red-500">Wrong! Try again ({3 - attempts} left)</p>
+          <Progress
+            value={((mathLevel - 1) / MATH_TOTAL_LEVELS) * 100 + (mathQIndex / mathQTotal) * (100 / MATH_TOTAL_LEVELS)}
+            className="h-2"
+          />
+
+          {/* Level dots */}
+          <div className="flex items-center justify-center gap-1.5">
+            {Array.from({ length: MATH_TOTAL_LEVELS }).map((_, i) => {
+              const idx = i + 1;
+              const done = idx < mathLevel;
+              const current = idx === mathLevel;
+              return (
+                <span
+                  key={idx}
+                  className={`h-2 rounded-full transition-all ${
+                    done ? 'w-6 bg-green-500' : current ? 'w-8 bg-primary' : 'w-2 bg-muted'
+                  }`}
+                />
+              );
+            })}
+          </div>
+
+          <div
+            className={`text-center py-5 sm:py-7 rounded-xl sm:rounded-2xl border transition-colors ${
+              mathFeedback === 'correct'
+                ? 'bg-green-50 border-green-300 dark:bg-green-500/15 dark:border-green-500/40'
+                : mathFeedback === 'wrong'
+                ? 'bg-red-50 border-red-300 dark:bg-red-500/15 dark:border-red-500/40'
+                : isDark
+                ? 'bg-slate-800/60 border-slate-600/40'
+                : 'bg-gradient-to-br from-orange-50 to-amber-50 border-transparent'
+            }`}
+          >
+            <p className={`text-3xl sm:text-5xl font-extrabold tabular-nums mb-2 break-all px-2 ${
+              isDark ? 'text-indigo-100' : 'text-gray-800'
+            }`}>
+              {mathCurrent.problem} = ?
+            </p>
+            {mathFeedback === 'wrong' && (
+              <p className="text-xs sm:text-sm text-red-500 font-semibold animate-in fade-in">
+                Not quite — here's a new one. Stay sharp!
+              </p>
+            )}
+            {mathFeedback === 'correct' && (
+              <p className="text-xs sm:text-sm text-green-600 font-semibold animate-in fade-in">
+                Correct! Keep going 🚀
+              </p>
             )}
           </div>
-          
+
           <div className="flex gap-2">
             <Input
               type="number"
+              inputMode="numeric"
               value={userAnswer}
               onChange={(e) => setUserAnswer(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleMathSubmit()}
               placeholder="Your answer"
               className="text-center text-lg sm:text-xl font-bold flex-1 min-w-0"
               autoFocus
+              disabled={mathFeedback !== null}
             />
-            <Button onClick={handleMathSubmit} className="bg-orange-500 hover:bg-orange-600 shrink-0 px-4 sm:px-6">
+            <Button
+              onClick={handleMathSubmit}
+              disabled={mathFeedback !== null}
+              className="bg-orange-500 hover:bg-orange-600 shrink-0 px-4 sm:px-6"
+            >
               Submit
             </Button>
           </div>
