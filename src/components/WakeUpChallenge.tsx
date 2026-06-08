@@ -305,7 +305,7 @@ export const WakeUpChallenge = ({
   const [mathQIndex, setMathQIndex] = useState(0);
   const [mathCurrent, setMathCurrent] = useState(() => generateMathQuestion(1, mathUsedRef.current));
   const [mathFeedback, setMathFeedback] = useState<'correct' | 'wrong' | null>(null);
-  const [mathProblem, setMathProblem] = useState(() => generateMathProblem(difficulty));
+  
   const [userAnswer, setUserAnswer] = useState("");
   const [attempts, setAttempts] = useState(0);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
