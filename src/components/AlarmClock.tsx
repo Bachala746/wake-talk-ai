@@ -53,6 +53,11 @@ import {
   defaultSpeakMatchSettings,
   defaultObjectVerifySettings,
   defaultSequentialChallengeSettings,
+  defaultMathChallengeSettings,
+  mathLevelInfo,
+  MathLevel,
+  MATH_MIN_QUESTIONS,
+  MATH_MAX_QUESTIONS,
   MAX_CHALLENGES_PER_ALARM,
   speakMatchParagraphLengths,
   speakMatchAccuracyLevels,
@@ -60,6 +65,7 @@ import {
   speakMatchRetryLimits,
   speakMatchParagraphTypes,
 } from "@/lib/alarmSettings";
+
 import { getStoredObjects, addStoredObject, removeStoredObject, captureImageFromVideo } from "@/lib/objectStore";
 import { getExampleMessage } from "@/lib/motivationLibrary";
 
@@ -127,6 +133,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [smRetryLimit, setSmRetryLimit] = useState(defaultSpeakMatchSettings.retryLimit);
   const [smParagraphType, setSmParagraphType] = useState<SpeakMatchParagraphType>(defaultSpeakMatchSettings.paragraphType);
   const [smCustomText, setSmCustomText] = useState(defaultSpeakMatchSettings.customText);
+
+  // Math challenge config (Level 1–5, question count 3–30)
+  const [mathLevel, setMathLevel] = useState<MathLevel>(defaultMathChallengeSettings.level);
+  const [mathQuestionCount, setMathQuestionCount] = useState<number>(defaultMathChallengeSettings.totalQuestions);
 
   // QR Code registration states
   const [registeredQrCode, setRegisteredQrCode] = useState('');
@@ -299,6 +309,9 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       challengeDifficulty: multiChallengeEnabled ? (challengeSequence[0]?.difficulty || 'easy') : challengeDifficulty,
       elevenLabsAgentId: interactionMode === 'two-way' ? elevenLabsAgentId : '',
       speakMatchSettings: challengeType === 'speakMatch' ? speakMatchSettingsObj : undefined,
+      mathSettings: challengeType === 'math'
+        ? { level: mathLevel, totalQuestions: mathQuestionCount, timePerQuestion: 30 }
+        : undefined,
       registeredQrCode: challengeType === 'qrcode' ? registeredQrCode : undefined,
       objectVerifySettings: challengeType === 'objectVerify' ? objectVerifySettingsObj : undefined,
       sequentialChallengeSettings: multiChallengeEnabled ? sequentialChallengeSettingsObj : undefined,
@@ -374,6 +387,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setSmRetryLimit(smS.retryLimit);
     setSmParagraphType(smS.paragraphType);
     setSmCustomText(smS.customText);
+    // Load math settings
+    const mS = alarm.settings.mathSettings || defaultMathChallengeSettings;
+    setMathLevel(mS.level);
+    setMathQuestionCount(mS.totalQuestions);
     setRegisteredQrCode(alarm.settings.registeredQrCode || '');
     // Load object verification settings
     const ovS = alarm.settings.objectVerifySettings || defaultObjectVerifySettings;
@@ -423,6 +440,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setSmRetryLimit(defaultSpeakMatchSettings.retryLimit);
     setSmParagraphType(defaultSpeakMatchSettings.paragraphType);
     setSmCustomText(defaultSpeakMatchSettings.customText);
+    setMathLevel(defaultMathChallengeSettings.level);
+    setMathQuestionCount(defaultMathChallengeSettings.totalQuestions);
     setRegisteredQrCode('');
     // Reset object verification
     setOvSelectedIds([]);
@@ -1487,6 +1506,68 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                   </p>
                 </div>
               )}
+
+              {/* Math Challenge Configuration — Level & Question Count */}
+              {challengeType === 'math' && (
+                <div className="space-y-4 p-3 sm:p-4 rounded-xl border border-border bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🧮</span>
+                    <p className="text-sm font-semibold">Math Challenge Setup</p>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs font-medium mb-2 block text-muted-foreground">
+                      DIFFICULTY LEVEL
+                    </Label>
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {mathLevelInfo.map((info) => (
+                        <Button
+                          key={info.level}
+                          type="button"
+                          variant={mathLevel === info.level ? "default" : "outline"}
+                          size="sm"
+                          className="px-0"
+                          onClick={() => setMathLevel(info.level)}
+                        >
+                          {info.level}
+                        </Button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {mathLevelInfo.find(l => l.level === mathLevel)?.description}
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        NUMBER OF QUESTIONS
+                      </Label>
+                      <span className="text-sm font-bold tabular-nums text-primary">
+                        {mathQuestionCount}
+                      </span>
+                    </div>
+                    <Slider
+                      value={[mathQuestionCount]}
+                      onValueChange={(v) => setMathQuestionCount(v[0])}
+                      min={MATH_MIN_QUESTIONS}
+                      max={MATH_MAX_QUESTIONS}
+                      step={1}
+                      className="py-2"
+                    />
+                    <div className="flex justify-between text-[10px] text-muted-foreground mt-1 tabular-nums">
+                      <span>{MATH_MIN_QUESTIONS}</span>
+                      <span>~{Math.ceil(mathQuestionCount * 0.5)} min estimated</span>
+                      <span>{MATH_MAX_QUESTIONS}</span>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Each question has a 30-second timer. Wrong answers and timeouts generate a new problem of the same level. Finish all {mathQuestionCount} to dismiss the alarm.
+                  </p>
+                </div>
+              )}
+
 
               {/* QR Code Registration */}
               {challengeType === 'qrcode' && (

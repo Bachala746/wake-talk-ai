@@ -39,6 +39,8 @@ import {
   ObjectVerifySettings,
   defaultObjectVerifySettings,
   StoredObject,
+  MathChallengeSettings,
+  defaultMathChallengeSettings,
 } from "@/lib/alarmSettings";
 import { getStoredObjects, captureImageFromVideo } from "@/lib/objectStore";
 import { isCameraMandatory, checkPermission } from "@/lib/permissions";
@@ -70,8 +72,10 @@ interface WakeUpChallengeProps {
   speakMatchSettings?: SpeakMatchSettings;
   registeredQrCode?: string;
   objectVerifySettings?: ObjectVerifySettings;
+  mathSettings?: MathChallengeSettings;
   isAlarmActive?: boolean; // Anti-cheat: track if alarm is active
 }
+
 
 // AI voice encouragement messages
 const encouragementMessages = [
@@ -297,6 +301,7 @@ export const WakeUpChallenge = ({
   speakMatchSettings,
   registeredQrCode,
   objectVerifySettings,
+  mathSettings,
   isAlarmActive = true,
 }: WakeUpChallengeProps) => {
   const { isDark } = useTheme();
@@ -316,13 +321,23 @@ export const WakeUpChallenge = ({
     intervalSeconds: 22,
   });
 
-  // State for different challenge types
+  // Math challenge — user-configured level + question count
+  const mathCfg = mathSettings || defaultMathChallengeSettings;
+  const mathLevel = mathCfg.level;
+  const mathQuestionTotal = Math.max(3, Math.min(30, mathCfg.totalQuestions));
+  const mathTimePerQuestion = Math.max(5, mathCfg.timePerQuestion || 30);
+
   const mathUsedRef = useRef<Set<string>>(new Set());
-  const [mathLevel, setMathLevel] = useState(1);
-  const [mathQTotal, setMathQTotal] = useState(() => pickQuestionsPerLevel());
   const [mathQIndex, setMathQIndex] = useState(0);
-  const [mathCurrent, setMathCurrent] = useState(() => generateMathQuestion(1, mathUsedRef.current));
-  const [mathFeedback, setMathFeedback] = useState<'correct' | 'wrong' | null>(null);
+  const [mathCurrent, setMathCurrent] = useState(() => generateMathQuestion(mathLevel, mathUsedRef.current));
+  const [mathFeedback, setMathFeedback] = useState<'correct' | 'wrong' | 'timeout' | null>(null);
+  const [mathRevealAnswer, setMathRevealAnswer] = useState<number | null>(null);
+  const [mathTimeLeft, setMathTimeLeft] = useState(mathTimePerQuestion);
+  const [mathCorrectCount, setMathCorrectCount] = useState(0);
+  const [mathStreak, setMathStreak] = useState(0);
+  const [mathEncouragement, setMathEncouragement] = useState<string | null>(null);
+  const [mathCompleted, setMathCompleted] = useState(false);
+
   
   const [userAnswer, setUserAnswer] = useState("");
   const [attempts, setAttempts] = useState(0);
@@ -832,47 +847,92 @@ export const WakeUpChallenge = ({
     }
   };
   
+  // Math: positive feedback pool
+  const mathPraise = [
+    "Nice! 🚀",
+    "Sharp mind!",
+    "Correct! Keep going",
+    "Boom! 🔥",
+    "Brain's waking up!",
+    "Smooth!",
+    "You're on fire!",
+    "Excellent!",
+  ];
+
+  const advanceMathQuestion = useCallback(() => {
+    setUserAnswer('');
+    setMathFeedback(null);
+    setMathRevealAnswer(null);
+    setMathEncouragement(null);
+    setIsCorrect(null);
+    setMathCurrent(generateMathQuestion(mathLevel, mathUsedRef.current));
+    setMathTimeLeft(mathTimePerQuestion);
+  }, [mathLevel, mathTimePerQuestion]);
+
+  const handleMathTimeout = useCallback(() => {
+    if (mathFeedback !== null) return;
+    setMathFeedback('timeout');
+    setMathRevealAnswer(mathCurrent.answer);
+    setMathStreak(0);
+    handleWrongAttempt();
+    setTimeout(() => {
+      advanceMathQuestion();
+    }, 1400);
+  }, [mathFeedback, mathCurrent.answer, handleWrongAttempt, advanceMathQuestion]);
+
+  // 30-second per-question countdown
+  useEffect(() => {
+    if (challengeType !== 'math') return;
+    if (mathFeedback !== null) return;
+    if (mathCompleted) return;
+    if (mathTimeLeft <= 0) {
+      handleMathTimeout();
+      return;
+    }
+    const id = setTimeout(() => setMathTimeLeft(t => t - 1), 1000);
+    return () => clearTimeout(id);
+  }, [challengeType, mathFeedback, mathTimeLeft, mathCompleted, handleMathTimeout]);
+
   const handleMathSubmit = () => {
     if (userAnswer.trim() === '') return;
+    if (mathFeedback !== null) return;
     const answer = parseInt(userAnswer, 10);
     if (Number.isNaN(answer)) return;
 
     if (answer === mathCurrent.answer) {
+      const nextCorrect = mathCorrectCount + 1;
+      const nextStreak = mathStreak + 1;
       setMathFeedback('correct');
       setIsCorrect(true);
+      setMathCorrectCount(nextCorrect);
+      setMathStreak(nextStreak);
+      setMathEncouragement(mathPraise[Math.floor(Math.random() * mathPraise.length)]);
       playCorrectTapSound();
-      const isLastInLevel = mathQIndex + 1 >= mathQTotal;
-      const isLastLevel = mathLevel >= MATH_TOTAL_LEVELS;
+
+      const isLast = mathQIndex + 1 >= mathQuestionTotal;
       setTimeout(() => {
-        setUserAnswer('');
-        setMathFeedback(null);
-        setIsCorrect(null);
-        if (isLastInLevel && isLastLevel) {
+        if (isLast) {
           playChallengeCompleteSound();
-          onComplete();
-        } else if (isLastInLevel) {
-          const nextLevel = mathLevel + 1;
-          setMathLevel(nextLevel);
-          setMathQTotal(pickQuestionsPerLevel());
-          setMathQIndex(0);
-          setMathCurrent(generateMathQuestion(nextLevel, mathUsedRef.current));
+          setMathCompleted(true);
+          setTimeout(() => onComplete(), 1400);
         } else {
           setMathQIndex(mathQIndex + 1);
-          setMathCurrent(generateMathQuestion(mathLevel, mathUsedRef.current));
+          advanceMathQuestion();
         }
-      }, 550);
+      }, 600);
     } else {
       setMathFeedback('wrong');
       setIsCorrect(false);
+      setMathStreak(0);
+      setMathRevealAnswer(mathCurrent.answer);
       handleWrongAttempt();
-      setUserAnswer('');
       setTimeout(() => {
-        setMathCurrent(generateMathQuestion(mathLevel, mathUsedRef.current));
-        setMathFeedback(null);
-        setIsCorrect(null);
-      }, 800);
+        advanceMathQuestion();
+      }, 1200);
     }
   };
+  
+
   
   const handleMemoryInput = (num: number) => {
     const newSequence = [...userSequence, num];
@@ -1228,87 +1288,118 @@ export const WakeUpChallenge = ({
       {/* Challenge Content */}
       {challengeType === 'math' && (
         <div className="space-y-3 sm:space-y-4">
-          {/* Level + question progress */}
-          <div className="flex items-center justify-between gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
-              Level {mathLevel} / {MATH_TOTAL_LEVELS}
-            </span>
-            <span className="text-xs sm:text-sm font-semibold text-muted-foreground tabular-nums">
-              Question {mathQIndex + 1} of {mathQTotal} · {mathQTotal - mathQIndex} left
-            </span>
-          </div>
-          <Progress
-            value={((mathLevel - 1) / MATH_TOTAL_LEVELS) * 100 + (mathQIndex / mathQTotal) * (100 / MATH_TOTAL_LEVELS)}
-            className="h-2"
-          />
+          {mathCompleted ? (
+            <div className="py-10 text-center animate-in fade-in zoom-in-95 duration-500">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 shadow-lg shadow-emerald-500/40 mb-4 animate-bounce">
+                <CheckCircle className="h-10 w-10 text-white" />
+              </div>
+              <p className={`text-2xl sm:text-3xl font-extrabold mb-1 ${isDark ? 'text-emerald-200' : 'text-emerald-700'}`}>
+                Challenge Complete!
+              </p>
+              <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
+                {mathCorrectCount} / {mathQuestionTotal} solved · +{mathQuestionTotal * mathLevel * 10} XP
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Level + question progress */}
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                  Level {mathLevel} / 5
+                </span>
+                <span className="text-xs sm:text-sm font-semibold text-muted-foreground tabular-nums">
+                  Question {mathQIndex + 1} of {mathQuestionTotal} · {mathQuestionTotal - mathQIndex - 1} left
+                </span>
+              </div>
+              <Progress
+                value={((mathQIndex) / mathQuestionTotal) * 100}
+                className="h-2"
+              />
 
-          {/* Level dots */}
-          <div className="flex items-center justify-center gap-1.5">
-            {Array.from({ length: MATH_TOTAL_LEVELS }).map((_, i) => {
-              const idx = i + 1;
-              const done = idx < mathLevel;
-              const current = idx === mathLevel;
-              return (
-                <span
-                  key={idx}
-                  className={`h-2 rounded-full transition-all ${
-                    done ? 'w-6 bg-green-500' : current ? 'w-8 bg-primary' : 'w-2 bg-muted'
+              {/* Timer bar */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-1.5">
+                  <Timer className={`h-3.5 w-3.5 ${mathTimeLeft <= 5 ? 'text-red-500 animate-pulse' : 'text-muted-foreground'}`} />
+                  <span className={`text-xs font-bold tabular-nums ${
+                    mathTimeLeft <= 5 ? 'text-red-500' : 'text-muted-foreground'
+                  }`}>
+                    {mathTimeLeft}s
+                  </span>
+                </div>
+                {mathStreak >= 2 && (
+                  <span className="text-xs font-bold text-amber-500">🔥 {mathStreak} streak</span>
+                )}
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {mathCorrectCount} correct
+                </span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-1000 ease-linear ${
+                    mathTimeLeft <= 5 ? 'bg-red-500' : 'bg-gradient-to-r from-orange-400 to-amber-500'
                   }`}
+                  style={{ width: `${(mathTimeLeft / mathTimePerQuestion) * 100}%` }}
                 />
-              );
-            })}
-          </div>
+              </div>
 
-          <div
-            className={`text-center py-5 sm:py-7 rounded-xl sm:rounded-2xl border transition-colors ${
-              mathFeedback === 'correct'
-                ? 'bg-green-50 border-green-300 dark:bg-green-500/15 dark:border-green-500/40'
-                : mathFeedback === 'wrong'
-                ? 'bg-red-50 border-red-300 dark:bg-red-500/15 dark:border-red-500/40'
-                : isDark
-                ? 'bg-slate-800/60 border-slate-600/40'
-                : 'bg-gradient-to-br from-orange-50 to-amber-50 border-transparent'
-            }`}
-          >
-            <p className={`text-3xl sm:text-5xl font-extrabold tabular-nums mb-2 break-all px-2 ${
-              isDark ? 'text-indigo-100' : 'text-gray-800'
-            }`}>
-              {mathCurrent.problem} = ?
-            </p>
-            {mathFeedback === 'wrong' && (
-              <p className="text-xs sm:text-sm text-red-500 font-semibold animate-in fade-in">
-                Not quite — here's a new one. Stay sharp!
-              </p>
-            )}
-            {mathFeedback === 'correct' && (
-              <p className="text-xs sm:text-sm text-green-600 font-semibold animate-in fade-in">
-                Correct! Keep going 🚀
-              </p>
-            )}
-          </div>
+              <div
+                className={`text-center py-5 sm:py-7 rounded-xl sm:rounded-2xl border transition-colors ${
+                  mathFeedback === 'correct'
+                    ? 'bg-green-50 border-green-300 dark:bg-green-500/15 dark:border-green-500/40'
+                    : mathFeedback === 'wrong' || mathFeedback === 'timeout'
+                    ? 'bg-red-50 border-red-300 dark:bg-red-500/15 dark:border-red-500/40'
+                    : isDark
+                    ? 'bg-slate-800/60 border-slate-600/40'
+                    : 'bg-gradient-to-br from-orange-50 to-amber-50 border-transparent'
+                }`}
+              >
+                <p className={`text-3xl sm:text-5xl font-extrabold tabular-nums mb-2 break-all px-2 ${
+                  isDark ? 'text-indigo-100' : 'text-gray-800'
+                }`}>
+                  {mathCurrent.problem} = ?
+                </p>
+                {mathFeedback === 'correct' && (
+                  <p className="text-sm sm:text-base text-green-600 font-bold animate-in fade-in zoom-in-95">
+                    ✓ {mathEncouragement}
+                  </p>
+                )}
+                {mathFeedback === 'wrong' && mathRevealAnswer !== null && (
+                  <p className="text-xs sm:text-sm text-red-500 font-semibold animate-in fade-in">
+                    Not quite — the answer was <span className="font-extrabold">{mathRevealAnswer}</span>. New one coming…
+                  </p>
+                )}
+                {mathFeedback === 'timeout' && mathRevealAnswer !== null && (
+                  <p className="text-xs sm:text-sm text-red-500 font-semibold animate-in fade-in">
+                    ⏱ Time's up! The answer was <span className="font-extrabold">{mathRevealAnswer}</span>.
+                  </p>
+                )}
+              </div>
 
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              inputMode="numeric"
-              value={userAnswer}
-              onChange={(e) => setUserAnswer(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleMathSubmit()}
-              placeholder="Your answer"
-              className="text-center text-lg sm:text-xl font-bold flex-1 min-w-0"
-              autoFocus
-              disabled={mathFeedback !== null}
-            />
-            <Button
-              onClick={handleMathSubmit}
-              disabled={mathFeedback !== null}
-              className="bg-orange-500 hover:bg-orange-600 shrink-0 px-4 sm:px-6"
-            >
-              Submit
-            </Button>
-          </div>
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  value={userAnswer}
+                  onChange={(e) => setUserAnswer(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleMathSubmit()}
+                  placeholder="Your answer"
+                  className="text-center text-lg sm:text-xl font-bold flex-1 min-w-0"
+                  autoFocus
+                  disabled={mathFeedback !== null}
+                />
+                <Button
+                  onClick={handleMathSubmit}
+                  disabled={mathFeedback !== null}
+                  className="bg-orange-500 hover:bg-orange-600 shrink-0 px-4 sm:px-6"
+                >
+                  Submit
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       )}
+
       
       {challengeType === 'shake' && (
         <div className="space-y-3 sm:space-y-4 text-center">

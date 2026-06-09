@@ -524,6 +524,32 @@ export const defaultSequentialChallengeSettings: SequentialChallengeSettings = {
 
 export const MAX_CHALLENGES_PER_ALARM = 7;
 
+// Math challenge settings — user picks level (1-5) and total questions (3-30)
+export type MathLevel = 1 | 2 | 3 | 4 | 5;
+
+export interface MathChallengeSettings {
+  level: MathLevel;
+  totalQuestions: number; // 3-30
+  timePerQuestion: number; // seconds (default 30)
+}
+
+export const defaultMathChallengeSettings: MathChallengeSettings = {
+  level: 1,
+  totalQuestions: 5,
+  timePerQuestion: 30,
+};
+
+export const mathLevelInfo: { level: MathLevel; label: string; description: string }[] = [
+  { level: 1, label: 'Level 1', description: 'Addition (1–20)' },
+  { level: 2, label: 'Level 2', description: 'Add & Subtract (1–50)' },
+  { level: 3, label: 'Level 3', description: '+ Multiplication (1–100)' },
+  { level: 4, label: 'Level 4', description: 'All four operations' },
+  { level: 5, label: 'Level 5', description: 'Multi-step & order of ops' },
+];
+
+export const MATH_MIN_QUESTIONS = 3;
+export const MATH_MAX_QUESTIONS = 30;
+
 // Complete alarm settings interface
 export interface AlarmSettings {
   interactionMode: InteractionMode;
@@ -541,6 +567,8 @@ export interface AlarmSettings {
   elevenLabsAgentId?: string;
   // Speak & Match settings
   speakMatchSettings?: SpeakMatchSettings;
+  // Math challenge settings
+  mathSettings?: MathChallengeSettings;
   // Registered QR code for QR challenge
   registeredQrCode?: string;
   // Object verification settings
@@ -563,4 +591,6 @@ export const defaultAlarmSettings: AlarmSettings = {
   challengeDifficulty: 'easy',
   elevenLabsAgentId: '',
   speakMatchSettings: defaultSpeakMatchSettings,
+  mathSettings: defaultMathChallengeSettings,
 };
+

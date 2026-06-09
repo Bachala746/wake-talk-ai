@@ -420,6 +420,7 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
               onFail={handleChallengeFail}
               onEscalate={handleChallengeEscalate}
               speakMatchSettings={settings.speakMatchSettings}
+              mathSettings={settings.mathSettings}
               registeredQrCode={settings.registeredQrCode}
               objectVerifySettings={settings.objectVerifySettings}
             />
