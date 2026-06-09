@@ -440,6 +440,8 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setSmRetryLimit(defaultSpeakMatchSettings.retryLimit);
     setSmParagraphType(defaultSpeakMatchSettings.paragraphType);
     setSmCustomText(defaultSpeakMatchSettings.customText);
+    setMathLevel(defaultMathChallengeSettings.level);
+    setMathQuestionCount(defaultMathChallengeSettings.totalQuestions);
     setRegisteredQrCode('');
     // Reset object verification
     setOvSelectedIds([]);
