@@ -387,6 +387,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setSmRetryLimit(smS.retryLimit);
     setSmParagraphType(smS.paragraphType);
     setSmCustomText(smS.customText);
+    // Load math settings
+    const mS = alarm.settings.mathSettings || defaultMathChallengeSettings;
+    setMathLevel(mS.level);
+    setMathQuestionCount(mS.totalQuestions);
     setRegisteredQrCode(alarm.settings.registeredQrCode || '');
     // Load object verification settings
     const ovS = alarm.settings.objectVerifySettings || defaultObjectVerifySettings;
