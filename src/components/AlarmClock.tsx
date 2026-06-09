@@ -53,6 +53,11 @@ import {
   defaultSpeakMatchSettings,
   defaultObjectVerifySettings,
   defaultSequentialChallengeSettings,
+  defaultMathChallengeSettings,
+  mathLevelInfo,
+  MathLevel,
+  MATH_MIN_QUESTIONS,
+  MATH_MAX_QUESTIONS,
   MAX_CHALLENGES_PER_ALARM,
   speakMatchParagraphLengths,
   speakMatchAccuracyLevels,
@@ -60,6 +65,7 @@ import {
   speakMatchRetryLimits,
   speakMatchParagraphTypes,
 } from "@/lib/alarmSettings";
+
 import { getStoredObjects, addStoredObject, removeStoredObject, captureImageFromVideo } from "@/lib/objectStore";
 import { getExampleMessage } from "@/lib/motivationLibrary";
 
