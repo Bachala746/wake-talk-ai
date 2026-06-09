@@ -46,6 +46,8 @@ import { detectTimeManipulation, updateHeartbeat, applyCheatPenalty, getEscalate
 import { supabase } from "@/integrations/supabase/client";
 import { Html5Qrcode } from "html5-qrcode";
 import { useElevenLabsScribe } from "@/hooks/useElevenLabsScribe";
+import { useVoiceMotivation } from "@/hooks/useVoiceMotivation";
+import { Sparkles } from "lucide-react";
 import { 
   playStepSound, 
   playChallengeCompleteSound, 
