@@ -1179,7 +1179,42 @@ export const WakeUpChallenge = ({
           <h3 className="text-base sm:text-lg font-bold text-foreground truncate">{getChallengeTitle()}</h3>
           <p className="text-xs sm:text-sm text-muted-foreground capitalize">{difficulty} difficulty</p>
         </div>
+        <button
+          type="button"
+          onClick={() => setVoiceMotivationEnabled((v) => !v)}
+          aria-pressed={voiceMotivationEnabled}
+          title={voiceMotivationEnabled ? 'Voice coach on — tap to mute' : 'Turn on AI voice coach'}
+          className={`shrink-0 relative p-2 sm:p-2.5 rounded-xl border transition-all ${
+            voiceMotivationEnabled
+              ? (isDark
+                  ? 'bg-indigo-500/20 border-indigo-400/50 text-indigo-200'
+                  : 'bg-amber-500/20 border-amber-400/60 text-amber-700')
+              : (isDark
+                  ? 'bg-slate-700/40 border-slate-600/50 text-slate-300 hover:bg-slate-700/70'
+                  : 'bg-white border-border text-muted-foreground hover:bg-muted')
+          }`}
+        >
+          {voiceMotivationEnabled ? <Volume2 className="h-4 w-4 sm:h-5 sm:w-5" /> : <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />}
+          {voiceMotivationEnabled && motivationSpeaking && (
+            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+            </span>
+          )}
+        </button>
       </div>
+
+      {/* Voice motivation hint */}
+      {voiceMotivationEnabled && (
+        <div className={`mb-3 sm:mb-4 px-3 py-2 rounded-xl text-xs flex items-center gap-2 ${
+          isDark ? 'bg-indigo-500/10 border border-indigo-400/30 text-indigo-200'
+                 : 'bg-amber-500/10 border border-amber-400/40 text-amber-800'
+        }`}>
+          <Volume2 className="h-3.5 w-3.5 shrink-0" />
+          <span>AI voice coach is cheering you on — fresh encouragement every ~20s.</span>
+        </div>
+      )}
+
 
       {/* Global escalation warning */}
       {globalFailures >= 3 && (
