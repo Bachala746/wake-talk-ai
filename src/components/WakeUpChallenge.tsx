@@ -300,6 +300,22 @@ export const WakeUpChallenge = ({
   isAlarmActive = true,
 }: WakeUpChallengeProps) => {
   const { isDark } = useTheme();
+
+  // Optional AI voice motivation mode — talks to the user with encouragement
+  const [voiceMotivationEnabled, setVoiceMotivationEnabled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('voiceMotivationEnabled') === 'true';
+  });
+  useEffect(() => {
+    try { localStorage.setItem('voiceMotivationEnabled', String(voiceMotivationEnabled)); } catch {}
+  }, [voiceMotivationEnabled]);
+  const { isSpeaking: motivationSpeaking } = useVoiceMotivation({
+    enabled: voiceMotivationEnabled,
+    challengeType,
+    difficulty,
+    intervalSeconds: 22,
+  });
+
   // State for different challenge types
   const mathUsedRef = useRef<Set<string>>(new Set());
   const [mathLevel, setMathLevel] = useState(1);
