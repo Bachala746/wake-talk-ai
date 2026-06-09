@@ -39,6 +39,8 @@ import {
   ObjectVerifySettings,
   defaultObjectVerifySettings,
   StoredObject,
+  MathChallengeSettings,
+  defaultMathChallengeSettings,
 } from "@/lib/alarmSettings";
 import { getStoredObjects, captureImageFromVideo } from "@/lib/objectStore";
 import { isCameraMandatory, checkPermission } from "@/lib/permissions";
@@ -70,8 +72,10 @@ interface WakeUpChallengeProps {
   speakMatchSettings?: SpeakMatchSettings;
   registeredQrCode?: string;
   objectVerifySettings?: ObjectVerifySettings;
+  mathSettings?: MathChallengeSettings;
   isAlarmActive?: boolean; // Anti-cheat: track if alarm is active
 }
+
 
 // AI voice encouragement messages
 const encouragementMessages = [
