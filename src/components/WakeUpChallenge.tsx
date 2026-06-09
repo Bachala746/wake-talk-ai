@@ -847,47 +847,92 @@ export const WakeUpChallenge = ({
     }
   };
   
+  // Math: positive feedback pool
+  const mathPraise = [
+    "Nice! 🚀",
+    "Sharp mind!",
+    "Correct! Keep going",
+    "Boom! 🔥",
+    "Brain's waking up!",
+    "Smooth!",
+    "You're on fire!",
+    "Excellent!",
+  ];
+
+  const advanceMathQuestion = useCallback(() => {
+    setUserAnswer('');
+    setMathFeedback(null);
+    setMathRevealAnswer(null);
+    setMathEncouragement(null);
+    setIsCorrect(null);
+    setMathCurrent(generateMathQuestion(mathLevel, mathUsedRef.current));
+    setMathTimeLeft(mathTimePerQuestion);
+  }, [mathLevel, mathTimePerQuestion]);
+
+  const handleMathTimeout = useCallback(() => {
+    if (mathFeedback !== null) return;
+    setMathFeedback('timeout');
+    setMathRevealAnswer(mathCurrent.answer);
+    setMathStreak(0);
+    handleWrongAttempt();
+    setTimeout(() => {
+      advanceMathQuestion();
+    }, 1400);
+  }, [mathFeedback, mathCurrent.answer, handleWrongAttempt, advanceMathQuestion]);
+
+  // 30-second per-question countdown
+  useEffect(() => {
+    if (challengeType !== 'math') return;
+    if (mathFeedback !== null) return;
+    if (mathCompleted) return;
+    if (mathTimeLeft <= 0) {
+      handleMathTimeout();
+      return;
+    }
+    const id = setTimeout(() => setMathTimeLeft(t => t - 1), 1000);
+    return () => clearTimeout(id);
+  }, [challengeType, mathFeedback, mathTimeLeft, mathCompleted, handleMathTimeout]);
+
   const handleMathSubmit = () => {
     if (userAnswer.trim() === '') return;
+    if (mathFeedback !== null) return;
     const answer = parseInt(userAnswer, 10);
     if (Number.isNaN(answer)) return;
 
     if (answer === mathCurrent.answer) {
+      const nextCorrect = mathCorrectCount + 1;
+      const nextStreak = mathStreak + 1;
       setMathFeedback('correct');
       setIsCorrect(true);
+      setMathCorrectCount(nextCorrect);
+      setMathStreak(nextStreak);
+      setMathEncouragement(mathPraise[Math.floor(Math.random() * mathPraise.length)]);
       playCorrectTapSound();
-      const isLastInLevel = mathQIndex + 1 >= mathQTotal;
-      const isLastLevel = mathLevel >= MATH_TOTAL_LEVELS;
+
+      const isLast = mathQIndex + 1 >= mathQuestionTotal;
       setTimeout(() => {
-        setUserAnswer('');
-        setMathFeedback(null);
-        setIsCorrect(null);
-        if (isLastInLevel && isLastLevel) {
+        if (isLast) {
           playChallengeCompleteSound();
-          onComplete();
-        } else if (isLastInLevel) {
-          const nextLevel = mathLevel + 1;
-          setMathLevel(nextLevel);
-          setMathQTotal(pickQuestionsPerLevel());
-          setMathQIndex(0);
-          setMathCurrent(generateMathQuestion(nextLevel, mathUsedRef.current));
+          setMathCompleted(true);
+          setTimeout(() => onComplete(), 1400);
         } else {
           setMathQIndex(mathQIndex + 1);
-          setMathCurrent(generateMathQuestion(mathLevel, mathUsedRef.current));
+          advanceMathQuestion();
         }
-      }, 550);
+      }, 600);
     } else {
       setMathFeedback('wrong');
       setIsCorrect(false);
+      setMathStreak(0);
+      setMathRevealAnswer(mathCurrent.answer);
       handleWrongAttempt();
-      setUserAnswer('');
       setTimeout(() => {
-        setMathCurrent(generateMathQuestion(mathLevel, mathUsedRef.current));
-        setMathFeedback(null);
-        setIsCorrect(null);
-      }, 800);
+        advanceMathQuestion();
+      }, 1200);
     }
   };
+  
+
   
   const handleMemoryInput = (num: number) => {
     const newSequence = [...userSequence, num];
