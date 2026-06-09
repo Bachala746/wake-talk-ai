@@ -309,6 +309,9 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       challengeDifficulty: multiChallengeEnabled ? (challengeSequence[0]?.difficulty || 'easy') : challengeDifficulty,
       elevenLabsAgentId: interactionMode === 'two-way' ? elevenLabsAgentId : '',
       speakMatchSettings: challengeType === 'speakMatch' ? speakMatchSettingsObj : undefined,
+      mathSettings: challengeType === 'math'
+        ? { level: mathLevel, totalQuestions: mathQuestionCount, timePerQuestion: 30 }
+        : undefined,
       registeredQrCode: challengeType === 'qrcode' ? registeredQrCode : undefined,
       objectVerifySettings: challengeType === 'objectVerify' ? objectVerifySettingsObj : undefined,
       sequentialChallengeSettings: multiChallengeEnabled ? sequentialChallengeSettingsObj : undefined,
