@@ -134,6 +134,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [smParagraphType, setSmParagraphType] = useState<SpeakMatchParagraphType>(defaultSpeakMatchSettings.paragraphType);
   const [smCustomText, setSmCustomText] = useState(defaultSpeakMatchSettings.customText);
 
+  // Math challenge config (Level 1–5, question count 3–30)
+  const [mathLevel, setMathLevel] = useState<MathLevel>(defaultMathChallengeSettings.level);
+  const [mathQuestionCount, setMathQuestionCount] = useState<number>(defaultMathChallengeSettings.totalQuestions);
+
   // QR Code registration states
   const [registeredQrCode, setRegisteredQrCode] = useState('');
   const [qrScanMode, setQrScanMode] = useState(false);
