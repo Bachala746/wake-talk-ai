@@ -301,6 +301,7 @@ export const WakeUpChallenge = ({
   speakMatchSettings,
   registeredQrCode,
   objectVerifySettings,
+  mathSettings,
   isAlarmActive = true,
 }: WakeUpChallengeProps) => {
   const { isDark } = useTheme();
@@ -320,13 +321,23 @@ export const WakeUpChallenge = ({
     intervalSeconds: 22,
   });
 
-  // State for different challenge types
+  // Math challenge — user-configured level + question count
+  const mathCfg = mathSettings || defaultMathChallengeSettings;
+  const mathLevel = mathCfg.level;
+  const mathQuestionTotal = Math.max(3, Math.min(30, mathCfg.totalQuestions));
+  const mathTimePerQuestion = Math.max(5, mathCfg.timePerQuestion || 30);
+
   const mathUsedRef = useRef<Set<string>>(new Set());
-  const [mathLevel, setMathLevel] = useState(1);
-  const [mathQTotal, setMathQTotal] = useState(() => pickQuestionsPerLevel());
   const [mathQIndex, setMathQIndex] = useState(0);
-  const [mathCurrent, setMathCurrent] = useState(() => generateMathQuestion(1, mathUsedRef.current));
-  const [mathFeedback, setMathFeedback] = useState<'correct' | 'wrong' | null>(null);
+  const [mathCurrent, setMathCurrent] = useState(() => generateMathQuestion(mathLevel, mathUsedRef.current));
+  const [mathFeedback, setMathFeedback] = useState<'correct' | 'wrong' | 'timeout' | null>(null);
+  const [mathRevealAnswer, setMathRevealAnswer] = useState<number | null>(null);
+  const [mathTimeLeft, setMathTimeLeft] = useState(mathTimePerQuestion);
+  const [mathCorrectCount, setMathCorrectCount] = useState(0);
+  const [mathStreak, setMathStreak] = useState(0);
+  const [mathEncouragement, setMathEncouragement] = useState<string | null>(null);
+  const [mathCompleted, setMathCompleted] = useState(false);
+
   
   const [userAnswer, setUserAnswer] = useState("");
   const [attempts, setAttempts] = useState(0);
