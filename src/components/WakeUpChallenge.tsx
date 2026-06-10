@@ -41,6 +41,8 @@ import {
   StoredObject,
   MathChallengeSettings,
   defaultMathChallengeSettings,
+  MindChallengeConfig,
+  defaultMindChallengeConfig,
 } from "@/lib/alarmSettings";
 import { getStoredObjects, captureImageFromVideo } from "@/lib/objectStore";
 import { isCameraMandatory, checkPermission } from "@/lib/permissions";
@@ -49,6 +51,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { Html5Qrcode } from "html5-qrcode";
 import { useElevenLabsScribe } from "@/hooks/useElevenLabsScribe";
 import { useVoiceMotivation } from "@/hooks/useVoiceMotivation";
+import { useMindRoundRunner } from "@/hooks/useMindRoundRunner";
+import { MindRoundHeader } from "@/components/MindRoundHeader";
+import {
+  generateTyping,
+  generateMemory,
+  generatePattern as genMindPattern,
+  generateSlider as genMindSlider,
+  generateCaptcha as genMindCaptcha,
+  MEMORY_DISPLAY_MS,
+  PATTERN_DISPLAY_MS,
+  PATTERN_GRID_SIZE,
+} from "@/lib/mindChallengeGenerators";
 import { Sparkles } from "lucide-react";
 import { 
   playStepSound, 
@@ -73,6 +87,11 @@ interface WakeUpChallengeProps {
   registeredQrCode?: string;
   objectVerifySettings?: ObjectVerifySettings;
   mathSettings?: MathChallengeSettings;
+  typingSettings?: MindChallengeConfig;
+  memorySettings?: MindChallengeConfig;
+  patternSettings?: MindChallengeConfig;
+  sliderSettings?: MindChallengeConfig;
+  captchaSettings?: MindChallengeConfig;
   isAlarmActive?: boolean; // Anti-cheat: track if alarm is active
 }
 
