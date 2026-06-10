@@ -631,6 +631,12 @@ export interface AlarmSettings {
   speakMatchSettings?: SpeakMatchSettings;
   // Math challenge settings
   mathSettings?: MathChallengeSettings;
+  // Mind challenges (typing, memory, pattern, slider, captcha) — level 1–5, rounds 3–30
+  typingSettings?: MindChallengeConfig;
+  memorySettings?: MindChallengeConfig;
+  patternSettings?: MindChallengeConfig;
+  sliderSettings?: MindChallengeConfig;
+  captchaSettings?: MindChallengeConfig;
   // Registered QR code for QR challenge
   registeredQrCode?: string;
   // Object verification settings
@@ -654,5 +660,10 @@ export const defaultAlarmSettings: AlarmSettings = {
   elevenLabsAgentId: '',
   speakMatchSettings: defaultSpeakMatchSettings,
   mathSettings: defaultMathChallengeSettings,
+  typingSettings: defaultMindChallengeConfig,
+  memorySettings: defaultMindChallengeConfig,
+  patternSettings: defaultMindChallengeConfig,
+  sliderSettings: defaultMindChallengeConfig,
+  captchaSettings: defaultMindChallengeConfig,
 };
 
