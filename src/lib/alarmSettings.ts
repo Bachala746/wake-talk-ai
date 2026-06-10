@@ -550,6 +550,68 @@ export const mathLevelInfo: { level: MathLevel; label: string; description: stri
 export const MATH_MIN_QUESTIONS = 3;
 export const MATH_MAX_QUESTIONS = 30;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared Mind Challenge Configuration (Levels 1–5, Rounds 3–30)
+// Used by: typing, memory, pattern, slider, captcha
+// ─────────────────────────────────────────────────────────────────────────────
+export type MindLevel = 1 | 2 | 3 | 4 | 5;
+
+export interface MindChallengeConfig {
+  level: MindLevel;
+  rounds: number;        // 3..30
+  timePerRound: number;  // seconds (default 30)
+}
+
+export const defaultMindChallengeConfig: MindChallengeConfig = {
+  level: 1,
+  rounds: 5,
+  timePerRound: 30,
+};
+
+export const MIND_MIN_ROUNDS = 3;
+export const MIND_MAX_ROUNDS = 30;
+export const MIND_DEFAULT_TIME = 30;
+
+export type MindChallengeKey = 'typing' | 'memory' | 'pattern' | 'slider' | 'captcha';
+
+export const mindLevelInfo: Record<MindChallengeKey, { level: MindLevel; label: string; description: string }[]> = {
+  typing: [
+    { level: 1, label: 'L1', description: 'Short sentences (5–6 words)' },
+    { level: 2, label: 'L2', description: 'Sentences of 7–8 words' },
+    { level: 3, label: 'L3', description: 'Sentences of 9–10 words' },
+    { level: 4, label: 'L4', description: 'Longer sentences (11–13 words)' },
+    { level: 5, label: 'L5', description: 'Complex sentences (14–18 words)' },
+  ],
+  memory: [
+    { level: 1, label: 'L1', description: '5–6 digit sequence' },
+    { level: 2, label: 'L2', description: '7–8 digit sequence' },
+    { level: 3, label: 'L3', description: '9–10 digit sequence' },
+    { level: 4, label: 'L4', description: '11–12 digit sequence' },
+    { level: 5, label: 'L5', description: '13–16 digits, faster display' },
+  ],
+  pattern: [
+    { level: 1, label: 'L1', description: '4–5 step pattern' },
+    { level: 2, label: 'L2', description: '6–7 step pattern' },
+    { level: 3, label: 'L3', description: '8–9 step pattern' },
+    { level: 4, label: 'L4', description: '10–12 step pattern' },
+    { level: 5, label: 'L5', description: '13–16 steps, fast playback' },
+  ],
+  slider: [
+    { level: 1, label: 'L1', description: '1 slider, ±5 tolerance' },
+    { level: 2, label: 'L2', description: '2 sliders, ±4 tolerance' },
+    { level: 3, label: 'L3', description: '3 sliders, ±3 tolerance' },
+    { level: 4, label: 'L4', description: '4 sliders, ±2 tolerance' },
+    { level: 5, label: 'L5', description: '5 sliders, ±1 tolerance' },
+  ],
+  captcha: [
+    { level: 1, label: 'L1', description: '3–4 letter words, light distortion' },
+    { level: 2, label: 'L2', description: '5–6 letters, mild distortion' },
+    { level: 3, label: 'L3', description: '7–8 letters, moderate distortion' },
+    { level: 4, label: 'L4', description: '9–10 letters, heavy distortion' },
+    { level: 5, label: 'L5', description: '10–14 letters, complex distortion' },
+  ],
+};
+
 // Complete alarm settings interface
 export interface AlarmSettings {
   interactionMode: InteractionMode;
@@ -569,6 +631,12 @@ export interface AlarmSettings {
   speakMatchSettings?: SpeakMatchSettings;
   // Math challenge settings
   mathSettings?: MathChallengeSettings;
+  // Mind challenges (typing, memory, pattern, slider, captcha) — level 1–5, rounds 3–30
+  typingSettings?: MindChallengeConfig;
+  memorySettings?: MindChallengeConfig;
+  patternSettings?: MindChallengeConfig;
+  sliderSettings?: MindChallengeConfig;
+  captchaSettings?: MindChallengeConfig;
   // Registered QR code for QR challenge
   registeredQrCode?: string;
   // Object verification settings
@@ -592,5 +660,10 @@ export const defaultAlarmSettings: AlarmSettings = {
   elevenLabsAgentId: '',
   speakMatchSettings: defaultSpeakMatchSettings,
   mathSettings: defaultMathChallengeSettings,
+  typingSettings: defaultMindChallengeConfig,
+  memorySettings: defaultMindChallengeConfig,
+  patternSettings: defaultMindChallengeConfig,
+  sliderSettings: defaultMindChallengeConfig,
+  captchaSettings: defaultMindChallengeConfig,
 };
 
