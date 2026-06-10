@@ -523,16 +523,7 @@ export const WakeUpChallenge = ({
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scannerContainerRef = useRef<HTMLDivElement>(null);
   
-  // Steps counter state
-  const [stepCount, setStepCount] = useState(0);
-  const [stepsRequired] = useState(difficulty === 'easy' ? 20 : difficulty === 'medium' ? 50 : 100);
-  const [stepsPermissionGranted, setStepsPermissionGranted] = useState(false);
-  const lastAccelRef = useRef({ x: 0, y: 0, z: 0 });
-  const stepThresholdRef = useRef(12);
-  const lastStepTimeRef = useRef(0);
   
-  // Timer for quick math
-  const [timeLeft, setTimeLeft] = useState(difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 15);
   
   // Speak & Match state
   const smSettings = speakMatchSettings || defaultSpeakMatchSettings;
