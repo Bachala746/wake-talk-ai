@@ -668,39 +668,7 @@ export const WakeUpChallenge = ({
     };
   }, [challengeType, shakeRequired, onComplete]);
   
-  // Memory sequence display
-  useEffect(() => {
-    if (challengeType !== 'memory' || !showingSequence) return;
-    
-    const interval = setInterval(() => {
-      setCurrentShowIndex(prev => {
-        if (prev >= memorySequence.length - 1) {
-          setShowingSequence(false);
-          return 0;
-        }
-        return prev + 1;
-      });
-    }, 800);
-    
-    return () => clearInterval(interval);
-  }, [challengeType, showingSequence, memorySequence.length]);
-  
-  // Pattern display
-  useEffect(() => {
-    if (challengeType !== 'pattern' || !showingPattern) return;
-    
-    const interval = setInterval(() => {
-      setCurrentPatternIndex(prev => {
-        if (prev >= patternData.pattern.length - 1) {
-          setShowingPattern(false);
-          return 0;
-        }
-        return prev + 1;
-      });
-    }, 600);
-    
-    return () => clearInterval(interval);
-  }, [challengeType, showingPattern, patternData.pattern.length]);
+  // Memory & Pattern display loops handled by Mind round-runner effects above.
   
   // Math challenge no longer uses a per-question timer — progression is by levels.
   
