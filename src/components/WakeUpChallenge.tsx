@@ -1015,73 +1015,46 @@ export const WakeUpChallenge = ({
   
 
   
-  const handleMemoryInput = (num: number) => {
-    const newSequence = [...userSequence, num];
-    setUserSequence(newSequence);
-    
-    // Check if correct so far
-    if (num !== memorySequence[userSequence.length]) {
-      setIsCorrect(false);
-      handleWrongAttempt();
-      setTimeout(() => {
-        setUserSequence([]);
-        setIsCorrect(null);
-        setShowingSequence(true);
-        setMemorySequence(generateMemorySequence(difficulty));
-      }, 1000);
+  // Mind challenges — handlers using round runner
+  const handleMemoryInputDigit = (num: number) => {
+    if (memoryRunner.feedback !== null || memShowing) return;
+    const next = memInput + String(num);
+    const target = memoryRunner.payload.digits.join("");
+    // wrong if any prefix mismatch
+    if (target[memInput.length] !== String(num)) {
+      memoryRunner.markWrong('wrong');
+      setMemInput("");
       return;
     }
-    
+    setMemInput(next);
     playCorrectTapSound();
-    
-    // Check if complete
-    if (newSequence.length === memorySequence.length) {
-      setIsCorrect(true);
-      playChallengeCompleteSound();
-      setTimeout(onComplete, 500);
+    if (next.length === target.length) {
+      memoryRunner.markCorrect();
     }
   };
-  
+
   const handleTypingSubmit = () => {
-    if (typedText.toLowerCase() === typingWord.toLowerCase()) {
-      setIsCorrect(true);
-      playChallengeCompleteSound();
-      setTimeout(onComplete, 500);
-    } else {
-      setIsCorrect(false);
-      handleWrongAttempt();
-      setTypedText("");
-      setTimeout(() => setIsCorrect(null), 500);
-    }
+    if (typingRunner.feedback !== null) return;
+    const a = typedText.trim().toLowerCase().replace(/\s+/g, ' ');
+    const b = typingRunner.payload.sentence.trim().toLowerCase().replace(/\s+/g, ' ');
+    if (a === b) { playCorrectTapSound(); typingRunner.markCorrect(); }
+    else typingRunner.markWrong('wrong');
   };
-  
+
   const handlePatternClick = (cellIndex: number) => {
-    const newPattern = [...userPattern, cellIndex];
-    setUserPattern(newPattern);
-    
-    // Check if correct so far
-    if (cellIndex !== patternData.pattern[userPattern.length]) {
-      setIsCorrect(false);
-      handleWrongAttempt();
-      setTimeout(() => {
-        setUserPattern([]);
-        setIsCorrect(null);
-        setShowingPattern(true);
-        setPatternData(generatePattern(difficulty));
-      }, 1000);
+    if (patternRunner.feedback !== null || patShowing) return;
+    const target = patternRunner.payload.pattern;
+    if (target[patUserSeq.length] !== cellIndex) {
+      patternRunner.markWrong('wrong');
+      setPatUserSeq([]);
       return;
     }
-    
+    const next = [...patUserSeq, cellIndex];
+    setPatUserSeq(next);
     playCorrectTapSound();
-    
-    // Check if complete
-    if (newPattern.length === patternData.pattern.length) {
-      setIsCorrect(true);
-      playChallengeCompleteSound();
-      setTimeout(onComplete, 500);
-    }
+    if (next.length === target.length) patternRunner.markCorrect();
   };
-  
+
   // Manual shake simulation for desktop
   const handleManualShake = () => {
     setShakeCount(prev => {
@@ -1096,38 +1069,24 @@ export const WakeUpChallenge = ({
       return newCount;
     });
   };
-  
-  // Slider challenge handlers
+
   const handleSliderChange = (index: number, value: number[]) => {
-    const newValues = [...sliderValues];
+    if (sliderRunner.feedback !== null) return;
+    const newValues = [...sliderVals];
     newValues[index] = value[0];
-    setSliderValues(newValues);
-    
-    // Check if all sliders are within tolerance
-    const tolerance = difficulty === 'easy' ? 5 : difficulty === 'medium' ? 3 : 2;
-    const allCorrect = sliderTargets.every((target, i) => 
-      Math.abs(newValues[i] - target) <= tolerance
-    );
-    
-    if (allCorrect) {
-      setIsCorrect(true);
-      playChallengeCompleteSound();
-      setTimeout(onComplete, 500);
-    }
+    setSliderVals(newValues);
+    const { targets, tolerance } = sliderRunner.payload;
+    const allCorrect = targets.every((t, i) => Math.abs(newValues[i] - t) <= tolerance);
+    if (allCorrect) { playCorrectTapSound(); sliderRunner.markCorrect(); }
   };
-  
-  // Captcha challenge handler
+
   const handleCaptchaSubmit = () => {
-    if (captchaInput.toUpperCase() === captchaWord) {
-      setIsCorrect(true);
-      playChallengeCompleteSound();
-      setTimeout(onComplete, 500);
+    if (captchaRunner.feedback !== null) return;
+    if (captchaInput.trim().toUpperCase() === captchaRunner.payload.word) {
+      playCorrectTapSound();
+      captchaRunner.markCorrect();
     } else {
-      setIsCorrect(false);
-      handleWrongAttempt();
-      setCaptchaInput("");
-      setCaptchaWord(generateCaptchaWord(difficulty));
-      setTimeout(() => setIsCorrect(null), 500);
+      captchaRunner.markWrong('wrong');
     }
   };
   
