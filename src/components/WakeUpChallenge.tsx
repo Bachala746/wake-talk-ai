@@ -1471,11 +1471,34 @@ export const WakeUpChallenge = ({
       
       {challengeType === 'typing' && (
         <div className="space-y-3 sm:space-y-4">
-          <div className="text-center py-4 sm:py-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl sm:rounded-2xl">
-            <p className="text-xs sm:text-sm text-gray-500 mb-2">Type this word:</p>
-            <p className="text-xl sm:text-3xl font-bold text-gray-800 tracking-wide uppercase break-all px-2">{typingWord}</p>
+          <MindRoundHeader
+            level={typingRunner.level}
+            round={typingRunner.round}
+            totalRounds={typingRunner.totalRounds}
+            timeLeft={typingRunner.timeLeft}
+            timePerRound={typingRunner.timePerRound}
+          />
+          <div className={`text-center py-4 sm:py-6 rounded-xl sm:rounded-2xl border transition-colors ${
+            typingRunner.feedback === 'correct'
+              ? 'bg-green-50 border-green-300 dark:bg-green-500/15 dark:border-green-500/40'
+              : typingRunner.feedback
+                ? 'bg-red-50 border-red-300 dark:bg-red-500/15 dark:border-red-500/40'
+                : isDark ? 'bg-slate-800/60 border-slate-600/40' : 'bg-gradient-to-br from-orange-50 to-amber-50 border-transparent'
+          }`}>
+            <p className="text-xs sm:text-sm text-muted-foreground mb-2">Type this sentence exactly:</p>
+            <p className={`text-lg sm:text-2xl font-semibold leading-snug px-3 break-words ${isDark ? 'text-indigo-100' : 'text-gray-800'}`}>
+              {typingRunner.payload.sentence}
+            </p>
+            {typingRunner.feedback === 'wrong' && (
+              <p className="text-xs sm:text-sm text-red-500 font-semibold mt-2">Not quite — try the new one.</p>
+            )}
+            {typingRunner.feedback === 'timeout' && (
+              <p className="text-xs sm:text-sm text-red-500 font-semibold mt-2">⏱ Time's up — new sentence coming…</p>
+            )}
+            {typingRunner.feedback === 'correct' && (
+              <p className="text-xs sm:text-sm text-green-600 font-bold mt-2">✓ Perfect!</p>
+            )}
           </div>
-          
           <div className="flex gap-2">
             <Input
               type="text"
@@ -1483,12 +1506,11 @@ export const WakeUpChallenge = ({
               onChange={(e) => setTypedText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleTypingSubmit()}
               placeholder="Type here..."
-              className={`text-center text-lg sm:text-xl font-mono flex-1 min-w-0 ${
-                isCorrect === false ? 'border-red-500 bg-red-50' : ''
-              }`}
+              className="text-base sm:text-lg flex-1 min-w-0"
               autoFocus
+              disabled={typingRunner.feedback !== null}
             />
-            <Button onClick={handleTypingSubmit} className="bg-orange-500 hover:bg-orange-600 shrink-0 px-4 sm:px-6">
+            <Button onClick={handleTypingSubmit} disabled={typingRunner.feedback !== null} className="bg-orange-500 hover:bg-orange-600 shrink-0 px-4 sm:px-6">
               Submit
             </Button>
           </div>
@@ -1497,42 +1519,45 @@ export const WakeUpChallenge = ({
       
       {challengeType === 'memory' && (
         <div className="space-y-3 sm:space-y-4">
-          {showingSequence ? (
+          <MindRoundHeader
+            level={memoryRunner.level}
+            round={memoryRunner.round}
+            totalRounds={memoryRunner.totalRounds}
+            timeLeft={memoryRunner.timeLeft}
+            timePerRound={memoryRunner.timePerRound}
+          />
+          {memShowing ? (
             <div className="text-center py-6 sm:py-8">
-              <p className="text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">Remember this sequence:</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">Remember this sequence:</p>
               <div className="inline-block p-6 sm:p-8 bg-gradient-to-br from-orange-400 to-amber-500 rounded-xl sm:rounded-2xl">
-                <span className="text-4xl sm:text-5xl font-bold text-white">
-                  {memorySequence[currentShowIndex]}
+                <span className="text-5xl sm:text-6xl font-extrabold text-white tabular-nums">
+                  {memoryRunner.payload.digits[memShowIdx]}
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-gray-500 mt-3 sm:mt-4">
-                {currentShowIndex + 1} of {memorySequence.length}
+              <p className="text-xs sm:text-sm text-muted-foreground mt-3 sm:mt-4">
+                {memShowIdx + 1} of {memoryRunner.payload.digits.length}
               </p>
             </div>
           ) : (
             <>
-              <p className="text-center text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">
-                Enter the sequence ({userSequence.length}/{memorySequence.length})
+              <p className="text-center text-xs sm:text-sm text-muted-foreground">
+                Enter the sequence ({memInput.length}/{memoryRunner.payload.digits.length})
               </p>
+              <div className={`text-center font-mono text-2xl tabular-nums py-2 ${
+                memoryRunner.feedback === 'wrong' || memoryRunner.feedback === 'timeout' ? 'text-red-500' : 'text-foreground'
+              }`}>
+                {memInput || '—'}
+              </div>
               <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+                {[1,2,3,4,5,6,7,8,9,0].map(num => (
                   <Button
                     key={num}
-                    onClick={() => handleMemoryInput(num)}
-                    className="h-12 sm:h-14 text-lg sm:text-xl font-bold bg-gray-100 hover:bg-orange-100 text-gray-800"
+                    onClick={() => handleMemoryInputDigit(num)}
+                    disabled={memoryRunner.feedback !== null}
+                    className={`h-12 sm:h-14 text-lg sm:text-xl font-bold ${num === 0 ? 'col-span-3' : ''} bg-muted hover:bg-orange-100 text-foreground`}
                   >
                     {num}
                   </Button>
-                ))}
-              </div>
-              <div className="flex justify-center gap-1 mt-3 sm:mt-4">
-                {memorySequence.map((_, i) => (
-                  <div
-                    key={i}
-                    className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${
-                      i < userSequence.length ? 'bg-orange-500' : 'bg-gray-200'
-                    }`}
-                  />
                 ))}
               </div>
             </>
@@ -1542,48 +1567,57 @@ export const WakeUpChallenge = ({
       
       {challengeType === 'pattern' && (
         <div className="space-y-3 sm:space-y-4">
-          {showingPattern ? (
+          <MindRoundHeader
+            level={patternRunner.level}
+            round={patternRunner.round}
+            totalRounds={patternRunner.totalRounds}
+            timeLeft={patternRunner.timeLeft}
+            timePerRound={patternRunner.timePerRound}
+          />
+          {patShowing ? (
             <div className="text-center">
-              <p className="text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">Watch the pattern:</p>
-              <div className={`grid gap-1.5 sm:gap-2 mx-auto`} style={{ 
-                gridTemplateColumns: `repeat(${patternData.gridSize}, minmax(0, 1fr))`,
-                maxWidth: Math.min(patternData.gridSize * 48, 240) + 'px'
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3">Watch the pattern:</p>
+              <div className="grid gap-1.5 sm:gap-2 mx-auto" style={{
+                gridTemplateColumns: `repeat(${PATTERN_GRID_SIZE}, minmax(0, 1fr))`,
+                maxWidth: PATTERN_GRID_SIZE * 56 + 'px'
               }}>
-                {Array.from({ length: patternData.gridSize * patternData.gridSize }).map((_, i) => (
+                {Array.from({ length: PATTERN_GRID_SIZE * PATTERN_GRID_SIZE }).map((_, i) => (
                   <div
                     key={i}
-                    className={`aspect-square rounded-md sm:rounded-lg transition-all duration-200 ${
-                      patternData.pattern[currentPatternIndex] === i
-                        ? 'bg-orange-500 scale-110'
-                        : 'bg-gray-200'
+                    className={`aspect-square rounded-md sm:rounded-lg transition-all duration-150 ${
+                      patternRunner.payload.pattern[patShowIdx] === i
+                        ? 'bg-orange-500 scale-110 shadow-lg shadow-orange-500/50'
+                        : 'bg-muted'
                     }`}
                   />
                 ))}
               </div>
-              <p className="text-xs sm:text-sm text-gray-500 mt-3 sm:mt-4">
-                {currentPatternIndex + 1} of {patternData.pattern.length}
+              <p className="text-xs sm:text-sm text-muted-foreground mt-3">
+                {patShowIdx + 1} of {patternRunner.payload.pattern.length}
               </p>
             </div>
           ) : (
             <>
-              <p className="text-center text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">
-                Tap the cells in order ({userPattern.length}/{patternData.pattern.length})
+              <p className="text-center text-xs sm:text-sm text-muted-foreground">
+                Tap the cells in order ({patUserSeq.length}/{patternRunner.payload.pattern.length})
               </p>
-              <div className={`grid gap-1.5 sm:gap-2 mx-auto`} style={{ 
-                gridTemplateColumns: `repeat(${patternData.gridSize}, minmax(0, 1fr))`,
-                maxWidth: Math.min(patternData.gridSize * 48, 240) + 'px'
+              <div className="grid gap-1.5 sm:gap-2 mx-auto" style={{
+                gridTemplateColumns: `repeat(${PATTERN_GRID_SIZE}, minmax(0, 1fr))`,
+                maxWidth: PATTERN_GRID_SIZE * 56 + 'px'
               }}>
-                {Array.from({ length: patternData.gridSize * patternData.gridSize }).map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handlePatternClick(i)}
-                    className={`aspect-square rounded-md sm:rounded-lg transition-all duration-150 ${
-                      userPattern.includes(i)
-                        ? 'bg-orange-500'
-                        : 'bg-gray-200 hover:bg-gray-300 active:scale-95'
-                    }`}
-                  />
-                ))}
+                {Array.from({ length: PATTERN_GRID_SIZE * PATTERN_GRID_SIZE }).map((_, i) => {
+                  const tapped = patUserSeq.includes(i);
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => handlePatternClick(i)}
+                      disabled={patternRunner.feedback !== null}
+                      className={`aspect-square rounded-md sm:rounded-lg transition-all duration-150 ${
+                        tapped ? 'bg-orange-500' : 'bg-muted hover:bg-muted/70 active:scale-95'
+                      }`}
+                    />
+                  );
+                })}
               </div>
             </>
           )}
@@ -1592,29 +1626,31 @@ export const WakeUpChallenge = ({
       
       {challengeType === 'slider' && (
         <div className="space-y-4 sm:space-y-6">
-          <p className="text-center text-xs sm:text-sm text-gray-500">
-            Drag each slider to match the target (±{difficulty === 'easy' ? 5 : difficulty === 'medium' ? 3 : 2})
+          <MindRoundHeader
+            level={sliderRunner.level}
+            round={sliderRunner.round}
+            totalRounds={sliderRunner.totalRounds}
+            timeLeft={sliderRunner.timeLeft}
+            timePerRound={sliderRunner.timePerRound}
+          />
+          <p className="text-center text-xs sm:text-sm text-muted-foreground">
+            Match every target (±{sliderRunner.payload.tolerance})
           </p>
-          
-          {sliderTargets.map((target, index) => {
-            const tolerance = difficulty === 'easy' ? 5 : difficulty === 'medium' ? 3 : 2;
-            const isMatch = Math.abs(sliderValues[index] - target) <= tolerance;
-            
+          {sliderRunner.payload.targets.map((target, index) => {
+            const isMatch = Math.abs((sliderVals[index] ?? 50) - target) <= sliderRunner.payload.tolerance;
             return (
               <div key={index} className="space-y-2">
                 <div className="flex justify-between text-xs sm:text-sm">
-                  <span className="text-gray-500">Slider {index + 1}</span>
-                  <span className={`font-bold ${isMatch ? 'text-green-500' : 'text-gray-700'}`}>
-                    {sliderValues[index]} → {target}
+                  <span className="text-muted-foreground">Slider {index + 1}</span>
+                  <span className={`font-bold tabular-nums ${isMatch ? 'text-green-500' : 'text-foreground'}`}>
+                    {sliderVals[index] ?? 50} → {target}
                   </span>
                 </div>
                 <Slider
-                  value={[sliderValues[index]]}
-                  onValueChange={(value) => handleSliderChange(index, value)}
-                  max={100}
-                  min={0}
-                  step={1}
-                  className={isMatch ? '[&>span]:bg-green-500' : ''}
+                  value={[sliderVals[index] ?? 50]}
+                  onValueChange={(v) => handleSliderChange(index, v)}
+                  max={100} min={0} step={1}
+                  disabled={sliderRunner.feedback !== null}
                 />
               </div>
             );
@@ -1624,23 +1660,42 @@ export const WakeUpChallenge = ({
       
       {challengeType === 'captcha' && (
         <div className="space-y-3 sm:space-y-4">
-          <div className="text-center py-4 sm:py-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl sm:rounded-2xl">
-            <p className="text-xs sm:text-sm text-gray-500 mb-2">Type the word below:</p>
-            <p 
-              className="text-2xl sm:text-3xl font-bold tracking-[0.2em] sm:tracking-[0.3em] select-none px-2 break-all"
-              style={{ 
-                fontFamily: 'monospace',
-                textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
-                background: `linear-gradient(${Math.random() * 30 - 15}deg, #ea580c, #d97706)`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                transform: `skewX(${Math.random() * 10 - 5}deg) rotate(${Math.random() * 4 - 2}deg)`,
+          <MindRoundHeader
+            level={captchaRunner.level}
+            round={captchaRunner.round}
+            totalRounds={captchaRunner.totalRounds}
+            timeLeft={captchaRunner.timeLeft}
+            timePerRound={captchaRunner.timePerRound}
+          />
+          <div className={`text-center py-5 sm:py-7 rounded-xl sm:rounded-2xl ${
+            isDark ? 'bg-slate-800/60' : 'bg-gradient-to-br from-orange-50 to-amber-50'
+          }`}>
+            <p className="text-xs sm:text-sm text-muted-foreground mb-2">Type the word below:</p>
+            <div
+              className="select-none px-2 break-all inline-block"
+              style={{
+                transform: `skewX(${captchaRunner.payload.skewDeg}deg) rotate(${captchaRunner.payload.rotDeg}deg)`,
               }}
             >
-              {captchaWord}
-            </p>
+              {captchaRunner.payload.word.split("").map((ch, i) => (
+                <span
+                  key={i}
+                  className="text-2xl sm:text-4xl font-extrabold tracking-[0.25em] font-mono"
+                  style={{
+                    display: 'inline-block',
+                    transform: `rotate(${captchaRunner.payload.letterShifts[i] ?? 0}deg)`,
+                    background: 'linear-gradient(135deg,#ea580c,#d97706)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    textShadow: captchaRunner.payload.noise >= 3 ? '1px 1px 0 rgba(0,0,0,0.15)' : undefined,
+                    filter: captchaRunner.payload.noise >= 4 ? 'blur(0.5px)' : undefined,
+                  }}
+                >
+                  {ch}
+                </span>
+              ))}
+            </div>
           </div>
-          
           <div className="flex gap-2">
             <Input
               type="text"
@@ -1648,12 +1703,11 @@ export const WakeUpChallenge = ({
               onChange={(e) => setCaptchaInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCaptchaSubmit()}
               placeholder="Type here..."
-              className={`text-center text-lg sm:text-xl font-mono uppercase flex-1 min-w-0 ${
-                isCorrect === false ? 'border-red-500 bg-red-50' : ''
-              }`}
+              className="text-center text-lg sm:text-xl font-mono uppercase flex-1 min-w-0"
               autoFocus
+              disabled={captchaRunner.feedback !== null}
             />
-            <Button onClick={handleCaptchaSubmit} className="bg-orange-500 hover:bg-orange-600 shrink-0 px-4 sm:px-6">
+            <Button onClick={handleCaptchaSubmit} disabled={captchaRunner.feedback !== null} className="bg-orange-500 hover:bg-orange-600 shrink-0 px-4 sm:px-6">
               Submit
             </Button>
           </div>
