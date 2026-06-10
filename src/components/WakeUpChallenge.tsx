@@ -321,6 +321,11 @@ export const WakeUpChallenge = ({
   registeredQrCode,
   objectVerifySettings,
   mathSettings,
+  typingSettings,
+  memorySettings,
+  patternSettings,
+  sliderSettings,
+  captchaSettings,
   isAlarmActive = true,
 }: WakeUpChallengeProps) => {
   const { isDark } = useTheme();
@@ -386,30 +391,128 @@ export const WakeUpChallenge = ({
   // Shake challenge state
   const [shakeCount, setShakeCount] = useState(0);
   const [shakeRequired] = useState(difficulty === 'easy' ? 15 : difficulty === 'medium' ? 30 : 50);
-  
-  // Memory challenge state
-  const [memorySequence, setMemorySequence] = useState(() => generateMemorySequence(difficulty));
-  const [showingSequence, setShowingSequence] = useState(true);
-  const [userSequence, setUserSequence] = useState<number[]>([]);
-  const [currentShowIndex, setCurrentShowIndex] = useState(0);
-  
-  // Typing challenge state
-  const [typingWord, setTypingWord] = useState(() => generateTypingWord(difficulty));
+
+  // ── Mind challenges (rounds 3–30, level 1–5, 30s per round) ──────────────
+  const typingCfg: MindChallengeConfig = typingSettings || defaultMindChallengeConfig;
+  const memoryCfg: MindChallengeConfig = memorySettings || defaultMindChallengeConfig;
+  const patternCfg: MindChallengeConfig = patternSettings || defaultMindChallengeConfig;
+  const sliderCfg: MindChallengeConfig = sliderSettings || defaultMindChallengeConfig;
+  const captchaCfg: MindChallengeConfig = captchaSettings || defaultMindChallengeConfig;
+
+  // Typing round runner
+  const typingRunner = useMindRoundRunner({
+    level: typingCfg.level,
+    totalRounds: Math.max(3, Math.min(30, typingCfg.rounds)),
+    timePerRound: Math.max(10, typingCfg.timePerRound || 30),
+    generate: generateTyping,
+    onAllComplete: () => { playChallengeCompleteSound(); setTimeout(onComplete, 800); },
+    onWrong: handleWrongAttempt,
+    active: challengeType === 'typing',
+  });
   const [typedText, setTypedText] = useState("");
-  
-  // Pattern challenge state
-  const [patternData, setPatternData] = useState(() => generatePattern(difficulty));
-  const [showingPattern, setShowingPattern] = useState(true);
-  const [userPattern, setUserPattern] = useState<number[]>([]);
-  const [currentPatternIndex, setCurrentPatternIndex] = useState(0);
-  
-  // Slider challenge state
-  const [sliderTargets] = useState(() => generateSliderTargets(difficulty));
-  const [sliderValues, setSliderValues] = useState<number[]>(() => sliderTargets.map(() => 50));
-  
-  // Captcha challenge state
-  const [captchaWord, setCaptchaWord] = useState(() => generateCaptchaWord(difficulty));
+  useEffect(() => { if (challengeType === 'typing') setTypedText(""); }, [typingRunner.payload, challengeType]);
+
+  // Memory round runner
+  const memoryRunner = useMindRoundRunner({
+    level: memoryCfg.level,
+    totalRounds: Math.max(3, Math.min(30, memoryCfg.rounds)),
+    timePerRound: Math.max(10, memoryCfg.timePerRound || 30),
+    generate: generateMemory,
+    onAllComplete: () => { playChallengeCompleteSound(); setTimeout(onComplete, 800); },
+    onWrong: handleWrongAttempt,
+    active: challengeType === 'memory',
+  });
+  const [memShowing, setMemShowing] = useState(true);
+  const [memShowIdx, setMemShowIdx] = useState(0);
+  const [memInput, setMemInput] = useState("");
+  useEffect(() => {
+    if (challengeType !== 'memory') return;
+    setMemShowing(true); setMemShowIdx(0); setMemInput("");
+  }, [memoryRunner.payload, challengeType]);
+  useEffect(() => {
+    if (challengeType !== 'memory' || !memShowing) return;
+    const interval = setInterval(() => {
+      setMemShowIdx(prev => {
+        if (prev >= memoryRunner.payload.digits.length - 1) {
+          setMemShowing(false);
+          return 0;
+        }
+        return prev + 1;
+      });
+    }, MEMORY_DISPLAY_MS[memoryCfg.level]);
+    return () => clearInterval(interval);
+  }, [challengeType, memShowing, memoryRunner.payload, memoryCfg.level]);
+
+  // Pattern round runner
+  const patternRunner = useMindRoundRunner({
+    level: patternCfg.level,
+    totalRounds: Math.max(3, Math.min(30, patternCfg.rounds)),
+    timePerRound: Math.max(10, patternCfg.timePerRound || 30),
+    generate: genMindPattern,
+    onAllComplete: () => { playChallengeCompleteSound(); setTimeout(onComplete, 800); },
+    onWrong: handleWrongAttempt,
+    active: challengeType === 'pattern',
+  });
+  const [patShowing, setPatShowing] = useState(true);
+  const [patShowIdx, setPatShowIdx] = useState(0);
+  const [patUserSeq, setPatUserSeq] = useState<number[]>([]);
+  useEffect(() => {
+    if (challengeType !== 'pattern') return;
+    setPatShowing(true); setPatShowIdx(0); setPatUserSeq([]);
+  }, [patternRunner.payload, challengeType]);
+  useEffect(() => {
+    if (challengeType !== 'pattern' || !patShowing) return;
+    const interval = setInterval(() => {
+      setPatShowIdx(prev => {
+        if (prev >= patternRunner.payload.pattern.length - 1) {
+          setPatShowing(false);
+          return 0;
+        }
+        return prev + 1;
+      });
+    }, PATTERN_DISPLAY_MS[patternCfg.level]);
+    return () => clearInterval(interval);
+  }, [challengeType, patShowing, patternRunner.payload, patternCfg.level]);
+
+  // Slider round runner
+  const sliderRunner = useMindRoundRunner({
+    level: sliderCfg.level,
+    totalRounds: Math.max(3, Math.min(30, sliderCfg.rounds)),
+    timePerRound: Math.max(10, sliderCfg.timePerRound || 30),
+    generate: genMindSlider,
+    onAllComplete: () => { playChallengeCompleteSound(); setTimeout(onComplete, 800); },
+    onWrong: handleWrongAttempt,
+    active: challengeType === 'slider',
+  });
+  const [sliderVals, setSliderVals] = useState<number[]>(() => sliderRunner.payload.targets.map(() => 50));
+  useEffect(() => {
+    if (challengeType !== 'slider') return;
+    setSliderVals(sliderRunner.payload.targets.map(() => 50));
+  }, [sliderRunner.payload, challengeType]);
+
+  // Captcha round runner
+  const captchaRunner = useMindRoundRunner({
+    level: captchaCfg.level,
+    totalRounds: Math.max(3, Math.min(30, captchaCfg.rounds)),
+    timePerRound: Math.max(10, captchaCfg.timePerRound || 30),
+    generate: genMindCaptcha,
+    onAllComplete: () => { playChallengeCompleteSound(); setTimeout(onComplete, 800); },
+    onWrong: handleWrongAttempt,
+    active: challengeType === 'captcha',
+  });
   const [captchaInput, setCaptchaInput] = useState("");
+  useEffect(() => { if (challengeType === 'captcha') setCaptchaInput(""); }, [captchaRunner.payload, challengeType]);
+
+  // Steps counter state
+  const [stepCount, setStepCount] = useState(0);
+  const [stepsRequired] = useState(difficulty === 'easy' ? 20 : difficulty === 'medium' ? 50 : 100);
+  const [stepsPermissionGranted, setStepsPermissionGranted] = useState(false);
+  const lastAccelRef = useRef({ x: 0, y: 0, z: 0 });
+  const stepThresholdRef = useRef(12);
+  const lastStepTimeRef = useRef(0);
+  
+  // Timer for quick math
+  const [timeLeft, setTimeLeft] = useState(difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 15);
   
   // Barcode/QR code scanner state
   const [scannerReady, setScannerReady] = useState(false);
