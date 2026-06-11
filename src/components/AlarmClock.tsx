@@ -1595,6 +1595,24 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                 </div>
               )}
 
+              {/* Mind Challenges shared config (typing / memory / pattern / slider / captcha) */}
+              {challengeType === 'typing' && (
+                <MindChallengeConfigPanel challengeKey="typing" value={typingCfg} onChange={setTypingCfg} />
+              )}
+              {challengeType === 'memory' && (
+                <MindChallengeConfigPanel challengeKey="memory" value={memoryCfg} onChange={setMemoryCfg} />
+              )}
+              {challengeType === 'pattern' && (
+                <MindChallengeConfigPanel challengeKey="pattern" value={patternCfg} onChange={setPatternCfg} />
+              )}
+              {challengeType === 'slider' && (
+                <MindChallengeConfigPanel challengeKey="slider" value={sliderCfg} onChange={setSliderCfg} />
+              )}
+              {challengeType === 'captcha' && (
+                <MindChallengeConfigPanel challengeKey="captcha" value={captchaCfg} onChange={setCaptchaCfg} />
+              )}
+
+
 
               {/* QR Code Registration */}
               {challengeType === 'qrcode' && (
