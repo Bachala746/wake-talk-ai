@@ -319,6 +319,11 @@ export const TwoWayVoiceCall = ({
             onEscalate={handleChallengeEscalate}
             speakMatchSettings={settings.speakMatchSettings}
             mathSettings={settings.mathSettings}
+            typingSettings={settings.typingSettings}
+            memorySettings={settings.memorySettings}
+            patternSettings={settings.patternSettings}
+            sliderSettings={settings.sliderSettings}
+            captchaSettings={settings.captchaSettings}
             registeredQrCode={settings.registeredQrCode}
             objectVerifySettings={settings.objectVerifySettings}
           />

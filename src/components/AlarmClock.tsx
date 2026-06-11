@@ -64,7 +64,10 @@ import {
   speakMatchTimeLimits,
   speakMatchRetryLimits,
   speakMatchParagraphTypes,
+  MindChallengeConfig,
+  defaultMindChallengeConfig,
 } from "@/lib/alarmSettings";
+import { MindChallengeConfigPanel } from "@/components/MindChallengeConfigPanel";
 
 import { getStoredObjects, addStoredObject, removeStoredObject, captureImageFromVideo } from "@/lib/objectStore";
 import { getExampleMessage } from "@/lib/motivationLibrary";
@@ -137,6 +140,14 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   // Math challenge config (Level 1–5, question count 3–30)
   const [mathLevel, setMathLevel] = useState<MathLevel>(defaultMathChallengeSettings.level);
   const [mathQuestionCount, setMathQuestionCount] = useState<number>(defaultMathChallengeSettings.totalQuestions);
+
+  // Mind challenges (Level 1–5, rounds 3–30)
+  const [typingCfg, setTypingCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
+  const [memoryCfg, setMemoryCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
+  const [patternCfg, setPatternCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
+  const [sliderCfg, setSliderCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
+  const [captchaCfg, setCaptchaCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
+
 
   // QR Code registration states
   const [registeredQrCode, setRegisteredQrCode] = useState('');
@@ -312,6 +323,11 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       mathSettings: challengeType === 'math'
         ? { level: mathLevel, totalQuestions: mathQuestionCount, timePerQuestion: 30 }
         : undefined,
+      typingSettings: challengeType === 'typing' ? typingCfg : undefined,
+      memorySettings: challengeType === 'memory' ? memoryCfg : undefined,
+      patternSettings: challengeType === 'pattern' ? patternCfg : undefined,
+      sliderSettings: challengeType === 'slider' ? sliderCfg : undefined,
+      captchaSettings: challengeType === 'captcha' ? captchaCfg : undefined,
       registeredQrCode: challengeType === 'qrcode' ? registeredQrCode : undefined,
       objectVerifySettings: challengeType === 'objectVerify' ? objectVerifySettingsObj : undefined,
       sequentialChallengeSettings: multiChallengeEnabled ? sequentialChallengeSettingsObj : undefined,
@@ -391,6 +407,12 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     const mS = alarm.settings.mathSettings || defaultMathChallengeSettings;
     setMathLevel(mS.level);
     setMathQuestionCount(mS.totalQuestions);
+    // Load mind-challenge settings
+    setTypingCfg(alarm.settings.typingSettings || defaultMindChallengeConfig);
+    setMemoryCfg(alarm.settings.memorySettings || defaultMindChallengeConfig);
+    setPatternCfg(alarm.settings.patternSettings || defaultMindChallengeConfig);
+    setSliderCfg(alarm.settings.sliderSettings || defaultMindChallengeConfig);
+    setCaptchaCfg(alarm.settings.captchaSettings || defaultMindChallengeConfig);
     setRegisteredQrCode(alarm.settings.registeredQrCode || '');
     // Load object verification settings
     const ovS = alarm.settings.objectVerifySettings || defaultObjectVerifySettings;
@@ -442,6 +464,11 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setSmCustomText(defaultSpeakMatchSettings.customText);
     setMathLevel(defaultMathChallengeSettings.level);
     setMathQuestionCount(defaultMathChallengeSettings.totalQuestions);
+    setTypingCfg(defaultMindChallengeConfig);
+    setMemoryCfg(defaultMindChallengeConfig);
+    setPatternCfg(defaultMindChallengeConfig);
+    setSliderCfg(defaultMindChallengeConfig);
+    setCaptchaCfg(defaultMindChallengeConfig);
     setRegisteredQrCode('');
     // Reset object verification
     setOvSelectedIds([]);
@@ -1567,6 +1594,24 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
                   </p>
                 </div>
               )}
+
+              {/* Mind Challenges shared config (typing / memory / pattern / slider / captcha) */}
+              {challengeType === 'typing' && (
+                <MindChallengeConfigPanel challengeKey="typing" value={typingCfg} onChange={setTypingCfg} />
+              )}
+              {challengeType === 'memory' && (
+                <MindChallengeConfigPanel challengeKey="memory" value={memoryCfg} onChange={setMemoryCfg} />
+              )}
+              {challengeType === 'pattern' && (
+                <MindChallengeConfigPanel challengeKey="pattern" value={patternCfg} onChange={setPatternCfg} />
+              )}
+              {challengeType === 'slider' && (
+                <MindChallengeConfigPanel challengeKey="slider" value={sliderCfg} onChange={setSliderCfg} />
+              )}
+              {challengeType === 'captcha' && (
+                <MindChallengeConfigPanel challengeKey="captcha" value={captchaCfg} onChange={setCaptchaCfg} />
+              )}
+
 
 
               {/* QR Code Registration */}
