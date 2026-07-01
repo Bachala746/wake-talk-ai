@@ -408,6 +408,12 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
               globalSpeakMatchSettings={settings.speakMatchSettings}
               globalRegisteredQrCode={settings.registeredQrCode}
               globalObjectVerifySettings={settings.objectVerifySettings}
+              globalMathSettings={settings.mathSettings}
+              globalTypingSettings={settings.typingSettings}
+              globalMemorySettings={settings.memorySettings}
+              globalPatternSettings={settings.patternSettings}
+              globalSliderSettings={settings.sliderSettings}
+              globalCaptchaSettings={settings.captchaSettings}
               onAllComplete={handleChallengeComplete}
               onFail={handleChallengeFail}
               onEscalate={handleChallengeEscalate}
