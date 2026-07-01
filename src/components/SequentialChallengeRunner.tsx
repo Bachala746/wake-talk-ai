@@ -12,6 +12,7 @@ import {
   getCategoryForChallenge,
   defaultSpeakMatchSettings,
   defaultObjectVerifySettings,
+  MindChallengeConfig,
 } from "@/lib/alarmSettings";
 import { playChallengeCompleteSound, playMilestoneSound, playEscalationAlarm, playAggressiveVoiceMessage } from "@/lib/soundEffects";
 import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
@@ -64,6 +65,12 @@ interface SequentialChallengeRunnerProps {
   globalSpeakMatchSettings?: any;
   globalRegisteredQrCode?: string;
   globalObjectVerifySettings?: any;
+  globalMathSettings?: any;
+  globalTypingSettings?: MindChallengeConfig;
+  globalMemorySettings?: MindChallengeConfig;
+  globalPatternSettings?: MindChallengeConfig;
+  globalSliderSettings?: MindChallengeConfig;
+  globalCaptchaSettings?: MindChallengeConfig;
   onAllComplete: () => void;
   onFail?: () => void;
   onEscalate?: (level: number) => void;
@@ -75,6 +82,12 @@ export const SequentialChallengeRunner = ({
   globalSpeakMatchSettings,
   globalRegisteredQrCode,
   globalObjectVerifySettings,
+  globalMathSettings,
+  globalTypingSettings,
+  globalMemorySettings,
+  globalPatternSettings,
+  globalSliderSettings,
+  globalCaptchaSettings,
   onAllComplete,
   onFail,
   onEscalate,
@@ -403,6 +416,12 @@ export const SequentialChallengeRunner = ({
         speakMatchSettings={currentChallenge.speakMatchSettings || globalSpeakMatchSettings || defaultSpeakMatchSettings}
         registeredQrCode={currentChallenge.registeredQrCode || globalRegisteredQrCode}
         objectVerifySettings={currentChallenge.objectVerifySettings || globalObjectVerifySettings || defaultObjectVerifySettings}
+        mathSettings={globalMathSettings}
+        typingSettings={globalTypingSettings}
+        memorySettings={globalMemorySettings}
+        patternSettings={globalPatternSettings}
+        sliderSettings={globalSliderSettings}
+        captchaSettings={globalCaptchaSettings}
         isAlarmActive={isAlarmActive}
       />
     </div>
