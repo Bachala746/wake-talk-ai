@@ -416,6 +416,12 @@ export const SequentialChallengeRunner = ({
         speakMatchSettings={currentChallenge.speakMatchSettings || globalSpeakMatchSettings || defaultSpeakMatchSettings}
         registeredQrCode={currentChallenge.registeredQrCode || globalRegisteredQrCode}
         objectVerifySettings={currentChallenge.objectVerifySettings || globalObjectVerifySettings || defaultObjectVerifySettings}
+        mathSettings={globalMathSettings}
+        typingSettings={globalTypingSettings}
+        memorySettings={globalMemorySettings}
+        patternSettings={globalPatternSettings}
+        sliderSettings={globalSliderSettings}
+        captchaSettings={globalCaptchaSettings}
         isAlarmActive={isAlarmActive}
       />
     </div>
