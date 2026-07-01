@@ -12,6 +12,7 @@ import {
   getCategoryForChallenge,
   defaultSpeakMatchSettings,
   defaultObjectVerifySettings,
+  MindChallengeConfig,
 } from "@/lib/alarmSettings";
 import { playChallengeCompleteSound, playMilestoneSound, playEscalationAlarm, playAggressiveVoiceMessage } from "@/lib/soundEffects";
 import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
