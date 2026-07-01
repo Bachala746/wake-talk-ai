@@ -65,6 +65,12 @@ interface SequentialChallengeRunnerProps {
   globalSpeakMatchSettings?: any;
   globalRegisteredQrCode?: string;
   globalObjectVerifySettings?: any;
+  globalMathSettings?: any;
+  globalTypingSettings?: MindChallengeConfig;
+  globalMemorySettings?: MindChallengeConfig;
+  globalPatternSettings?: MindChallengeConfig;
+  globalSliderSettings?: MindChallengeConfig;
+  globalCaptchaSettings?: MindChallengeConfig;
   onAllComplete: () => void;
   onFail?: () => void;
   onEscalate?: (level: number) => void;
