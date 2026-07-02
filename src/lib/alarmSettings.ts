@@ -703,6 +703,13 @@ export interface AlarmSettings {
   patternSettings?: MindChallengeConfig;
   sliderSettings?: MindChallengeConfig;
   captchaSettings?: MindChallengeConfig;
+  // Body / Reality / Interaction — unified 5-level × 3-30 rounds model
+  shakeSettings?: MindChallengeConfig;
+  stepsSettings?: MindChallengeConfig;
+  qrcodeSettings?: MindChallengeConfig;
+  barcodeSettings?: MindChallengeConfig;
+  speakMatchRoundsSettings?: MindChallengeConfig;
+  objectVerifyRoundsSettings?: MindChallengeConfig;
   // Registered QR code for QR challenge
   registeredQrCode?: string;
   // Object verification settings
@@ -731,5 +738,11 @@ export const defaultAlarmSettings: AlarmSettings = {
   patternSettings: defaultMindChallengeConfig,
   sliderSettings: defaultMindChallengeConfig,
   captchaSettings: defaultMindChallengeConfig,
+  shakeSettings: defaultMindChallengeConfig,
+  stepsSettings: defaultMindChallengeConfig,
+  qrcodeSettings: defaultMindChallengeConfig,
+  barcodeSettings: defaultMindChallengeConfig,
+  speakMatchRoundsSettings: defaultMindChallengeConfig,
+  objectVerifyRoundsSettings: defaultMindChallengeConfig,
 };
 
