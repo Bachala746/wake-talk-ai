@@ -5,6 +5,7 @@ import { PhoneOff, Volume2, MessageSquare, Mic, Radio, Zap } from "lucide-react"
 import { toast } from "sonner";
 import { AlarmSettings, defaultAlarmSettings } from "@/lib/alarmSettings";
 import { WakeUpChallenge } from "./WakeUpChallenge";
+import { ChallengeHost } from "./ChallengeHost";
 import { SequentialChallengeRunner } from "./SequentialChallengeRunner";
 import { useElevenLabsConversation } from "@/hooks/useElevenLabsConversation";
 import { AudioWaveform } from "./AudioWaveform";
