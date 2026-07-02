@@ -317,21 +317,11 @@ export const TwoWayVoiceCall = ({
             onEscalate={handleChallengeEscalate}
           />
         ) : (
-          <WakeUpChallenge 
-            challengeType={settings.challengeType} 
-            difficulty={settings.challengeDifficulty} 
-            onComplete={handleChallengeComplete} 
+          <ChallengeHost
+            settings={settings}
+            onComplete={handleChallengeComplete}
             onFail={handleChallengeFail}
             onEscalate={handleChallengeEscalate}
-            speakMatchSettings={settings.speakMatchSettings}
-            mathSettings={settings.mathSettings}
-            typingSettings={settings.typingSettings}
-            memorySettings={settings.memorySettings}
-            patternSettings={settings.patternSettings}
-            sliderSettings={settings.sliderSettings}
-            captchaSettings={settings.captchaSettings}
-            registeredQrCode={settings.registeredQrCode}
-            objectVerifySettings={settings.objectVerifySettings}
           />
         )}
       </div>

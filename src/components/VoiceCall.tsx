@@ -15,6 +15,7 @@ import {
   getMotivationalMessage,
 } from "@/lib/motivationLibrary";
 import { WakeUpChallenge } from "./WakeUpChallenge";
+import { ChallengeHost } from "./ChallengeHost";
 import { SequentialChallengeRunner } from "./SequentialChallengeRunner";
 import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 import { AudioWaveform } from "./AudioWaveform";
