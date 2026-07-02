@@ -16,6 +16,12 @@ const TITLES: Record<MindChallengeKey, { icon: string; title: string; tail: stri
   pattern: { icon: "🧩", title: "Pattern Challenge Setup", tail: "Tap cells in the exact order shown." },
   slider: { icon: "🎚️", title: "Slider Challenge Setup", tail: "Drag every slider onto its target value." },
   captcha: { icon: "🔤", title: "Captcha Challenge Setup", tail: "Read the distorted word and type it." },
+  shake: { icon: "📱", title: "Shake Challenge Setup", tail: "Shake vigorously to complete each round." },
+  steps: { icon: "🚶", title: "Steps Challenge Setup", tail: "Walk the target step count each round." },
+  qrcode: { icon: "📷", title: "QR Scan Challenge Setup", tail: "Scan your registered QR code each round." },
+  barcode: { icon: "📊", title: "Barcode Challenge Setup", tail: "Scan a barcode each round to advance." },
+  speakMatch: { icon: "🗣️", title: "Speak & Match Setup", tail: "Read the text aloud accurately each round." },
+  objectVerify: { icon: "🔍", title: "Object Verify Setup", tail: "Show a registered real-world object each round." },
 };
 
 interface Props {
