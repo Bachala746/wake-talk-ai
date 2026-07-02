@@ -419,21 +419,11 @@ export const VoiceCall = ({ alarmTime, talkDuration, settings = defaultAlarmSett
               onEscalate={handleChallengeEscalate}
             />
           ) : (
-            <WakeUpChallenge
-              challengeType={settings.challengeType}
-              difficulty={settings.challengeDifficulty}
+            <ChallengeHost
+              settings={settings}
               onComplete={handleChallengeComplete}
               onFail={handleChallengeFail}
               onEscalate={handleChallengeEscalate}
-              speakMatchSettings={settings.speakMatchSettings}
-              mathSettings={settings.mathSettings}
-              typingSettings={settings.typingSettings}
-              memorySettings={settings.memorySettings}
-              patternSettings={settings.patternSettings}
-              sliderSettings={settings.sliderSettings}
-              captchaSettings={settings.captchaSettings}
-              registeredQrCode={settings.registeredQrCode}
-              objectVerifySettings={settings.objectVerifySettings}
             />
           )}
         </div>
