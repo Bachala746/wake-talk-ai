@@ -131,13 +131,12 @@ export const MultiRoundChallenge = ({
   return (
     <div className="w-full max-w-md mx-auto space-y-3">
       <MindRoundHeader
-        title={label}
         level={level}
         round={round}
         totalRounds={totalRounds}
         timeLeft={timeLeft}
         timePerRound={timePerRound}
-        feedback={feedback}
+        completedLabel={`${label} · Round ${Math.min(round + 1, totalRounds)} of ${totalRounds}`}
       />
       <WakeUpChallenge
         key={roundKey}
