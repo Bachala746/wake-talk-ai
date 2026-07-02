@@ -5,6 +5,7 @@ import { PhoneOff, Volume2, MessageSquare, Mic, Radio, Zap } from "lucide-react"
 import { toast } from "sonner";
 import { AlarmSettings, defaultAlarmSettings } from "@/lib/alarmSettings";
 import { WakeUpChallenge } from "./WakeUpChallenge";
+import { ChallengeHost } from "./ChallengeHost";
 import { SequentialChallengeRunner } from "./SequentialChallengeRunner";
 import { useElevenLabsConversation } from "@/hooks/useElevenLabsConversation";
 import { AudioWaveform } from "./AudioWaveform";
@@ -162,21 +163,11 @@ export const RealtimeTwoWayCall = ({
             onEscalate={handleChallengeEscalate}
           />
         ) : (
-          <WakeUpChallenge 
-            challengeType={settings.challengeType} 
-            difficulty={settings.challengeDifficulty} 
-            onComplete={handleChallengeComplete} 
+          <ChallengeHost
+            settings={settings}
+            onComplete={handleChallengeComplete}
             onFail={handleChallengeFail}
             onEscalate={handleChallengeEscalate}
-            speakMatchSettings={settings.speakMatchSettings}
-            mathSettings={settings.mathSettings}
-            typingSettings={settings.typingSettings}
-            memorySettings={settings.memorySettings}
-            patternSettings={settings.patternSettings}
-            sliderSettings={settings.sliderSettings}
-            captchaSettings={settings.captchaSettings}
-            registeredQrCode={settings.registeredQrCode}
-            objectVerifySettings={settings.objectVerifySettings}
           />
         )}
         </div>

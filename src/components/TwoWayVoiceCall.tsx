@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AlarmSettings, defaultAlarmSettings } from "@/lib/alarmSettings";
 import { WakeUpChallenge } from "./WakeUpChallenge";
+import { ChallengeHost } from "./ChallengeHost";
 import { SequentialChallengeRunner } from "./SequentialChallengeRunner";
 import { speakWithElevenLabs, cancelSpeech } from "@/lib/elevenLabsAudio";
 import { useElevenLabsScribe } from "@/hooks/useElevenLabsScribe";
@@ -317,21 +318,11 @@ export const TwoWayVoiceCall = ({
             onEscalate={handleChallengeEscalate}
           />
         ) : (
-          <WakeUpChallenge 
-            challengeType={settings.challengeType} 
-            difficulty={settings.challengeDifficulty} 
-            onComplete={handleChallengeComplete} 
+          <ChallengeHost
+            settings={settings}
+            onComplete={handleChallengeComplete}
             onFail={handleChallengeFail}
             onEscalate={handleChallengeEscalate}
-            speakMatchSettings={settings.speakMatchSettings}
-            mathSettings={settings.mathSettings}
-            typingSettings={settings.typingSettings}
-            memorySettings={settings.memorySettings}
-            patternSettings={settings.patternSettings}
-            sliderSettings={settings.sliderSettings}
-            captchaSettings={settings.captchaSettings}
-            registeredQrCode={settings.registeredQrCode}
-            objectVerifySettings={settings.objectVerifySettings}
           />
         )}
       </div>

@@ -572,7 +572,24 @@ export const MIND_MIN_ROUNDS = 3;
 export const MIND_MAX_ROUNDS = 30;
 export const MIND_DEFAULT_TIME = 30;
 
-export type MindChallengeKey = 'typing' | 'memory' | 'pattern' | 'slider' | 'captcha';
+export type MindChallengeKey =
+  | 'typing'
+  | 'memory'
+  | 'pattern'
+  | 'slider'
+  | 'captcha'
+  // Body / Reality / Interaction — unified 5-level × 3-30 rounds model
+  | 'shake'
+  | 'steps'
+  | 'qrcode'
+  | 'barcode'
+  | 'speakMatch'
+  | 'objectVerify';
+
+// Backwards-compatible aliases — every challenge now shares the same config shape.
+export type ChallengeConfigKey = MindChallengeKey;
+export type ChallengeConfig = MindChallengeConfig;
+export const defaultChallengeConfig = defaultMindChallengeConfig;
 
 export const mindLevelInfo: Record<MindChallengeKey, { level: MindLevel; label: string; description: string }[]> = {
   typing: [
@@ -610,7 +627,56 @@ export const mindLevelInfo: Record<MindChallengeKey, { level: MindLevel; label: 
     { level: 4, label: 'L4', description: '9–10 letters, heavy distortion' },
     { level: 5, label: 'L5', description: '10–14 letters, complex distortion' },
   ],
+  shake: [
+    { level: 1, label: 'L1', description: 'Light shake burst' },
+    { level: 2, label: 'L2', description: 'Sustained shake, medium intensity' },
+    { level: 3, label: 'L3', description: 'Fast shake, higher threshold' },
+    { level: 4, label: 'L4', description: 'Vigorous multi-second shake' },
+    { level: 5, label: 'L5', description: 'Extreme shake with precision' },
+  ],
+  steps: [
+    { level: 1, label: 'L1', description: '10 steps per round' },
+    { level: 2, label: 'L2', description: '20 steps per round' },
+    { level: 3, label: 'L3', description: '30 steps per round' },
+    { level: 4, label: 'L4', description: '50 steps per round' },
+    { level: 5, label: 'L5', description: '80 steps per round' },
+  ],
+  qrcode: [
+    { level: 1, label: 'L1', description: 'Any QR code accepted' },
+    { level: 2, label: 'L2', description: 'Any QR code, quick scan' },
+    { level: 3, label: 'L3', description: 'Registered QR required' },
+    { level: 4, label: 'L4', description: 'Registered QR, tight framing' },
+    { level: 5, label: 'L5', description: 'Registered QR, strict + fast' },
+  ],
+  barcode: [
+    { level: 1, label: 'L1', description: 'Any barcode accepted' },
+    { level: 2, label: 'L2', description: 'Any barcode, quick scan' },
+    { level: 3, label: 'L3', description: 'Distinct barcode each round' },
+    { level: 4, label: 'L4', description: 'Distinct + longer codes' },
+    { level: 5, label: 'L5', description: 'Distinct, strict, fast' },
+  ],
+  speakMatch: [
+    { level: 1, label: 'L1', description: 'Short line, relaxed accuracy' },
+    { level: 2, label: 'L2', description: 'Short line, standard accuracy' },
+    { level: 3, label: 'L3', description: 'Medium paragraph, standard' },
+    { level: 4, label: 'L4', description: 'Medium paragraph, strict' },
+    { level: 5, label: 'L5', description: 'Long paragraph, strict + fast' },
+  ],
+  objectVerify: [
+    { level: 1, label: 'L1', description: '1 registered object' },
+    { level: 2, label: 'L2', description: '1 object, higher confidence' },
+    { level: 3, label: 'L3', description: '2 objects per round' },
+    { level: 4, label: 'L4', description: '2 objects, strict match' },
+    { level: 5, label: 'L5', description: '3 objects, strict + fast' },
+  ],
 };
+
+/** Map a 5-level config to the legacy easy/medium/hard used by internal generators. */
+export function levelToDifficulty(level: MindLevel): ChallengeDifficulty {
+  if (level <= 1) return 'easy';
+  if (level <= 3) return 'medium';
+  return 'hard';
+}
 
 // Complete alarm settings interface
 export interface AlarmSettings {
@@ -637,6 +703,13 @@ export interface AlarmSettings {
   patternSettings?: MindChallengeConfig;
   sliderSettings?: MindChallengeConfig;
   captchaSettings?: MindChallengeConfig;
+  // Body / Reality / Interaction — unified 5-level × 3-30 rounds model
+  shakeSettings?: MindChallengeConfig;
+  stepsSettings?: MindChallengeConfig;
+  qrcodeSettings?: MindChallengeConfig;
+  barcodeSettings?: MindChallengeConfig;
+  speakMatchRoundsSettings?: MindChallengeConfig;
+  objectVerifyRoundsSettings?: MindChallengeConfig;
   // Registered QR code for QR challenge
   registeredQrCode?: string;
   // Object verification settings
@@ -665,5 +738,11 @@ export const defaultAlarmSettings: AlarmSettings = {
   patternSettings: defaultMindChallengeConfig,
   sliderSettings: defaultMindChallengeConfig,
   captchaSettings: defaultMindChallengeConfig,
+  shakeSettings: defaultMindChallengeConfig,
+  stepsSettings: defaultMindChallengeConfig,
+  qrcodeSettings: defaultMindChallengeConfig,
+  barcodeSettings: defaultMindChallengeConfig,
+  speakMatchRoundsSettings: defaultMindChallengeConfig,
+  objectVerifyRoundsSettings: defaultMindChallengeConfig,
 };
 

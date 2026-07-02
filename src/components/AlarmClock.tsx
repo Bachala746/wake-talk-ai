@@ -147,6 +147,14 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [patternCfg, setPatternCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
   const [sliderCfg, setSliderCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
   const [captchaCfg, setCaptchaCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
+  // Body / Reality / Interaction — unified global rules (5 levels × 3–30 rounds × 30s)
+  const [shakeCfg, setShakeCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
+  const [stepsCfg, setStepsCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
+  const [qrcodeCfg, setQrcodeCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
+  const [barcodeCfg, setBarcodeCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
+  const [speakMatchCfg, setSpeakMatchCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
+  const [objectVerifyCfg, setObjectVerifyCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
+
 
 
   // QR Code registration states
@@ -328,6 +336,12 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       patternSettings: challengeType === 'pattern' ? patternCfg : undefined,
       sliderSettings: challengeType === 'slider' ? sliderCfg : undefined,
       captchaSettings: challengeType === 'captcha' ? captchaCfg : undefined,
+      shakeSettings: challengeType === 'shake' ? shakeCfg : undefined,
+      stepsSettings: challengeType === 'steps' ? stepsCfg : undefined,
+      qrcodeSettings: challengeType === 'qrcode' ? qrcodeCfg : undefined,
+      barcodeSettings: challengeType === 'barcode' ? barcodeCfg : undefined,
+      speakMatchRoundsSettings: challengeType === 'speakMatch' ? speakMatchCfg : undefined,
+      objectVerifyRoundsSettings: challengeType === 'objectVerify' ? objectVerifyCfg : undefined,
       registeredQrCode: challengeType === 'qrcode' ? registeredQrCode : undefined,
       objectVerifySettings: challengeType === 'objectVerify' ? objectVerifySettingsObj : undefined,
       sequentialChallengeSettings: multiChallengeEnabled ? sequentialChallengeSettingsObj : undefined,
@@ -413,6 +427,12 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setPatternCfg(alarm.settings.patternSettings || defaultMindChallengeConfig);
     setSliderCfg(alarm.settings.sliderSettings || defaultMindChallengeConfig);
     setCaptchaCfg(alarm.settings.captchaSettings || defaultMindChallengeConfig);
+    setShakeCfg(alarm.settings.shakeSettings || defaultMindChallengeConfig);
+    setStepsCfg(alarm.settings.stepsSettings || defaultMindChallengeConfig);
+    setQrcodeCfg(alarm.settings.qrcodeSettings || defaultMindChallengeConfig);
+    setBarcodeCfg(alarm.settings.barcodeSettings || defaultMindChallengeConfig);
+    setSpeakMatchCfg(alarm.settings.speakMatchRoundsSettings || defaultMindChallengeConfig);
+    setObjectVerifyCfg(alarm.settings.objectVerifyRoundsSettings || defaultMindChallengeConfig);
     setRegisteredQrCode(alarm.settings.registeredQrCode || '');
     // Load object verification settings
     const ovS = alarm.settings.objectVerifySettings || defaultObjectVerifySettings;
@@ -1610,6 +1630,24 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
               )}
               {challengeType === 'captcha' && (
                 <MindChallengeConfigPanel challengeKey="captcha" value={captchaCfg} onChange={setCaptchaCfg} />
+              )}
+              {challengeType === 'shake' && (
+                <MindChallengeConfigPanel challengeKey="shake" value={shakeCfg} onChange={setShakeCfg} />
+              )}
+              {challengeType === 'steps' && (
+                <MindChallengeConfigPanel challengeKey="steps" value={stepsCfg} onChange={setStepsCfg} />
+              )}
+              {challengeType === 'qrcode' && (
+                <MindChallengeConfigPanel challengeKey="qrcode" value={qrcodeCfg} onChange={setQrcodeCfg} />
+              )}
+              {challengeType === 'barcode' && (
+                <MindChallengeConfigPanel challengeKey="barcode" value={barcodeCfg} onChange={setBarcodeCfg} />
+              )}
+              {challengeType === 'speakMatch' && (
+                <MindChallengeConfigPanel challengeKey="speakMatch" value={speakMatchCfg} onChange={setSpeakMatchCfg} />
+              )}
+              {challengeType === 'objectVerify' && (
+                <MindChallengeConfigPanel challengeKey="objectVerify" value={objectVerifyCfg} onChange={setObjectVerifyCfg} />
               )}
 
 
