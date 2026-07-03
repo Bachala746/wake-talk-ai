@@ -1,5 +1,7 @@
+import { useCallback, useState } from "react";
 import { WakeUpChallenge } from "./WakeUpChallenge";
 import { MultiRoundChallenge } from "./MultiRoundChallenge";
+import { ChallengeSuccessOverlay } from "./ChallengeSuccessOverlay";
 import {
   AlarmSettings,
   ChallengeType,
@@ -39,10 +41,9 @@ function pickConfig(settings: AlarmSettings, type: ChallengeType): MindChallenge
 
 /**
  * ChallengeHost — the single entry point for running any challenge.
- * Automatically applies the global rules (5 levels × 3-30 rounds × 30s timer)
- * to Body / Reality / Interaction challenges via MultiRoundChallenge,
- * and passes Mind challenges through to WakeUpChallenge (which already
- * implements the same rules internally).
+ * Applies the global rules (5 levels × 3-30 rounds × 30s timer) to every
+ * category, and shows a unified success animation + motivational message
+ * once ALL rounds are cleared, before dismissing the alarm.
  */
 export const ChallengeHost = ({
   settings,
@@ -52,29 +53,35 @@ export const ChallengeHost = ({
   isAlarmActive = true,
 }: Props) => {
   const type = settings.challengeType;
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  if (ROUND_RUNNER_TYPES.has(type)) {
-    return (
-      <MultiRoundChallenge
-        challengeType={type}
-        config={pickConfig(settings, type)}
-        onComplete={onComplete}
-        onFail={onFail}
-        onEscalate={onEscalate}
-        speakMatchSettings={settings.speakMatchSettings}
-        registeredQrCode={settings.registeredQrCode}
-        objectVerifySettings={settings.objectVerifySettings}
-        mathSettings={settings.mathSettings}
-        isAlarmActive={isAlarmActive}
-      />
-    );
-  }
+  const handleAllRoundsComplete = useCallback(() => {
+    setShowSuccess(true);
+  }, []);
 
-  return (
+  const handleOverlayDone = useCallback(() => {
+    setShowSuccess(false);
+    onComplete();
+  }, [onComplete]);
+
+  const inner = ROUND_RUNNER_TYPES.has(type) ? (
+    <MultiRoundChallenge
+      challengeType={type}
+      config={pickConfig(settings, type)}
+      onComplete={handleAllRoundsComplete}
+      onFail={onFail}
+      onEscalate={onEscalate}
+      speakMatchSettings={settings.speakMatchSettings}
+      registeredQrCode={settings.registeredQrCode}
+      objectVerifySettings={settings.objectVerifySettings}
+      mathSettings={settings.mathSettings}
+      isAlarmActive={isAlarmActive}
+    />
+  ) : (
     <WakeUpChallenge
       challengeType={type}
       difficulty={settings.challengeDifficulty}
-      onComplete={onComplete}
+      onComplete={handleAllRoundsComplete}
       onFail={onFail}
       onEscalate={onEscalate}
       speakMatchSettings={settings.speakMatchSettings}
@@ -88,5 +95,12 @@ export const ChallengeHost = ({
       objectVerifySettings={settings.objectVerifySettings}
       isAlarmActive={isAlarmActive}
     />
+  );
+
+  return (
+    <>
+      {inner}
+      {showSuccess && <ChallengeSuccessOverlay onDone={handleOverlayDone} />}
+    </>
   );
 };
