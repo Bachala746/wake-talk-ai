@@ -1,50 +1,90 @@
-## Global Challenge Rules — Unify Every Category
+## Body Wake-Up Challenges — Implementation Plan
 
-Extend the existing Mind Wake-Up framework (5 levels × 3–30 rounds × 30s timer × randomized, non-repeating rounds) to **every** challenge category: Body, Reality, and Interaction. Today only Mind challenges (Math, Typing, Memory, Pattern, Slider, Captcha) fully honor these rules. Others (Speak & Match, QR, Object Verify, physical challenges, etc.) use ad-hoc configs.
+Add a proper "Body Wake-Up" category with four dedicated challenges, honoring the app-wide global rules (5 levels × 3–30 rounds × 30 s timer × fail-restarts-round × success animation).
 
-### 1. Data model — `src/lib/alarmSettings.ts`
-- Introduce a shared `ChallengeConfig { level: 1–5, rounds: 3–30, timePerRound: 30 }`.
-- Add per-challenge configs to `AlarmSettings` for the missing types:
-  - Body: `jumpingJacksSettings`, `squatsSettings`, `pushupsSettings`, `stretchSettings` (whichever exist in `challengeTypes`).
-  - Reality: `qrSettings`, `objectVerifySettings` (extend existing), `photoSettings`.
-  - Interaction: `speakMatchSettings` (extend), `voiceResponseSettings`, `conversationSettings`.
-- Keep existing type-specific fields (e.g. `requiredPhrase`, `targetObject`) and just add `level` + `rounds` to each.
-- Update `defaultAlarmSettings` and migration/load logic to backfill.
+### 1. New challenge types
 
-### 2. Generators — `src/lib/challengeGenerators.ts` (new) + extend `mindChallengeGenerators.ts`
-- For each non-Mind challenge, add a `generate(level, used)` producing a fresh round per attempt:
-  - Body: rep counts, tempo, hold time scaling by level.
-  - Reality: object list rotation, QR variance, verification strictness by level.
-  - Interaction: phrase difficulty, response length, tone strictness by level.
+Extend `ChallengeType` in `src/lib/alarmSettings.ts`:
 
-### 3. Runner reuse — `src/hooks/useMindRoundRunner.ts`
-- Rename mental model to `useChallengeRoundRunner` (keep old export as alias) — already generic. Use it verbatim for all new categories.
-- Confirms: 30s timer, no-repeat set, wrong/timeout regenerates without advancing, `onAllComplete` fires only after N rounds.
+- `jump` — Jump Challenge — reps per level: **5 / 10 / 15 / 20 / 25**
+- `squat` — Squat Challenge — reps per level: **5 / 10 / 15 / 20 / 25**
+- `pushup` — Push-Up Challenge — reps per level: **3 / 6 / 10 / 15 / 20**
+- `walk` — Walking Challenge — steps per level: **20 / 40 / 60 / 80 / 100**
 
-### 4. UI — `src/components/WakeUpChallenge.tsx`
-- Convert the remaining challenge render blocks (Speak & Match, QR, Object Verify, Body challenges, etc.) to the runner + `MindRoundHeader` (rename header component to `ChallengeRoundHeader`, keep alias).
-- Preserve category-specific UI (camera, mic waveform, rep counter) inside the round body.
-- Wire progress bar, level dots, streak, and completion summary identically to Mind.
+`walk` supersedes the ad-hoc `steps` type for the Body category (kept for back-compat). Register each in `challengeTypes`, add to `body` category, add `MindChallengeLevelInfo[]` copy with the per-level reps, and add per-type `MindChallengeConfig` slots (`jumpSettings`, `squatSettings`, `pushupSettings`, `walkSettings`) with `defaultMindChallengeConfig`.
 
-### 5. Alarm editor — `src/components/AlarmClock.tsx`
-- Reuse `MindChallengeConfigPanel` (rename to `ChallengeConfigPanel`) for every challenge type in the alarm editor: category → challenge → level 1–5 → rounds 3–30 slider with time estimate.
-- Save/load/reset each config to `AlarmSettings`.
+### 2. Detection strategy (client-only, no ML server)
 
-### 6. Plumbing
-- Forward all new configs through `VoiceCall`, `TwoWayVoiceCall`, `RealtimeTwoWayCall`, and `SequentialChallengeRunner` (mirroring the existing typing/memory/pattern/slider/captcha props).
-- `SequentialChallengeRunner` already threads Mind configs; extend it to thread Body/Reality/Interaction configs too, and use `challenge.config ?? global<Type>Settings ?? default`.
+All four use `DeviceMotionEvent` accelerometer where available; graceful "Tap to count" fallback when sensors are unavailable / permission denied (desktop preview, iOS without motion permission).
 
-### 7. Rewards & analytics
-- On `onAllComplete`, keep existing success flow: XP, streak increment, achievement check, history entry. Ensure history logs `{category, challenge, level, rounds, failures, duration}` for every category (extend `alarmHistory.ts` schema).
+Shared low-pass filter + peak detector in a new hook `src/hooks/useMotionRepCounter.ts`:
+
+- Reads `event.accelerationIncludingGravity` at ~30 Hz.
+- Computes magnitude minus gravity, applies EMA smoothing.
+- Detects a rep when magnitude crosses an **up-threshold**, then falls back below a **down-threshold** with a minimum interval (debounce). One rep = one full up/down cycle.
+
+Per-challenge tuning (thresholds + min interval):
+
+| Type   | up g | down g | min ms | notes |
+|--------|------|--------|--------|-------|
+| jump   | 1.6  | 0.4    | 350    | high peak, fast landing |
+| squat  | 0.55 | 0.15   | 700    | slow vertical cadence |
+| pushup | 0.45 | 0.10   | 900    | phone on floor / arm; low-magnitude cadence |
+| walk   | 1.15 | 0.6    | 300    | standard step detection |
+
+Ranges chosen conservatively; each is exposed as a const so it's tunable without touching the hook. Squat/push-up detection is genuinely noisy on a phone accelerometer alone (no camera-pose model shipped in-browser), so each challenge shows a "Tap when you complete a rep" fallback button that's always available — the user's request stresses "resistant to false counts", which means we'd rather under-count than fabricate reps.
+
+### 3. UI — `src/components/BodyRepChallenge.tsx` (new)
+
+Single component parametrized by `{ kind: 'jump' | 'squat' | 'pushup' | 'walk', targetReps, onComplete, onFail }`:
+
+- Big animated rep counter `count / target`.
+- Circular progress ring + linear progress bar + % complete.
+- Pulses / flashes on each detected rep, optional `navigator.vibrate(60)`.
+- "Tap rep" fallback button (always visible, smaller).
+- Emits `onComplete` when `count >= target`, `onFail` on 30 s timeout (handled by `MultiRoundChallenge` — the component itself is stateless about timing).
+
+### 4. Level-Details pre-screen — `src/components/BodyChallengeIntro.tsx` (new)
+
+Shown for **every** body challenge before Round 1 starts. Renders the full 5-level table for the selected challenge with the user's current level highlighted, plus a "Start" button. Dismissible once per alarm run (state kept in `MultiRoundChallenge`).
+
+### 5. Wire into the runner
+
+- `src/components/WakeUpChallenge.tsx`: add render branches for `jump | squat | pushup | walk` that mount `BodyRepChallenge` with the per-level rep target derived from `difficulty` (via `levelToDifficulty` reverse mapping — we pass the raw level down through a new prop or read from `mathSettings.level`-style config; simpler: read the config directly in `ChallengeHost` and pass `targetReps` as a new prop on `WakeUpChallenge`).
+- `src/components/MultiRoundChallenge.tsx`: extend `ROUND_RUNNER_TYPES` set and `CHALLENGE_LABEL` map; render `BodyChallengeIntro` before the first round if not yet dismissed.
+- `src/components/ChallengeHost.tsx`: add the four new types to `ROUND_RUNNER_TYPES` and `pickConfig`.
+
+### 6. Alarm editor — `src/components/AlarmClock.tsx`
+
+- Add state hooks `jumpSettings / squatSettings / pushupSettings / walkSettings`.
+- Reuse `MindChallengeConfigPanel` (level 1–5 + rounds 3–30 slider) for each — same pattern already used for existing challenges.
+- Save/load/reset wiring identical to existing per-challenge configs.
+
+### 7. Success flow
+
+No change — `ChallengeHost` already shows `ChallengeSuccessOverlay` (motivational message + animation) when `onComplete` fires after all rounds. XP / streak / history hooks already wired for other challenges apply automatically.
 
 ### 8. Verification
-- Type-check the project.
-- Manually walk through one challenge per category via the alarm editor → confirm config UI, live preview of round count / time estimate, and that runner enforces N rounds with 30s timeout.
 
-### Technical notes
-- Backwards compat: on load, if a challenge's config lacks `level`/`rounds`, inject defaults (`level: 1`, `rounds: 5`, `timePerRound: 30`).
-- Keep existing anti-cheat / escalation hooks — they fire on `onFail` from the runner unchanged.
-- No backend changes required; all state is client-side per alarm.
+- `tsgo --noEmit` clean build.
+- Manual smoke: pick each of the 4 challenges in the alarm editor, set level 2 / 3 rounds, trigger alarm — confirm intro screen, 30 s timer, tap-fallback increments counter, completion triggers success overlay.
 
-### Scope check
-This is a large refactor touching ~10 files and introducing new configs, generators, and UI panels for ~8 additional challenges. Confirm before I proceed, or tell me to narrow the first pass (e.g. "Body only first", or "just wire the config UI and defer new generators").
+### Files touched
+
+New:
+- `src/hooks/useMotionRepCounter.ts`
+- `src/components/BodyRepChallenge.tsx`
+- `src/components/BodyChallengeIntro.tsx`
+
+Edited:
+- `src/lib/alarmSettings.ts` (types, defaults, level info, category)
+- `src/components/WakeUpChallenge.tsx` (render branches)
+- `src/components/MultiRoundChallenge.tsx` (intro screen, new types)
+- `src/components/ChallengeHost.tsx` (config routing)
+- `src/components/AlarmClock.tsx` (config panels + persistence)
+
+### Note on honesty
+
+Real form-checked squat / push-up detection needs a camera + pose model (MediaPipe / TF.js), which is a much larger change (200+ MB of ML, camera permission flow, on-device inference perf). This plan ships accelerometer-based rep counting with a manual tap fallback — accurate enough for jumping and walking, best-effort with fallback for squats / push-ups. If you want camera-based pose detection, that's a separate follow-up I'd scope on its own.
+
+Confirm and I'll build it.

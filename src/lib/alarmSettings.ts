@@ -263,7 +263,7 @@ export const snoozeMessages: Record<SnoozeLevel, string[]> = {
 };
 
 // Wake-up challenge types
-export type ChallengeType = 'none' | 'math' | 'shake' | 'typing' | 'memory' | 'pattern' | 'slider' | 'captcha' | 'barcode' | 'qrcode' | 'steps' | 'speakMatch' | 'objectVerify';
+export type ChallengeType = 'none' | 'math' | 'shake' | 'typing' | 'memory' | 'pattern' | 'slider' | 'captcha' | 'barcode' | 'qrcode' | 'steps' | 'speakMatch' | 'objectVerify' | 'jump' | 'squat' | 'pushup' | 'walk';
 
 export const challengeTypes: { value: ChallengeType; label: string; description: string; icon: string }[] = [
   { value: 'none', label: 'None', description: 'No challenge required', icon: '😴' },
@@ -279,6 +279,10 @@ export const challengeTypes: { value: ChallengeType; label: string; description:
   { value: 'steps', label: 'Walk Steps', description: 'Walk required steps to dismiss', icon: '🚶' },
   { value: 'speakMatch', label: 'Speak & Match', description: 'Read text aloud to dismiss', icon: '🗣️' },
   { value: 'objectVerify', label: 'Object Verify', description: 'Scan real-world objects', icon: '🔍' },
+  { value: 'jump', label: 'Jump Challenge', description: 'Complete jumps to dismiss', icon: '🤸' },
+  { value: 'squat', label: 'Squat Challenge', description: 'Complete squats to dismiss', icon: '🏋️' },
+  { value: 'pushup', label: 'Push-Up Challenge', description: 'Complete push-ups to dismiss', icon: '💪' },
+  { value: 'walk', label: 'Walking Challenge', description: 'Take steps to dismiss', icon: '🚶' },
 ];
 
 // Speak & Match challenge settings
@@ -412,7 +416,7 @@ export const challengeCategories: ChallengeCategory[] = [
     icon: '🏃',
     tagline: 'Get your body moving',
     purpose: 'Physically wake up with movement and motion detection',
-    challenges: ['shake', 'steps'],
+    challenges: ['jump', 'squat', 'pushup', 'walk', 'shake', 'steps'],
   },
   {
     id: 'reality',
@@ -584,7 +588,26 @@ export type MindChallengeKey =
   | 'qrcode'
   | 'barcode'
   | 'speakMatch'
-  | 'objectVerify';
+  | 'objectVerify'
+  | 'jump'
+  | 'squat'
+  | 'pushup'
+  | 'walk';
+
+/** Per-level rep / step targets for the Body Wake-Up challenges. */
+export const BODY_REP_TARGETS: Record<'jump' | 'squat' | 'pushup' | 'walk', Record<MindLevel, number>> = {
+  jump:   { 1: 5,  2: 10, 3: 15, 4: 20, 5: 25 },
+  squat:  { 1: 5,  2: 10, 3: 15, 4: 20, 5: 25 },
+  pushup: { 1: 3,  2: 6,  3: 10, 4: 15, 5: 20 },
+  walk:   { 1: 20, 2: 40, 3: 60, 4: 80, 5: 100 },
+};
+
+export const BODY_CHALLENGE_UNIT: Record<'jump' | 'squat' | 'pushup' | 'walk', string> = {
+  jump: 'Jumps',
+  squat: 'Squats',
+  pushup: 'Push-Ups',
+  walk: 'Steps',
+};
 
 // Backwards-compatible aliases — every challenge now shares the same config shape.
 export type ChallengeConfigKey = MindChallengeKey;
@@ -669,6 +692,34 @@ export const mindLevelInfo: Record<MindChallengeKey, { level: MindLevel; label: 
     { level: 4, label: 'L4', description: '2 objects, strict match' },
     { level: 5, label: 'L5', description: '3 objects, strict + fast' },
   ],
+  jump: [
+    { level: 1, label: 'L1', description: '5 Jumps per round' },
+    { level: 2, label: 'L2', description: '10 Jumps per round' },
+    { level: 3, label: 'L3', description: '15 Jumps per round' },
+    { level: 4, label: 'L4', description: '20 Jumps per round' },
+    { level: 5, label: 'L5', description: '25 Jumps per round' },
+  ],
+  squat: [
+    { level: 1, label: 'L1', description: '5 Squats per round' },
+    { level: 2, label: 'L2', description: '10 Squats per round' },
+    { level: 3, label: 'L3', description: '15 Squats per round' },
+    { level: 4, label: 'L4', description: '20 Squats per round' },
+    { level: 5, label: 'L5', description: '25 Squats per round' },
+  ],
+  pushup: [
+    { level: 1, label: 'L1', description: '3 Push-Ups per round' },
+    { level: 2, label: 'L2', description: '6 Push-Ups per round' },
+    { level: 3, label: 'L3', description: '10 Push-Ups per round' },
+    { level: 4, label: 'L4', description: '15 Push-Ups per round' },
+    { level: 5, label: 'L5', description: '20 Push-Ups per round' },
+  ],
+  walk: [
+    { level: 1, label: 'L1', description: '20 Steps per round' },
+    { level: 2, label: 'L2', description: '40 Steps per round' },
+    { level: 3, label: 'L3', description: '60 Steps per round' },
+    { level: 4, label: 'L4', description: '80 Steps per round' },
+    { level: 5, label: 'L5', description: '100 Steps per round' },
+  ],
 };
 
 /** Map a 5-level config to the legacy easy/medium/hard used by internal generators. */
@@ -710,6 +761,11 @@ export interface AlarmSettings {
   barcodeSettings?: MindChallengeConfig;
   speakMatchRoundsSettings?: MindChallengeConfig;
   objectVerifyRoundsSettings?: MindChallengeConfig;
+  // Body Wake-Up
+  jumpSettings?: MindChallengeConfig;
+  squatSettings?: MindChallengeConfig;
+  pushupSettings?: MindChallengeConfig;
+  walkSettings?: MindChallengeConfig;
   // Registered QR code for QR challenge
   registeredQrCode?: string;
   // Object verification settings
@@ -744,5 +800,9 @@ export const defaultAlarmSettings: AlarmSettings = {
   barcodeSettings: defaultMindChallengeConfig,
   speakMatchRoundsSettings: defaultMindChallengeConfig,
   objectVerifyRoundsSettings: defaultMindChallengeConfig,
+  jumpSettings: defaultMindChallengeConfig,
+  squatSettings: defaultMindChallengeConfig,
+  pushupSettings: defaultMindChallengeConfig,
+  walkSettings: defaultMindChallengeConfig,
 };
 

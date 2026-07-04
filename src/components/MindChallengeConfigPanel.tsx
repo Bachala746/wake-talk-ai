@@ -22,6 +22,10 @@ const TITLES: Record<MindChallengeKey, { icon: string; title: string; tail: stri
   barcode: { icon: "📊", title: "Barcode Challenge Setup", tail: "Scan a barcode each round to advance." },
   speakMatch: { icon: "🗣️", title: "Speak & Match Setup", tail: "Read the text aloud accurately each round." },
   objectVerify: { icon: "🔍", title: "Object Verify Setup", tail: "Show a registered real-world object each round." },
+  jump: { icon: "🤸", title: "Jump Challenge Setup", tail: "Complete the target number of jumps each round." },
+  squat: { icon: "🏋️", title: "Squat Challenge Setup", tail: "Complete the target number of squats each round." },
+  pushup: { icon: "💪", title: "Push-Up Challenge Setup", tail: "Complete the target number of push-ups each round." },
+  walk: { icon: "🚶", title: "Walking Challenge Setup", tail: "Take the target number of steps each round." },
 };
 
 interface Props {

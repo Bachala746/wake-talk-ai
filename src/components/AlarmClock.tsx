@@ -154,6 +154,11 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
   const [barcodeCfg, setBarcodeCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
   const [speakMatchCfg, setSpeakMatchCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
   const [objectVerifyCfg, setObjectVerifyCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
+  // Body Wake-Up (jump/squat/pushup/walk) — same global rules
+  const [jumpCfg, setJumpCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
+  const [squatCfg, setSquatCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
+  const [pushupCfg, setPushupCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
+  const [walkCfg, setWalkCfg] = useState<MindChallengeConfig>(defaultMindChallengeConfig);
 
 
 
@@ -342,6 +347,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
       barcodeSettings: challengeType === 'barcode' ? barcodeCfg : undefined,
       speakMatchRoundsSettings: challengeType === 'speakMatch' ? speakMatchCfg : undefined,
       objectVerifyRoundsSettings: challengeType === 'objectVerify' ? objectVerifyCfg : undefined,
+      jumpSettings: challengeType === 'jump' ? jumpCfg : undefined,
+      squatSettings: challengeType === 'squat' ? squatCfg : undefined,
+      pushupSettings: challengeType === 'pushup' ? pushupCfg : undefined,
+      walkSettings: challengeType === 'walk' ? walkCfg : undefined,
       registeredQrCode: challengeType === 'qrcode' ? registeredQrCode : undefined,
       objectVerifySettings: challengeType === 'objectVerify' ? objectVerifySettingsObj : undefined,
       sequentialChallengeSettings: multiChallengeEnabled ? sequentialChallengeSettingsObj : undefined,
@@ -433,6 +442,10 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setBarcodeCfg(alarm.settings.barcodeSettings || defaultMindChallengeConfig);
     setSpeakMatchCfg(alarm.settings.speakMatchRoundsSettings || defaultMindChallengeConfig);
     setObjectVerifyCfg(alarm.settings.objectVerifyRoundsSettings || defaultMindChallengeConfig);
+    setJumpCfg(alarm.settings.jumpSettings || defaultMindChallengeConfig);
+    setSquatCfg(alarm.settings.squatSettings || defaultMindChallengeConfig);
+    setPushupCfg(alarm.settings.pushupSettings || defaultMindChallengeConfig);
+    setWalkCfg(alarm.settings.walkSettings || defaultMindChallengeConfig);
     setRegisteredQrCode(alarm.settings.registeredQrCode || '');
     // Load object verification settings
     const ovS = alarm.settings.objectVerifySettings || defaultObjectVerifySettings;
@@ -489,6 +502,16 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     setPatternCfg(defaultMindChallengeConfig);
     setSliderCfg(defaultMindChallengeConfig);
     setCaptchaCfg(defaultMindChallengeConfig);
+    setShakeCfg(defaultMindChallengeConfig);
+    setStepsCfg(defaultMindChallengeConfig);
+    setQrcodeCfg(defaultMindChallengeConfig);
+    setBarcodeCfg(defaultMindChallengeConfig);
+    setSpeakMatchCfg(defaultMindChallengeConfig);
+    setObjectVerifyCfg(defaultMindChallengeConfig);
+    setJumpCfg(defaultMindChallengeConfig);
+    setSquatCfg(defaultMindChallengeConfig);
+    setPushupCfg(defaultMindChallengeConfig);
+    setWalkCfg(defaultMindChallengeConfig);
     setRegisteredQrCode('');
     // Reset object verification
     setOvSelectedIds([]);
@@ -1648,6 +1671,18 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
               )}
               {challengeType === 'objectVerify' && (
                 <MindChallengeConfigPanel challengeKey="objectVerify" value={objectVerifyCfg} onChange={setObjectVerifyCfg} />
+              )}
+              {challengeType === 'jump' && (
+                <MindChallengeConfigPanel challengeKey="jump" value={jumpCfg} onChange={setJumpCfg} />
+              )}
+              {challengeType === 'squat' && (
+                <MindChallengeConfigPanel challengeKey="squat" value={squatCfg} onChange={setSquatCfg} />
+              )}
+              {challengeType === 'pushup' && (
+                <MindChallengeConfigPanel challengeKey="pushup" value={pushupCfg} onChange={setPushupCfg} />
+              )}
+              {challengeType === 'walk' && (
+                <MindChallengeConfigPanel challengeKey="walk" value={walkCfg} onChange={setWalkCfg} />
               )}
 
 
