@@ -692,6 +692,34 @@ export const mindLevelInfo: Record<MindChallengeKey, { level: MindLevel; label: 
     { level: 4, label: 'L4', description: '2 objects, strict match' },
     { level: 5, label: 'L5', description: '3 objects, strict + fast' },
   ],
+  jump: [
+    { level: 1, label: 'L1', description: '5 Jumps per round' },
+    { level: 2, label: 'L2', description: '10 Jumps per round' },
+    { level: 3, label: 'L3', description: '15 Jumps per round' },
+    { level: 4, label: 'L4', description: '20 Jumps per round' },
+    { level: 5, label: 'L5', description: '25 Jumps per round' },
+  ],
+  squat: [
+    { level: 1, label: 'L1', description: '5 Squats per round' },
+    { level: 2, label: 'L2', description: '10 Squats per round' },
+    { level: 3, label: 'L3', description: '15 Squats per round' },
+    { level: 4, label: 'L4', description: '20 Squats per round' },
+    { level: 5, label: 'L5', description: '25 Squats per round' },
+  ],
+  pushup: [
+    { level: 1, label: 'L1', description: '3 Push-Ups per round' },
+    { level: 2, label: 'L2', description: '6 Push-Ups per round' },
+    { level: 3, label: 'L3', description: '10 Push-Ups per round' },
+    { level: 4, label: 'L4', description: '15 Push-Ups per round' },
+    { level: 5, label: 'L5', description: '20 Push-Ups per round' },
+  ],
+  walk: [
+    { level: 1, label: 'L1', description: '20 Steps per round' },
+    { level: 2, label: 'L2', description: '40 Steps per round' },
+    { level: 3, label: 'L3', description: '60 Steps per round' },
+    { level: 4, label: 'L4', description: '80 Steps per round' },
+    { level: 5, label: 'L5', description: '100 Steps per round' },
+  ],
 };
 
 /** Map a 5-level config to the legacy easy/medium/hard used by internal generators. */
@@ -733,6 +761,11 @@ export interface AlarmSettings {
   barcodeSettings?: MindChallengeConfig;
   speakMatchRoundsSettings?: MindChallengeConfig;
   objectVerifyRoundsSettings?: MindChallengeConfig;
+  // Body Wake-Up
+  jumpSettings?: MindChallengeConfig;
+  squatSettings?: MindChallengeConfig;
+  pushupSettings?: MindChallengeConfig;
+  walkSettings?: MindChallengeConfig;
   // Registered QR code for QR challenge
   registeredQrCode?: string;
   // Object verification settings
@@ -767,5 +800,9 @@ export const defaultAlarmSettings: AlarmSettings = {
   barcodeSettings: defaultMindChallengeConfig,
   speakMatchRoundsSettings: defaultMindChallengeConfig,
   objectVerifyRoundsSettings: defaultMindChallengeConfig,
+  jumpSettings: defaultMindChallengeConfig,
+  squatSettings: defaultMindChallengeConfig,
+  pushupSettings: defaultMindChallengeConfig,
+  walkSettings: defaultMindChallengeConfig,
 };
 
