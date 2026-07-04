@@ -1672,6 +1672,18 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
               {challengeType === 'objectVerify' && (
                 <MindChallengeConfigPanel challengeKey="objectVerify" value={objectVerifyCfg} onChange={setObjectVerifyCfg} />
               )}
+              {challengeType === 'jump' && (
+                <MindChallengeConfigPanel challengeKey="jump" value={jumpCfg} onChange={setJumpCfg} />
+              )}
+              {challengeType === 'squat' && (
+                <MindChallengeConfigPanel challengeKey="squat" value={squatCfg} onChange={setSquatCfg} />
+              )}
+              {challengeType === 'pushup' && (
+                <MindChallengeConfigPanel challengeKey="pushup" value={pushupCfg} onChange={setPushupCfg} />
+              )}
+              {challengeType === 'walk' && (
+                <MindChallengeConfigPanel challengeKey="walk" value={walkCfg} onChange={setWalkCfg} />
+              )}
 
 
 
