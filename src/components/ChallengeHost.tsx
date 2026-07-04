@@ -25,6 +25,10 @@ const ROUND_RUNNER_TYPES: ReadonlySet<ChallengeType> = new Set<ChallengeType>([
   "barcode",
   "speakMatch",
   "objectVerify",
+  "jump",
+  "squat",
+  "pushup",
+  "walk",
 ]);
 
 function pickConfig(settings: AlarmSettings, type: ChallengeType): MindChallengeConfig {
@@ -35,6 +39,10 @@ function pickConfig(settings: AlarmSettings, type: ChallengeType): MindChallenge
     case "barcode": return settings.barcodeSettings || defaultMindChallengeConfig;
     case "speakMatch": return settings.speakMatchRoundsSettings || defaultMindChallengeConfig;
     case "objectVerify": return settings.objectVerifyRoundsSettings || defaultMindChallengeConfig;
+    case "jump": return settings.jumpSettings || defaultMindChallengeConfig;
+    case "squat": return settings.squatSettings || defaultMindChallengeConfig;
+    case "pushup": return settings.pushupSettings || defaultMindChallengeConfig;
+    case "walk": return settings.walkSettings || defaultMindChallengeConfig;
     default: return defaultMindChallengeConfig;
   }
 }
