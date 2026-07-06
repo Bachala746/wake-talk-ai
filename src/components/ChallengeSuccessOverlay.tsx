@@ -1,19 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Sparkles, Sun } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { useTheme } from "@/hooks/useTheme";
+import companionVideo from "@/assets/success-companion.mp4.asset.json";
 
 const MOTIVATIONAL_MESSAGES = [
-  "You did it! Your mind is awake and ready to own the day.",
-  "Every round crushed. That's the kind of energy that changes lives.",
-  "Fully awake, fully alive. Go make today unforgettable.",
-  "Discipline beats snooze — you just proved it. Have an amazing day!",
-  "Champions win the morning. You just won yours.",
-  "Brain online. Body ready. Nothing can stop you now.",
-  "That's how winners start the day. Momentum is yours.",
-  "You showed up when it was hardest. The rest of today is easy.",
-  "Focused, sharp, and unstoppable. Let's go!",
-  "Sunrise mindset activated. Own every moment ahead.",
+  "Awesome! You're getting stronger every day ❤️",
+  "Challenge complete! Your mind is awake and ready.",
+  "You showed up when it was hardest. That's real strength.",
+  "Every round crushed — that's champion energy.",
+  "Discipline beats snooze. You just proved it.",
+  "Focused, sharp, and unstoppable. Go own the day!",
+  "That's how winners start the morning. Keep going ❤️",
+  "Fully awake, fully alive. Today is yours.",
+  "Small wins, big life. You're building something great.",
+  "Brain online. Heart open. Let's go!",
 ];
 
 interface Props {
@@ -25,29 +25,49 @@ interface Props {
 /**
  * Full-screen success animation shown when ALL rounds of any challenge
  * category (Mind / Body / Reality / Interaction) are completed successfully.
- * Fires onDone after the animation finishes so the alarm can dismiss.
+ *
+ * Design: a warm "companion celebrating with you" moment — the character
+ * plays a short 5s reward animation, a heart floats toward the user, and a
+ * motivational message fades in. Feels rewarding, emotional, and consistent
+ * across every challenge category.
  */
-export const ChallengeSuccessOverlay = ({ onDone, durationMs = 2600 }: Props) => {
+export const ChallengeSuccessOverlay = ({ onDone, durationMs = 5200 }: Props) => {
   const { isDark } = useTheme();
   const [visible, setVisible] = useState(true);
+  const [showText, setShowText] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   const message = useMemo(
     () => MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)],
     []
   );
 
   useEffect(() => {
-    const fadeAt = durationMs - 300;
+    // Text fades in after the character has landed and started celebrating.
+    const textId = window.setTimeout(() => setShowText(true), 1400);
+    const fadeAt = durationMs - 320;
     const fadeId = window.setTimeout(() => setVisible(false), fadeAt);
     const doneId = window.setTimeout(() => onDone(), durationMs);
     return () => {
+      window.clearTimeout(textId);
       window.clearTimeout(fadeId);
       window.clearTimeout(doneId);
     };
   }, [durationMs, onDone]);
 
+  useEffect(() => {
+    // Ensure autoplay actually starts on mobile browsers.
+    const v = videoRef.current;
+    if (v) {
+      v.play().catch(() => {
+        /* ignore — muted+playsInline should allow autoplay */
+      });
+    }
+  }, []);
+
   return (
     <div
-      className={`fixed inset-0 z-[100] flex items-center justify-center p-4 transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 transition-opacity duration-300 ${
         visible ? "opacity-100" : "opacity-0"
       } ${
         isDark
@@ -60,81 +80,56 @@ export const ChallengeSuccessOverlay = ({ onDone, durationMs = 2600 }: Props) =>
       {/* Ambient glow */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
-          className={`absolute -top-20 -left-20 w-80 h-80 rounded-full blur-3xl opacity-40 animate-pulse ${
-            isDark ? "bg-indigo-500/30" : "bg-amber-300/40"
+          className={`absolute -top-24 left-1/2 -translate-x-1/2 w-[28rem] h-[28rem] rounded-full blur-3xl opacity-50 animate-pulse ${
+            isDark ? "bg-indigo-500/25" : "bg-pink-300/40"
           }`}
         />
         <div
-          className={`absolute -bottom-24 -right-16 w-96 h-96 rounded-full blur-3xl opacity-40 animate-pulse ${
-            isDark ? "bg-purple-500/30" : "bg-orange-300/40"
+          className={`absolute -bottom-28 left-1/2 -translate-x-1/2 w-[26rem] h-[26rem] rounded-full blur-3xl opacity-40 animate-pulse ${
+            isDark ? "bg-fuchsia-500/20" : "bg-orange-300/40"
           }`}
-          style={{ animationDelay: "400ms" }}
+          style={{ animationDelay: "500ms" }}
         />
       </div>
 
-      {/* Sparkle burst */}
-      <div className="pointer-events-none absolute inset-0">
-        {Array.from({ length: 14 }).map((_, i) => {
-          const angle = (i / 14) * Math.PI * 2;
-          const dist = 140 + (i % 3) * 30;
-          const x = Math.cos(angle) * dist;
-          const y = Math.sin(angle) * dist;
-          return (
-            <Sparkles
-              key={i}
-              className={`absolute top-1/2 left-1/2 h-4 w-4 animate-fade-in ${
-                isDark ? "text-amber-300" : "text-orange-500"
-              }`}
-              style={{
-                transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-                animationDelay: `${i * 60}ms`,
-                animationDuration: "800ms",
-              }}
-            />
-          );
-        })}
+      {/* Companion video */}
+      <div className="relative z-10 animate-scale-in">
+        <div
+          className={`absolute inset-0 rounded-full blur-2xl ${
+            isDark ? "bg-fuchsia-500/25" : "bg-pink-300/50"
+          }`}
+          aria-hidden="true"
+        />
+        <video
+          ref={videoRef}
+          src={companionVideo.url}
+          className="relative w-64 h-64 sm:w-80 sm:h-80 object-contain drop-shadow-2xl"
+          autoPlay
+          muted
+          playsInline
+          preload="auto"
+        />
       </div>
 
+      {/* Message card */}
       <Card
-        className={`relative z-10 w-full max-w-md p-8 text-center space-y-5 border shadow-2xl rounded-3xl animate-scale-in ${
+        className={`relative z-10 mt-4 w-full max-w-md p-6 text-center border shadow-2xl rounded-3xl transition-all duration-500 ${
+          showText
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-4"
+        } ${
           isDark
-            ? "bg-slate-800/80 border-indigo-400/30"
-            : "bg-white/90 border-amber-200/70"
+            ? "bg-slate-800/80 border-fuchsia-400/25"
+            : "bg-white/90 border-pink-200/70"
         }`}
       >
-        <div className="flex justify-center">
-          <div
-            className={`relative inline-flex items-center justify-center w-24 h-24 rounded-full ${
-              isDark ? "bg-emerald-500/20" : "bg-emerald-100"
-            }`}
-          >
-            <div
-              className={`absolute inset-0 rounded-full animate-ping ${
-                isDark ? "bg-emerald-400/30" : "bg-emerald-400/40"
-              }`}
-            />
-            <CheckCircle2
-              className="relative h-14 w-14 text-emerald-500 animate-scale-in"
-              strokeWidth={2.2}
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2 animate-fade-in">
-          <div className="flex items-center justify-center gap-2">
-            <Sun
-              className={`h-5 w-5 ${isDark ? "text-amber-300" : "text-orange-500"}`}
-            />
-            <h2 className="text-2xl font-extrabold tracking-tight text-foreground">
-              All Rounds Complete!
-            </h2>
-          </div>
-          <p className="text-base leading-relaxed text-muted-foreground font-medium">
-            {message}
-          </p>
-        </div>
-
-        <div className="flex items-center justify-center gap-1.5 pt-1">
+        <h2 className="text-2xl font-extrabold tracking-tight text-foreground mb-1">
+          Challenge Complete!
+        </h2>
+        <p className="text-base leading-relaxed text-muted-foreground font-medium">
+          {message}
+        </p>
+        <div className="flex items-center justify-center gap-1.5 pt-3">
           <span
             className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce"
             style={{ animationDelay: "0ms" }}
