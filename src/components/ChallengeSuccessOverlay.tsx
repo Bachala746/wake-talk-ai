@@ -20,7 +20,49 @@ interface Props {
   onDone: () => void;
   /** Total ms the overlay stays visible before firing onDone. */
   durationMs?: number;
+  /** Whether soft sound effects should play in sync with animation beats. */
+  soundEnabled?: boolean;
+  /** Whether haptic vibration should fire in sync with animation beats. */
+  hapticsEnabled?: boolean;
 }
+
+/** Subtle vibration helper — safely no-ops when unsupported. */
+const vibrate = (pattern: number | number[]) => {
+  try {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate(pattern);
+    }
+  } catch {
+    /* ignore */
+  }
+};
+
+/**
+ * Tiny Web Audio helper for beat-synced UI sounds.
+ * Each note is intentionally short and soft so it feels like a chime,
+ * not an alarm.
+ */
+const playNote = (
+  ctx: AudioContext,
+  freq: number,
+  startOffset: number,
+  duration: number,
+  volume: number,
+  type: OscillatorType = "sine"
+) => {
+  const t0 = ctx.currentTime + startOffset;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, t0);
+  gain.gain.setValueAtTime(0, t0);
+  gain.gain.linearRampToValueAtTime(volume, t0 + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(t0);
+  osc.stop(t0 + duration + 0.05);
+};
 
 /**
  * Full-screen success animation shown when ALL rounds of any challenge
@@ -30,8 +72,20 @@ interface Props {
  * plays a short 5s reward animation, a heart floats toward the user, and a
  * motivational message fades in. Feels rewarding, emotional, and consistent
  * across every challenge category.
+ *
+ * Beat map (aligned to the 4–5s video):
+ *   0.0s  — character pops in            (soft pop + light tap)
+ *   0.5s  — wave / smile                 (soft tick)
+ *   1.5s  — heart forms in palm          (warm rising chime)
+ *   2.8s  — heart bursts toward viewer   (sparkle chime + pattern buzz)
+ *   3.8s  — wink + thumbs-up             (triumph arpeggio + light tap)
  */
-export const ChallengeSuccessOverlay = ({ onDone, durationMs = 5200 }: Props) => {
+export const ChallengeSuccessOverlay = ({
+  onDone,
+  durationMs = 5200,
+  soundEnabled = true,
+  hapticsEnabled = true,
+}: Props) => {
   const { isDark } = useTheme();
   const [visible, setVisible] = useState(true);
   const [showText, setShowText] = useState(false);
@@ -64,6 +118,85 @@ export const ChallengeSuccessOverlay = ({ onDone, durationMs = 5200 }: Props) =>
       });
     }
   }, []);
+
+  // Beat-synced haptics + sound. Fires once when the overlay mounts.
+  useEffect(() => {
+    const timers: number[] = [];
+    let ctx: AudioContext | null = null;
+
+    if (soundEnabled) {
+      try {
+        const AC =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext })
+            .webkitAudioContext;
+        ctx = new AC();
+      } catch {
+        ctx = null;
+      }
+    }
+
+    // Beat 1 — pop in (0.0s)
+    if (hapticsEnabled) vibrate(18);
+    if (ctx) {
+      playNote(ctx, 520, 0, 0.18, 0.18, "sine");
+      playNote(ctx, 780, 0.05, 0.14, 0.12, "sine");
+    }
+
+    // Beat 2 — wave / smile (0.5s)
+    timers.push(
+      window.setTimeout(() => {
+        if (hapticsEnabled) vibrate(10);
+        if (ctx) playNote(ctx, 880, 0, 0.12, 0.1, "sine");
+      }, 500)
+    );
+
+    // Beat 3 — heart forms (1.5s) — warm rising chime
+    timers.push(
+      window.setTimeout(() => {
+        if (hapticsEnabled) vibrate(22);
+        if (ctx) {
+          playNote(ctx, 587.33, 0, 0.35, 0.14, "sine"); // D5
+          playNote(ctx, 880, 0.12, 0.3, 0.11, "sine"); // A5
+        }
+      }, 1500)
+    );
+
+    // Beat 4 — heart bursts (2.8s) — sparkle
+    timers.push(
+      window.setTimeout(() => {
+        if (hapticsEnabled) vibrate([25, 40, 20]);
+        if (ctx) {
+          playNote(ctx, 1046.5, 0, 0.18, 0.14, "triangle"); // C6
+          playNote(ctx, 1318.51, 0.08, 0.2, 0.12, "triangle"); // E6
+          playNote(ctx, 1567.98, 0.16, 0.22, 0.1, "triangle"); // G6
+        }
+      }, 2800)
+    );
+
+    // Beat 5 — wink + thumbs-up (3.8s) — triumph arpeggio
+    timers.push(
+      window.setTimeout(() => {
+        if (hapticsEnabled) vibrate(15);
+        if (ctx) {
+          playNote(ctx, 783.99, 0, 0.16, 0.14, "sine"); // G5
+          playNote(ctx, 1046.5, 0.1, 0.16, 0.14, "sine"); // C6
+          playNote(ctx, 1318.51, 0.2, 0.25, 0.14, "sine"); // E6
+        }
+      }, 3800)
+    );
+
+    return () => {
+      timers.forEach((id) => window.clearTimeout(id));
+      if (ctx) {
+        try {
+          ctx.close();
+        } catch {
+          /* ignore */
+        }
+      }
+    };
+  }, [soundEnabled, hapticsEnabled]);
 
   return (
     <div
