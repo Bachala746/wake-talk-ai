@@ -8,8 +8,14 @@ import {
   MindChallengeConfig,
   defaultMindChallengeConfig,
   getCategoryForChallenge,
-  difficultyToLevel,
 } from "@/lib/alarmSettings";
+
+function difficultyToLevel(d: string): number {
+  if (d === "easy") return 1;
+  if (d === "medium") return 3;
+  if (d === "hard") return 5;
+  return 3;
+}
 
 interface Props {
   settings: AlarmSettings;
