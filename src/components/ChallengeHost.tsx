@@ -7,7 +7,15 @@ import {
   ChallengeType,
   MindChallengeConfig,
   defaultMindChallengeConfig,
+  getCategoryForChallenge,
 } from "@/lib/alarmSettings";
+
+function difficultyToLevel(d: string): number {
+  if (d === "easy") return 1;
+  if (d === "medium") return 3;
+  if (d === "hard") return 5;
+  return 3;
+}
 
 interface Props {
   settings: AlarmSettings;
@@ -105,10 +113,22 @@ export const ChallengeHost = ({
     />
   );
 
+  const category = getCategoryForChallenge(type)?.id;
+  const cfg = pickConfig(settings, type);
+  const level = ROUND_RUNNER_TYPES.has(type)
+    ? (cfg.level || 1)
+    : difficultyToLevel(settings.challengeDifficulty);
+
   return (
     <>
       {inner}
-      {showSuccess && <ChallengeSuccessOverlay onDone={handleOverlayDone} />}
+      {showSuccess && (
+        <ChallengeSuccessOverlay
+          onDone={handleOverlayDone}
+          category={category}
+          level={level}
+        />
+      )}
     </>
   );
 };
