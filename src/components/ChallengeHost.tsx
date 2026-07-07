@@ -113,10 +113,22 @@ export const ChallengeHost = ({
     />
   );
 
+  const category = getCategoryForChallenge(type)?.id;
+  const cfg = pickConfig(settings, type);
+  const level = ROUND_RUNNER_TYPES.has(type)
+    ? (cfg.level || 1)
+    : difficultyToLevel(settings.challengeDifficulty);
+
   return (
     <>
       {inner}
-      {showSuccess && <ChallengeSuccessOverlay onDone={handleOverlayDone} />}
+      {showSuccess && (
+        <ChallengeSuccessOverlay
+          onDone={handleOverlayDone}
+          category={category}
+          level={level}
+        />
+      )}
     </>
   );
 };
