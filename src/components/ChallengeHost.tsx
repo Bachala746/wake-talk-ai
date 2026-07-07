@@ -7,6 +7,8 @@ import {
   ChallengeType,
   MindChallengeConfig,
   defaultMindChallengeConfig,
+  getCategoryForChallenge,
+  difficultyToLevel,
 } from "@/lib/alarmSettings";
 
 interface Props {
