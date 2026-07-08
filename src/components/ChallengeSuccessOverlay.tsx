@@ -175,6 +175,10 @@ export const ChallengeSuccessOverlay = ({
   }, [category]);
 
   useEffect(() => {
+    // Category-tuned completion chime + optional haptic feedback.
+    playSuccessChime(category, level);
+    triggerHaptic(category, level);
+
     const fadeAt = Math.max(0, total - 350);
     const fadeId = window.setTimeout(() => setVisible(false), fadeAt);
     const doneId = window.setTimeout(() => onDone(), total);
@@ -182,7 +186,7 @@ export const ChallengeSuccessOverlay = ({
       window.clearTimeout(fadeId);
       window.clearTimeout(doneId);
     };
-  }, [total, onDone]);
+  }, [total, onDone, category, level]);
 
   return (
     <div
