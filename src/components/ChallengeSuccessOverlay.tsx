@@ -140,6 +140,97 @@ function intensityFor(level: number) {
   };
 }
 
+/* ---------------- Feedback (sound + haptics) ---------------- */
+
+// Per-category chord (frequencies in Hz). Ascending arpeggio played on completion.
+const CHIME_NOTES: Record<ChallengeCategoryId, number[]> = {
+  mind:        [523.25, 659.25, 783.99, 1046.50], // C5 E5 G5 C6 — bright major
+  body:        [392.00, 523.25, 659.25, 880.00],  // G4 C5 E5 A5 — powerful
+  reality:     [440.00, 554.37, 659.25, 880.00],  // A4 C#5 E5 A5 — grounded
+  interaction: [493.88, 622.25, 739.99, 987.77],  // B4 D#5 F#5 B5 — warm
+  focus:       [523.25, 622.25, 783.99, 1046.50], // C5 D#5 G5 C6 — calm
+};
+
+function playSuccessChime(category: ChallengeCategoryId, level: number): void {
+  try {
+    const AC = (window.AudioContext || (window as any).webkitAudioContext) as
+      | typeof AudioContext
+      | undefined;
+    if (!AC) return;
+    const ctx = new AC();
+    // Resume if suspended (autoplay policies).
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
+
+    const notes = CHIME_NOTES[category] ?? CHIME_NOTES.interaction;
+    const lvl = Math.max(1, Math.min(5, level));
+    const noteDur = 0.14;
+    const gap = 0.075;
+    const baseVol = 0.18 + lvl * 0.02; // slightly louder for higher levels
+
+    notes.forEach((freq, i) => {
+      const start = ctx.currentTime + i * gap;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(baseVol, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + noteDur);
+      osc.start(start);
+      osc.stop(start + noteDur + 0.02);
+    });
+
+    // Sparkle shimmer on higher levels.
+    if (lvl >= 3) {
+      const shimmerStart = ctx.currentTime + notes.length * gap + 0.05;
+      [1567.98, 2093.00].forEach((freq, i) => {
+        const s = shimmerStart + i * 0.06;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.value = freq;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        gain.gain.setValueAtTime(0, s);
+        gain.gain.linearRampToValueAtTime(0.12, s + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, s + 0.22);
+        osc.start(s);
+        osc.stop(s + 0.24);
+      });
+    }
+
+    // Cleanup context shortly after all sounds finish.
+    const total = notes.length * gap + (lvl >= 3 ? 0.35 : 0.2);
+    window.setTimeout(() => {
+      ctx.close().catch(() => {});
+    }, Math.ceil(total * 1000) + 200);
+  } catch {
+    /* no-op — audio is optional */
+  }
+}
+
+function triggerHaptic(category: ChallengeCategoryId, level: number): void {
+  try {
+    if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
+    const lvl = Math.max(1, Math.min(5, level));
+    // Category-flavored pulse patterns, scaled by level.
+    const patterns: Record<ChallengeCategoryId, number[]> = {
+      mind:        [25, 40, 30],
+      body:        [40, 40, 60, 40, 80],
+      reality:     [30, 50, 40],
+      interaction: [20, 30, 20, 30, 40],
+      focus:       [50, 60, 40],
+    };
+    const base = patterns[category] ?? patterns.interaction;
+    const scaled = base.map((v, i) => (i % 2 === 0 ? Math.round(v * (0.9 + lvl * 0.12)) : v));
+    navigator.vibrate(scaled);
+  } catch {
+    /* no-op — haptics optional */
+  }
+}
+
 /* ---------------- Component ---------------- */
 
 interface Props {
