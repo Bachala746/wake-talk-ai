@@ -71,6 +71,8 @@ import { MindChallengeConfigPanel } from "@/components/MindChallengeConfigPanel"
 
 import { getStoredObjects, addStoredObject, removeStoredObject, captureImageFromVideo } from "@/lib/objectStore";
 import { getExampleMessage } from "@/lib/motivationLibrary";
+import { registerPlugin } from "@capacitor/core";
+const AlarmPlugin = registerPlugin("AlarmPlugin");
 
 const motivationalQuotes = [
   { quote: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
