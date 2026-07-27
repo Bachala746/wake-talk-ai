@@ -10,9 +10,16 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
+        String alarmId = intent.getStringExtra("alarmId");
+        String label = intent.getStringExtra("label");
+
+        if (label == null || label.isEmpty()) {
+            label = "Alarm";
+        }
+
         Toast.makeText(
                 context,
-                "Rise & Shine Alarm Triggered!",
+                label + " Alarm Triggered!",
                 Toast.LENGTH_LONG
         ).show();
 
@@ -20,7 +27,15 @@ public class AlarmReceiver extends BroadcastReceiver {
                 .getLaunchIntentForPackage(context.getPackageName());
 
         if (launchIntent != null) {
-            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+            launchIntent.putExtra("alarmId", alarmId);
+            launchIntent.putExtra("label", label);
+
+            launchIntent.addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK |
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP
+            );
+
             context.startActivity(launchIntent);
         }
     }

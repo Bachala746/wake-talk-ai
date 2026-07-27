@@ -1,3 +1,4 @@
+import { calculateNextTriggerTime } from "@/utils/alarmTime";
 import { useState, useEffect, useRef } from "react";
 import { CheatPenaltyIndicator } from "@/components/CheatPenaltyIndicator";
 import { Card } from "@/components/ui/card";
@@ -72,7 +73,7 @@ import { MindChallengeConfigPanel } from "@/components/MindChallengeConfigPanel"
 import { getStoredObjects, addStoredObject, removeStoredObject, captureImageFromVideo } from "@/lib/objectStore";
 import { getExampleMessage } from "@/lib/motivationLibrary";
 import { registerPlugin } from "@capacitor/core";
-const AlarmPlugin = registerPlugin("AlarmPlugin");
+import AlarmPlugin from "@/plugins/AlarmPlugin";
 
 const motivationalQuotes = [
   { quote: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
@@ -294,7 +295,7 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     onStartCall(alarm.time, alarm.duration, alarm.settings);
   };
 
-  const handleSaveAlarm = () => {
+  const handleSaveAlarm = async () => {
     const speakMatchSettingsObj: SpeakMatchSettings = {
       paragraphLength: smParagraphLength,
       accuracy: smAccuracy,
@@ -365,6 +366,29 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
           ? { ...a, time: alarmTime, label: alarmLabel, duration: talkDuration[0], days: selectedDays, settings }
           : a
       ));
+      
+      try {
+        await AlarmPlugin.cancelAlarm({
+           alarmId: editingAlarmId,
+        });
+
+        const triggerTimeMillis = calculateNextTriggerTime(
+          alarmTime,
+          selectedDays
+        );
+
+        await AlarmPlugin.scheduleAlarm({
+          alarmId: editingAlarmId,
+          triggerTimeMillis,
+          label: alarmLabel,
+         });
+
+        console.log("Android alarm updated successfully");
+      } catch (error) {
+        console.error("Failed to update Android alarm:", error);
+
+        toast.error("Failed to update Android alarm.");
+      }
       toast.success(`Alarm "${alarmLabel}" updated!`);
     } else {
       // Create new alarm
@@ -378,10 +402,29 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
         settings
       };
       setAlarms(prev => [...prev, newAlarm]);
-      const daysText = selectedDays.length > 0 ? ` on ${selectedDays.join(', ')}` : '';
-      toast.success(`Alarm "${alarmLabel}" set for ${alarmTime}${daysText}!`);
+
+      try {
+        const triggerTimeMillis = calculateNextTriggerTime(
+          alarmTime,
+          selectedDays
+        );
+
+        await AlarmPlugin.scheduleAlarm({
+          alarmId: newAlarm.id,
+          triggerTimeMillis,
+          label: newAlarm.label,
+        });
+
+         console.log("Android alarm scheduled successfully");
+        } catch (error) {
+          console.error("Failed to schedule Android alarm:", error);
+
+          toast.error("Failed to schedule Android alarm.");
+        }
+        const daysText = selectedDays.length > 0 ? ` on ${selectedDays.join(', ')}` : '';
+        toast.success(`Alarm "${alarmLabel}" set for ${alarmTime}${daysText}!`);
     }
-    closeDialog();
+        closeDialog();
   };
 
   const toggleDay = (day: string) => {
@@ -390,15 +433,77 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
     );
   };
 
-  const toggleAlarm = (id: string) => {
-    setAlarms(prev => prev.map(a => 
-      a.id === id ? { ...a, isActive: !a.isActive } : a
-    ));
+  const toggleAlarm = async (id: string) => {
+    const alarm = alarms.find(a => a.id === id);
+    if (!alarm) return;
+
+    const updatedAlarm = {
+      ...alarm,
+      isActive: !alarm.isActive,
+    };
+
+    setAlarms(prev =>
+      prev.map(a =>
+        a.id === id ? updatedAlarm : a
+      )
+    );
+
+    try {
+
+      if (updatedAlarm.isActive) {
+
+        const triggerTimeMillis = calculateNextTriggerTime(
+          updatedAlarm.time,
+          updatedAlarm.days
+        );
+
+        await AlarmPlugin.scheduleAlarm({
+          alarmId: updatedAlarm.id,
+          triggerTimeMillis,
+          label: updatedAlarm.label,
+        });
+
+        console.log("Android alarm enabled");
+
+      } else {
+
+        await AlarmPlugin.cancelAlarm({
+          alarmId: updatedAlarm.id,
+        });
+
+        console.log("Android alarm cancelled");
+      }
+
+    } catch (error) {
+
+      console.error("Failed to toggle Android alarm:", error);
+
+      toast.error("Failed to update Android alarm.");
+
+    }
+
   };
 
-  const deleteAlarm = (id: string) => {
-    setAlarms(prev => prev.filter(a => a.id !== id));
-    toast.info("Alarm deleted");
+  const deleteAlarm = async (id: string) => {
+    try {
+
+      await AlarmPlugin.cancelAlarm({
+        alarmId: id,
+      });
+
+      console.log("Android alarm deleted");
+
+    } catch (error) {
+
+      console.error("Failed to cancel Android alarm:", error);
+
+      toast.error("Failed to cancel Android alarm.");
+
+    }
+
+    setAlarms(prev =>
+      prev.filter(a => a.id !== id)
+    );
   };
 
   const openEditDialog = (alarm: Alarm) => {
