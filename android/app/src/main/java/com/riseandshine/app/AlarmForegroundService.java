@@ -49,7 +49,7 @@ public class AlarmForegroundService extends Service {
                         .setContentTitle("Wake Talk AI")
                         .setContentText("Alarm is ringing")
                         .setSmallIcon(R.mipmap.ic_launcher)
-                        .setContentIntent(pendingIntent)
+                        .setFullScreenIntent(pendingIntent, true)
                         .setOngoing(true)
                         .build();
 
