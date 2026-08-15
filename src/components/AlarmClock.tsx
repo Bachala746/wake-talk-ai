@@ -486,19 +486,16 @@ export const AlarmClock = ({ onStartCall }: AlarmClockProps) => {
 
   const deleteAlarm = async (id: string) => {
     try {
+        const result = await AlarmPlugin.cancelAlarm({
+            alarmId: id,
+        });
 
-      await AlarmPlugin.cancelAlarm({
-        alarmId: id,
-      });
-
-      console.log("Android alarm deleted");
-
+        console.log(result);
+        console.log("Android alarm deleted");
     } catch (error) {
-
-      console.error("Failed to cancel Android alarm:", error);
-
-      toast.error("Failed to cancel Android alarm.");
-
+        console.log("Cancel Error:", JSON.stringify(error));
+        console.error(error);
+        toast.error("Failed to cancel Android alarm.");
     }
 
     setAlarms(prev =>

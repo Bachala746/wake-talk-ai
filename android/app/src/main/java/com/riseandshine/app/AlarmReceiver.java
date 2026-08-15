@@ -23,20 +23,12 @@ public class AlarmReceiver extends BroadcastReceiver {
                 Toast.LENGTH_LONG
         ).show();
 
-        Intent launchIntent = context.getPackageManager()
-                .getLaunchIntentForPackage(context.getPackageName());
+        Intent serviceIntent =
+                new Intent(context, AlarmForegroundService.class);
 
-        if (launchIntent != null) {
+        serviceIntent.putExtra("alarmId", alarmId);
+        serviceIntent.putExtra("label", label);
 
-            launchIntent.putExtra("alarmId", alarmId);
-            launchIntent.putExtra("label", label);
-
-            launchIntent.addFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK |
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP
-            );
-
-            context.startActivity(launchIntent);
-        }
+        context.startForegroundService(serviceIntent);
     }
 }

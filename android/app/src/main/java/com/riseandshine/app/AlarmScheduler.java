@@ -27,7 +27,7 @@ public class AlarmScheduler {
                 context,
                 requestCode,
                 intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE
         );
 
         if (alarmManager != null) {
@@ -58,8 +58,8 @@ public class AlarmScheduler {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        if (alarmManager != null) {
-            alarmManager.cancel(pendingIntent);
+        if (alarmManager != null && pendingIntent != null) {
+                alarmManager.cancel(pendingIntent);
         }
     }
 }
